@@ -1,2 +1,2 @@
 # ondorealestateui
-ONDO real estate UI software development 
+ONDO real estate UI
