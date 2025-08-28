@@ -31,6 +31,13 @@ const Home: React.FC = () => {
             {/* Navigation Links */}
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-8">
+                {/* Why Utah Tab */}
+                <Link
+                  to="/why-utah"
+                  className="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Why Utah
+                </Link>
                 {/* Mortgage Calculators Dropdown */}
                 <div className="relative">
                   <button
