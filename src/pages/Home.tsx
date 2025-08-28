@@ -96,6 +96,14 @@ const Home: React.FC = () => {
                   )}
                 </div>
 
+                {/* Why Utah Link */}
+                <Link
+                  to="/why-utah"
+                  className="bg-gradient-to-r from-black to-orange-600 text-white hover:from-gray-800 hover:to-orange-700 px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105"
+                >
+                  Why Utah?
+                </Link>
+
                 {/* Help Link */}
                 <Link
                   to="/help"
