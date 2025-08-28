@@ -22,6 +22,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
+  { path: "/why-utah", element: <WhyUtah /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
   { path: "/forgot-password", element: <ForgotPassword /> },
