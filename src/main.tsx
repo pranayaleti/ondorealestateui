@@ -8,6 +8,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Verify from "./pages/Verify";
 import PageNotFound from "./pages/PageNotFound";
+import WhyUtah from "./pages/WhyUtah";
 import MortgagePaymentCalculator from "./pages/calculators/MortgagePaymentCalculator";
 import AffordabilityCalculator from "./pages/calculators/AffordabilityCalculator";
 import ClosingCostCalculator from "./pages/calculators/ClosingCostCalculator";
@@ -21,6 +22,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
+  { path: "/why-utah", element: <WhyUtah /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
   { path: "/forgot-password", element: <ForgotPassword /> },
