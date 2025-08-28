@@ -8,6 +8,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Verify from "./pages/Verify";
 import WhyUtah from "./pages/WhyUtah";
+import WhyUtah1 from "./pages/WhyUtah1";
+import WhyUtah2 from "./pages/WhyUtah2";
 import PageNotFound from "./pages/PageNotFound";
 import MortgagePaymentCalculator from "./pages/calculators/MortgagePaymentCalculator";
 import AffordabilityCalculator from "./pages/calculators/AffordabilityCalculator";
@@ -23,12 +25,13 @@ import "react-toastify/dist/ReactToastify.css";
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
   { path: "/why-utah", element: <WhyUtah /> },
+  { path: "/why-utah1", element: <WhyUtah1 /> },
+  { path: "/why-utah2", element: <WhyUtah2 /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
   { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/reset-password", element: <ResetPassword /> },
   { path: "/verify", element: <Verify /> },
-  { path: "/why-utah", element: <WhyUtah /> },
   { path: "/calculators/mortgage-payment", element: <MortgagePaymentCalculator /> },
   { path: "/calculators/affordability", element: <AffordabilityCalculator /> },
   { path: "/calculators/income", element: <IncomeCalculator /> },
