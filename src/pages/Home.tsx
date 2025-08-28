@@ -64,6 +64,14 @@ const Home: React.FC = () => {
                   )}
                 </div>
 
+                {/* Why Utah Link */}
+                <Link
+                  to="/why-utah"
+                  className="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Why Utah
+                </Link>
+
                 {/* About Us Dropdown */}
                 <div className="relative">
                   <button
@@ -201,6 +209,68 @@ const Home: React.FC = () => {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Comprehensive</h3>
               <p className="text-gray-600">Cover all aspects of mortgage planning from payment to closing costs.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Why Utah Section */}
+      <div className="bg-gradient-to-r from-blue-900 to-blue-800 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-4xl font-bold text-white mb-6">
+                Why Invest in <span className="text-orange-400">Utah?</span>
+              </h2>
+              <p className="text-xl text-blue-100 mb-8">
+                Discover why Utah is the premier destination for real estate investment, 
+                business growth, and family living in the American West.
+              </p>
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center">
+                  <div className="w-6 h-6 bg-orange-400 rounded-full mr-4"></div>
+                  <span className="text-blue-100">#1 Best State for Business (Forbes 2023)</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-6 h-6 bg-orange-400 rounded-full mr-4"></div>
+                  <span className="text-blue-100">2034 Olympics returning to Salt Lake City</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-6 h-6 bg-orange-400 rounded-full mr-4"></div>
+                  <span className="text-blue-100">Silicon Slopes tech corridor growth</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-6 h-6 bg-orange-400 rounded-full mr-4"></div>
+                  <span className="text-blue-100">Youngest state with highest family formation</span>
+                </div>
+              </div>
+              <Link
+                to="/why-utah"
+                className="inline-block bg-orange-400 hover:bg-orange-500 text-blue-900 px-8 py-3 rounded-lg text-lg font-bold transition-colors"
+              >
+                Learn More About Utah
+              </Link>
+            </div>
+            <div className="bg-white p-8 rounded-2xl shadow-xl">
+              <h3 className="text-2xl font-bold text-blue-900 mb-6">Quick Utah Stats</h3>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-orange-500 mb-2">2.3%</div>
+                  <div className="text-blue-900 font-semibold">Annual Population Growth</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-orange-500 mb-2">31.2</div>
+                  <div className="text-blue-900 font-semibold">Median Age</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-orange-500 mb-2">93%</div>
+                  <div className="text-blue-900 font-semibold">High School Graduation</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-orange-500 mb-2">$1.2T</div>
+                  <div className="text-blue-900 font-semibold">Projected GDP 2030</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

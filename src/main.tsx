@@ -8,6 +8,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Verify from "./pages/Verify";
 import PageNotFound from "./pages/PageNotFound";
+import WhyUtah from "./pages/WhyUtah";
 import MortgagePaymentCalculator from "./pages/calculators/MortgagePaymentCalculator";
 import AffordabilityCalculator from "./pages/calculators/AffordabilityCalculator";
 import ClosingCostCalculator from "./pages/calculators/ClosingCostCalculator";
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
   { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/reset-password", element: <ResetPassword /> },
   { path: "/verify", element: <Verify /> },
+  { path: "/why-utah", element: <WhyUtah /> },
   { path: "/calculators/mortgage-payment", element: <MortgagePaymentCalculator /> },
   { path: "/calculators/affordability", element: <AffordabilityCalculator /> },
   { path: "/calculators/income", element: <IncomeCalculator /> },
