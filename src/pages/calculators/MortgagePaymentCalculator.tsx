@@ -98,8 +98,8 @@ const MortgagePaymentCalculator: React.FC = () => {
     }
     
     setResults({
-      principal: monthlyPayment,
-      interest: monthlyTax + monthlyInsurance + monthlyPmi,
+      principal: monthlyPayment - (loanAmount * monthlyRate),
+      interest: loanAmount * monthlyRate,
       tax: monthlyTax,
       insurance: monthlyInsurance,
       pmi: monthlyPmi,
