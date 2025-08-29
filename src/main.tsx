@@ -7,6 +7,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Verify from "./pages/Verify";
 import PageNotFound from "./pages/PageNotFound";
+import AboutMe from "./pages/AboutMe";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -17,6 +18,8 @@ const router = createBrowserRouter([
   { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/reset-password", element: <ResetPassword /> },
   { path: "/verify", element: <Verify /> },
+  { path: "/about", element: <AboutMe /> },
+  { path: "/about-me", element: <AboutMe /> },
   { path: "*", element: <PageNotFound /> },
 ]);
 
