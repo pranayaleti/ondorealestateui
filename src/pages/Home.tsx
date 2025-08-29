@@ -192,6 +192,31 @@ const Home: React.FC = () => {
         </div>
       </div>
 
+      {/* Founder’s Note Section */}
+      <div className="bg-gray-100 dark:bg-gray-800 py-20 border-t border-gray-200 dark:border-gray-700">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center gap-8">
+          <img
+            src="/logo.png"
+            alt="Founder Pranay Reddy Aleti"
+            className="w-32 h-32 rounded-full object-cover border-4 border-orange-500 shadow-lg"
+          />
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Founder’s Note</h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-4 max-w-2xl">
+              "Real estate is more than property—it’s about people, growth, and legacy. At Ondo, we’re building a modern
+              platform rooted in trust, transparency, and technology so owners can rest easy and tenants feel right at
+              home."
+            </p>
+            <Link
+              to="/founder-letter"
+              className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-md text-sm font-medium"
+            >
+              Read the full letter
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Features Section */}
       <div className="bg-gray-900 py-20 border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

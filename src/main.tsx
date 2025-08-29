@@ -19,6 +19,8 @@ import RefinanceCalculator from "./pages/calculators/RefinanceCalculator";
 import HomeSaleCalculator from "./pages/calculators/HomeSaleCalculator";
 import BuyingPowerCalculator from "./pages/calculators/BuyingPowerCalculator";
 import TemporaryBuydownCalculator from "./pages/calculators/TemporaryBuydownCalculator";
+import AboutMe from "./pages/AboutMe";
+import FoundersLetter from "./pages/FoundersLetter";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -32,6 +34,7 @@ const router = createBrowserRouter([
   { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/reset-password", element: <ResetPassword /> },
   { path: "/verify", element: <Verify /> },
+  { path: "/founder-letter", element: <FoundersLetter /> },
   { path: "/calculators/mortgage-payment", element: <MortgagePaymentCalculator /> },
   { path: "/calculators/affordability", element: <AffordabilityCalculator /> },
   { path: "/calculators/income", element: <IncomeCalculator /> },
@@ -40,6 +43,8 @@ const router = createBrowserRouter([
   { path: "/calculators/home-sale", element: <HomeSaleCalculator /> },
   { path: "/calculators/buying-power", element: <BuyingPowerCalculator /> },
   { path: "/calculators/temporary-buydown", element: <TemporaryBuydownCalculator /> },
+  { path: "/about", element: <AboutMe /> },
+  { path: "/about-me", element: <AboutMe /> },
   { path: "*", element: <PageNotFound /> },
 ]);
 
