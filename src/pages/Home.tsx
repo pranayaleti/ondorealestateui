@@ -59,6 +59,12 @@ const Home: React.FC = () => {
                       onMouseLeave={() => setIsCalculatorDropdownOpen(false)}
                     >
                       <div className="py-1">
+                        <Link
+                          to="/calculators"
+                          className="block px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-orange-400 border-b border-gray-700 font-semibold"
+                        >
+                          🧮 All Calculators
+                        </Link>
                         {calculatorOptions.map((option) => (
                           <Link
                             key={option.path}

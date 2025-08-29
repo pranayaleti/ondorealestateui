@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowBackIos } from '@mui/icons-material';
+import { ArrowBackIos, Download } from '@mui/icons-material';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface MortgageData {
   homePrice: number;
@@ -130,6 +132,44 @@ const MortgagePaymentCalculator: React.FC = () => {
     }).format(amount);
   };
 
+  const downloadPDF = async () => {
+    if (!results) return;
+
+    const element = document.getElementById('pdf-content');
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save('mortgage-payment-analysis.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
+  };
+
   const formatPercent = (value: number) => {
     return `${value.toFixed(2)}%`;
   };
@@ -139,11 +179,22 @@ const MortgagePaymentCalculator: React.FC = () => {
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center space-x-4">
-            <Link to="/" className="text-blue-600 hover:text-blue-800">
-              <ArrowBackIos className="h-6 w-6" />
-            </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Mortgage Payment Calculator</h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Link to="/calculators" className="text-blue-600 hover:text-blue-800">
+                <ArrowBackIos className="h-6 w-6" />
+              </Link>
+              <h1 className="text-2xl font-bold text-gray-900">Mortgage Payment Calculator</h1>
+            </div>
+            {results && (
+              <button
+                onClick={downloadPDF}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              >
+                <Download className="h-5 w-5" />
+                <span>Download PDF</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -297,7 +348,7 @@ const MortgagePaymentCalculator: React.FC = () => {
           {/* Results */}
           <div className="space-y-6">
             {results && (
-              <>
+              <div id="pdf-content">
                 {/* Monthly Payment Summary */}
                 <div className="bg-white rounded-lg shadow-lg p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Monthly Payment Breakdown</h2>
@@ -393,7 +444,7 @@ const MortgagePaymentCalculator: React.FC = () => {
                     </div>
                   )}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
