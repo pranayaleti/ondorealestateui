@@ -6,7 +6,7 @@ import { Building, FileText, Home, MessageSquare, Settings, PenToolIcon as Tool,
 import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
-  title: "Tenant Dashboard - PropertyMatch",
+  title: "Tenant Dashboard - Real Estate",
   description: "Manage your rental property and payments",
 }
 

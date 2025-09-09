@@ -6,7 +6,7 @@ export function Footer() {
       <div className="container px-4 md:px-6 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">OnDo Property Match</h3>
+            <h3 className="text-lg font-semibold mb-4">OnDo Real Estate</h3>
             <p className="text-gray-400">
               Professional property management services connecting quality properties with qualified tenants.
             </p>
@@ -72,14 +72,14 @@ export function Footer() {
                 (555) 123-4567
               </Link>
               <br />
-              <Link href="mailto:info@ondo.propertymatch.com" className="hover:text-white">
-                info@ondo.propertymatch.com
+              <Link href="mailto:info@ondo.Real Estate.com" className="hover:text-white">
+                info@ondo.Real Estate.com
               </Link>
             </address>
           </div>
         </div>
         <div className="border-t border-gray-800 pt-6 text-center text-sm text-gray-400">
-          © {new Date().getFullYear()} PropertyMatch. All rights reserved.
+          © {new Date().getFullYear()} Real Estate. All rights reserved.
         </div>
       </div>
     </footer>

@@ -31,13 +31,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkSession = async () => {
       // In a real app, this would be a fetch to verify the session
-      const savedUser = localStorage.getItem("propertyMatchUser")
+      const savedUser = localStorage.getItem("Real EstateUser")
       if (savedUser) {
         try {
           setUser(JSON.parse(savedUser))
         } catch (e) {
           console.error("Failed to parse user data", e)
-          localStorage.removeItem("propertyMatchUser")
+          localStorage.removeItem("Real EstateUser")
         }
       }
       setIsLoading(false)
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (userData) {
           setUser(userData)
-          localStorage.setItem("propertyMatchUser", JSON.stringify(userData))
+          localStorage.setItem("Real EstateUser", JSON.stringify(userData))
           setIsLoading(false)
           resolve(true)
         } else {
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem("propertyMatchUser")
+    localStorage.removeItem("Real EstateUser")
     router.push("/")
   }
 

@@ -10,7 +10,7 @@ import {
 import { DollarSign, Home } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Finances | OnDo PropertyMatch",
+  title: "Finances | OnDo Real Estate",
   description: "Manage your property finances",
 }
 

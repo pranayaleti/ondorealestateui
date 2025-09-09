@@ -30,7 +30,7 @@ export default function Header() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-xl font-bold">OnDo <span className="text-primary">Property Match</span></span>
+            <span className="text-xl font-bold">OnDo <span className="text-primary">Real Estate</span></span>
           </Link>
           <nav className="hidden md:flex gap-6">
             <Link href="/properties" className="text-sm font-medium hover:underline underline-offset-4">

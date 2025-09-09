@@ -15,8 +15,8 @@ import { Download } from "lucide-react"
 import Loading from "@/components/loading"
 
 export const metadata: Metadata = {
-  title: "Dashboard | OnDo Property Match",
-  description: "Dashboard for OnDo Property Match",
+  title: "Dashboard | OnDo Real Estate",
+  description: "Dashboard for OnDo Real Estate",
 }
 
 export default function DashboardPage() {

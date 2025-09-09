@@ -2,8 +2,8 @@ import type React from "react"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Authentication - OnDo Property Match",
-  description: "Sign in or create an account with OnDo Property Match",
+  title: "Authentication - OnDo Real Estate",
+  description: "Sign in or create an account with OnDo Real Estate",
 }
 
 export default function AuthLayout({

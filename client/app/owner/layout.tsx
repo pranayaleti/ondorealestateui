@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
-  title: "Owner Dashboard - OnDo PropertyMatch",
+  title: "Owner Dashboard - OnDo Real Estate",
   description: "Manage your properties and tenants",
 }
 

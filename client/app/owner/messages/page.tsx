@@ -10,7 +10,7 @@ import {
 import { Home, MessageSquare } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Messages | OnDo PropertyMatch",
+  title: "Messages | OnDo Real Estate",
   description: "Communicate with tenants and service providers",
 }
 

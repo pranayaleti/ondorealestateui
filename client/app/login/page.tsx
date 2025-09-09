@@ -59,7 +59,7 @@ export default function LoginPage() {
         <div className="flex justify-center mb-8">
           <div className="flex items-center space-x-2">
             <Building className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold">OnDo PropertyMatch</span>
+            <span className="text-2xl font-bold">OnDo Real Estate</span>
           </div>
         </div>
 

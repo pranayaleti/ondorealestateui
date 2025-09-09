@@ -318,7 +318,7 @@ export default function PropertiesPage() {
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Find Your Perfect Home</h1>
               <p className="text-xl text-white/90 mb-8">
-                Browse our curated selection of quality rental properties managed by OnDo PropertyMatch
+                Browse our curated selection of quality rental properties managed by OnDo Real Estate
               </p>
               <div className="flex justify-center">
                 <PropertySearch onSearch={handleSearch} />

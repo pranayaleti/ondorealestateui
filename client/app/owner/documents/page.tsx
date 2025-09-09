@@ -10,7 +10,7 @@ import {
 import { FileText, Home } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Documents | OnDo PropertyMatch",
+  title: "Documents | OnDo Real Estate",
   description: "Manage your property documents",
 }
 

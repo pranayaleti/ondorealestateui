@@ -10,7 +10,7 @@ import {
 import { Building, Home } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Add Property | PropertyMatch",
+  title: "Add Property | Real Estate",
   description: "Add a new property to your portfolio",
 }
 

@@ -39,7 +39,7 @@ export default function AuthPage() {
     <div className="container flex items-center justify-center min-h-[calc(100vh-4rem)] py-8">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Welcome to <span className="text-primary">OnDo</span> Property Match</CardTitle>
+          <CardTitle className="text-2xl text-center">Welcome to <span className="text-primary">OnDo</span> Real Estate</CardTitle>
           <CardDescription className="text-center">Sign in to your account to continue</CardDescription>
         </CardHeader>
         <CardContent>

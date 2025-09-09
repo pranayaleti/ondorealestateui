@@ -13,9 +13,9 @@ import { Loader2 } from "lucide-react"
 export function SettingsForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
-    companyName: "PropertyMatch",
-    website: "https://propertymatch.com",
-    supportEmail: "support@ondo.propertymatch.com",
+    companyName: "Real Estate",
+    website: "https://Real Estate.com",
+    supportEmail: "support@ondo.Real Estate.com",
     supportPhone: "(555) 123-4567",
     dateFormat: "MM/DD/YYYY",
     timeFormat: "12h",

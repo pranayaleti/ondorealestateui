@@ -7,7 +7,7 @@ export default function AboutPage() {
   return (
     <main className="min-h-screen">
       <PageBanner
-        title="About OnDo PropertyMatch"
+        title="About OnDo Real Estate"
         subtitle="Professional property management services connecting quality properties with qualified tenants"
       />
 
@@ -15,7 +15,7 @@ export default function AboutPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
             <p className="text-lg mb-8 dark:text-gray-300">
-              OnDo PropertyMatch is a professional property management company dedicated to connecting quality rental
+              OnDo Real Estate is a professional property management company dedicated to connecting quality rental
               properties with responsible tenants while providing exceptional management services to property owners.
             </p>
 
@@ -58,13 +58,13 @@ export default function AboutPage() {
             <h2 className="text-2xl font-semibold mb-4 dark:text-white">Our Team</h2>
             <p className="mb-8 dark:text-gray-300">
               Our team consists of experienced property management professionals who are dedicated to providing
-              exceptional service. From our property managers to our maintenance staff, everyone at OnDo PropertyMatch is
+              exceptional service. From our property managers to our maintenance staff, everyone at OnDo Real Estate is
               committed to creating positive rental experiences.
             </p>
 
             <h2 className="text-2xl font-semibold mb-4 dark:text-white">Our Coverage Area</h2>
             <p className="mb-8 dark:text-gray-300">
-              OnDo PropertyMatch currently serves the greater Salt Lake City area, including Salt Lake City, Holladay,
+              OnDo Real Estate currently serves the greater Salt Lake City area, including Salt Lake City, Holladay,
               Midvale, Magna, and surrounding communities. We're continuously expanding to new areas to better serve our
               clients.
             </p>

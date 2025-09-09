@@ -11,7 +11,7 @@ export function AuthForm() {
     <div className="flex justify-center items-center min-h-[calc(100vh-4rem)] p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Welcome to PropertyMatch</CardTitle>
+          <CardTitle className="text-2xl text-center">Welcome to Real Estate</CardTitle>
           <CardDescription className="text-center">Sign in or create an account to continue</CardDescription>
         </CardHeader>
         <Tabs defaultValue="signin" className="w-full">

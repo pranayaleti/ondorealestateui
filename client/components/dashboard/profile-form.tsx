@@ -19,7 +19,7 @@ export function ProfileForm() {
     lastName: "User",
     email: "admin@example.com",
     phone: "(555) 123-4567",
-    company: "PropertyMatch",
+    company: "Real Estate",
     role: "Administrator",
     bio: "Property management professional with over 10 years of experience in residential and commercial properties.",
     timezone: "America/New_York",
