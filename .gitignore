@@ -1,49 +1,25 @@
-# Dependencies
-node_modules/
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Build outputs
-dist/
-build/
-.out/
+# dependencies
+/node_modules
 
-# TypeScript
-*.tsbuildinfo
+# next.js
+/.next/
+/out/
 
-# Env & secrets
-.env
-.env.*.local
-!.env.example
+# production
+/build
 
-# Logs
-logs/
-*.log
+# debug
 npm-debug.log*
 yarn-debug.log*
-pnpm-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
-# Coverage
-coverage/
-.nyc_output/
 
-# Drizzle
-# Keep migrations in drizzle/ tracked
-.drizzle/
+# vercel
+.vercel
 
-# Local DB files (if you ever use sqlite for dev)
-*.db
-*.sqlite
-*.sqlite3
-
-# OS / Editor junk
-.DS_Store
-Thumbs.db
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
-.idea/
-*.iml
-
-# Misc
-*.pid
-*.gz
+# typescript
+*.tsbuildinfo
+next-env.d.ts

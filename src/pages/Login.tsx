@@ -1,93 +1,146 @@
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { TextField } from "@mui/material";
-import { ArrowForward } from "@mui/icons-material";
-import { Link, useNavigate } from "react-router-dom";
-import useApiRequest from "../hooks/useApiRequest";
-import { toast } from "react-toastify";
+import type React from "react"
+import { useState } from "react"
+import { Link } from "react-router-dom"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent } from "@/components/ui/card"
+import { EyeIcon, EyeOffIcon, Loader2, ArrowRight } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
+import { useToast } from "@/hooks/use-toast"
 
-const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email" }),
-  password: z.string().min(1, { message: "Please enter your password" }),
-});
+export default function LoginPage() {
+  const { login } = useAuth()
+  const { toast } = useToast()
+  const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
-type FormType = z.infer<typeof formSchema>;
+  // Login form state
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
-const inputActiveStyle = {
-  width: "100%",
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "0.75rem",
-    "& fieldset": { borderRadius: "0.75rem" },
-    "&.Mui-focused fieldset": { borderColor: "black" },
-  },
-  "& .MuiInputLabel-root.Mui-focused": { color: "black" },
-};
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
 
-export default function Login() {
-  const { register, handleSubmit, formState: { errors } } =
-    useForm<FormType>({ resolver: zodResolver(formSchema) });
-  const navigate = useNavigate();
-  const USER_SERVICE_BASEURL = import.meta.env.VITE_USER_BASEURL;
-  const { request, loading } = useApiRequest();
+    try {
+      const success = await login(email, password)
 
-  const onSubmit = async (body: FormType) => {
-    const data = await request<{ status?: string; message?: string }>({
-      url: `${USER_SERVICE_BASEURL}/auth/login`,
-      method: "POST",
-      body,
-    });
-    if (data?.status === "success") {
-      toast.success(data?.message || "Logged in");
-      navigate("/");
+      if (success) {
+        // The auth context will handle redirection based on user role
+        toast({
+          title: "Login successful",
+          description: "Welcome back to OnDo!",
+        })
+      } else {
+        toast({
+          title: "Login failed",
+          description: "Invalid email or password. Please try again.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="h-screen w-full flex items-center justify-center bg-white">
-      <div className="flex flex-col items-center gap-5">
-        <div className="flex items-center">
-          <img className="w-20" src="/logo.png" alt="OnDo logo" />
-          <p className="text-6xl font-medium font-kanit bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">OnDo</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+      <div className="w-full max-w-md">
+        {/* OnDo Logo and Branding */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="flex items-center mb-6">
+            <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-800 rounded-full flex items-center justify-center mr-3">
+              <span className="text-white font-bold text-2xl">D</span>
+            </div>
+            <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
+              OnDo
+            </span>
+          </div>
+          <h1 className="text-2xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
+            Sign in
+          </h1>
         </div>
 
-        <p className="text-2xl font-medium mt-5 bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-          Sign in
-        </p>
+        {/* Single Login Form */}
+        <Card className="border-none shadow-lg w-full max-w-md">
+          <CardContent className="pt-6">
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Company Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your.email@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center gap-5 w-[29rem]">
-          <TextField
-            {...register("email")}
-            error={!!errors.email?.message}
-            helperText={errors.email?.message}
-            type="email"
-            label="Company Email"
-            sx={inputActiveStyle}
-          />
-          <TextField
-            {...register("password")}
-            error={!!errors.password?.message}
-            helperText={errors.password?.message}
-            type="password"
-            label="Password"
-            sx={inputActiveStyle}
-          />
-          <button
-            disabled={loading}
-            type="submit"
-            className="bg-gradient-to-r from-orange-500 to-red-800 py-4 rounded-2xl text-white text-xl w-full"
-          >
-            Submit <ArrowForward />
-          </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-orange-500 to-red-800 hover:from-orange-600 hover:to-red-900 text-white font-medium py-4 rounded-2xl text-xl transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="animate-spin h-5 w-5" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Submit
+                    <ArrowRight className="h-5 w-5" />
+                  </>
+                )}
+              </button>
+            </form>
+          </CardContent>
+        </Card>
 
-          <p className="text-center">
-            Forgot Password?{" "}
-            <Link to={"/forgot-password"} className="underline">
-              Reset here
+        <div className="mt-6 text-center space-y-3">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            <Link to="/forgot-password" className="text-orange-600 hover:underline font-medium">
+              Forgot your password?
             </Link>
           </p>
-        </form>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Need help?{" "}
+            <Link to="/contact" className="text-orange-600 hover:underline font-medium">
+              Contact support
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
-  );
+  )
 }

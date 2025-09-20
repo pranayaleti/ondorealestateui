@@ -1,82 +1,192 @@
-// NOTE: If your backend doesn't expose this endpoint yet, this page may 404. Adjust the path in the code when ready.
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { TextField } from "@mui/material";
-import { ArrowForward } from "@mui/icons-material";
-import { Link } from "react-router-dom";
-import useApiRequest from "../hooks/useApiRequest";
-import { toast } from "react-toastify";
-
-const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email" }),
-});
-
-type FormType = z.infer<typeof formSchema>;
-
-const inputActiveStyle = {
-  width: "100%",
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "0.75rem",
-    "& fieldset": { borderRadius: "0.75rem" },
-    "&.Mui-focused fieldset": { borderColor: "black" },
-  },
-  "& .MuiInputLabel-root.Mui-focused": { color: "black" },
-};
+import { useState } from "react"
+import { Link } from "react-router-dom"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent } from "@/components/ui/card"
+import { ArrowRight, CheckCircle } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ForgotPassword() {
-  const { register, handleSubmit, formState: { errors } } =
-    useForm<FormType>({ resolver: zodResolver(formSchema) });
+  const [email, setEmail] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const { toast } = useToast()
 
-  const USER_SERVICE_BASEURL = import.meta.env.VITE_USER_BASEURL;
-  const { request, loading } = useApiRequest();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!email) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address.",
+        variant: "destructive",
+      })
+      return
+    }
 
-  const onSubmit = async (body: FormType) => {
-    const data = await request<{ status?: string; message?: string }>({
-      url: `${USER_SERVICE_BASEURL}/auth/forgot-password`,
-      method: "POST",
-      body: { ...body, url: location.origin + "/reset-password" },
-    });
-    if (data?.status === "success") toast.success(data?.message || "Reset link sent");
-  };
+    setIsLoading(true)
+
+    try {
+      const response = await fetch("http://localhost:3000/api/password/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setIsSubmitted(true)
+        toast({
+          title: "Reset link sent",
+          description: data.message,
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to send reset email.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Forgot password error:", error)
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white p-4">
+        <div className="w-full max-w-md">
+          {/* OnDo Logo and Branding */}
+          <div className="flex flex-col items-center mb-8">
+            <div className="flex items-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-800 rounded-full flex items-center justify-center mr-3">
+                <span className="text-white font-bold text-2xl">D</span>
+              </div>
+              <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
+                OnDo
+              </span>
+            </div>
+          </div>
+
+          <Card className="border-none shadow-lg">
+            <CardContent className="pt-6 text-center">
+              <div className="flex justify-center mb-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+              </div>
+              
+              <h1 className="text-2xl font-medium mb-4 bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
+                Check Your Email
+              </h1>
+              
+              <p className="text-gray-600 mb-6">
+                We've sent password reset instructions to <strong>{email}</strong>
+              </p>
+              
+              <div className="space-y-3">
+                <Link to="/login" className="block">
+                  <button className="w-full bg-gradient-to-r from-orange-500 to-red-800 hover:from-orange-600 hover:to-red-900 text-white font-medium py-4 rounded-2xl text-xl transition-all duration-200 flex items-center justify-center gap-2">
+                    Back to Login
+                    <ArrowRight className="h-5 w-5" />
+                  </button>
+                </Link>
+                
+                <p className="text-sm text-gray-500">
+                  Didn't receive an email? Check your spam folder or{" "}
+                  <button 
+                    onClick={() => setIsSubmitted(false)}
+                    className="text-orange-600 hover:underline"
+                  >
+                    try again
+                  </button>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="h-screen w-full flex items-center justify-center bg-white">
-      <div className="flex flex-col items-center gap-5">
-        <div className="flex items-center">
-          <img className="w-20" src="/logo.png" alt="OnDo logo" />
-          <p className="text-6xl font-medium font-kanit bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">OnDo</p>
+    <div className="min-h-screen flex items-center justify-center bg-white p-4">
+      <div className="w-full max-w-md">
+        {/* OnDo Logo and Branding */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="flex items-center mb-6">
+            <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-800 rounded-full flex items-center justify-center mr-3">
+              <span className="text-white font-bold text-2xl">D</span>
+            </div>
+            <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
+              OnDo
+            </span>
+          </div>
+          <h1 className="text-2xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
+            Forgot Password
+          </h1>
         </div>
 
-        <p className="text-2xl font-medium mt-5 bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-          Forgot Password
-        </p>
+        <Card className="border-none shadow-lg">
+          <CardContent className="pt-6">
+            <p className="text-gray-600 text-center mb-6">
+              Enter your email address and we'll send you a link to reset your password.
+            </p>
+            
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-gray-700">Company Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your.email@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                  required
+                />
+              </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center gap-5 w-[29rem]">
-          <TextField
-            {...register("email")}
-            error={!!errors.email?.message}
-            helperText={errors.email?.message}
-            type="email"
-            label="Company Email"
-            sx={inputActiveStyle}
-          />
-          <button
-            disabled={loading}
-            type="submit"
-            className="bg-gradient-to-r from-orange-500 to-red-800 py-4 rounded-2xl text-white text-xl w-full"
-          >
-            Submit <ArrowForward />
-          </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-orange-500 to-red-800 hover:from-orange-600 hover:to-red-900 text-white font-medium py-4 rounded-2xl text-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    Send Reset Link
+                    <ArrowRight className="h-5 w-5" />
+                  </>
+                )}
+              </button>
+            </form>
+          </CardContent>
+        </Card>
 
-          <p className="text-center">
-            Ready to login?{" "}
-            <Link to={"/login"} className="underline">
-              Login here
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            Remember your password?{" "}
+            <Link to="/login" className="text-orange-600 hover:underline font-medium">
+              Sign in here
             </Link>
           </p>
-        </form>
+        </div>
       </div>
     </div>
-  );
+  )
 }
