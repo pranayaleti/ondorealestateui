@@ -4,9 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
   Building, 
@@ -26,6 +27,7 @@ import {
   AlertTriangle
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/lib/auth-context"
 
 // Mock property management data
 const mockPropertyManagement = [
@@ -100,7 +102,7 @@ function PropertyManagementList() {
           <h1 className="text-3xl font-bold">Property Management</h1>
           <p className="text-gray-600 dark:text-gray-400">Manage your real estate portfolio and work with your property management company</p>
         </div>
-        <Link to="/owner/property-management/add">
+        <Link to="/owner/properties/add">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
             Add Property
@@ -376,219 +378,6 @@ function PropertyManagementList() {
   )
 }
 
-function AddProperty() {
-  const navigate = useNavigate()
-  const { toast } = useToast()
-  const [formData, setFormData] = useState({
-    name: "",
-    address: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    type: "",
-    units: "",
-    purchasePrice: "",
-    purchaseDate: "",
-    description: "",
-    managementCompany: "PropertyMatch Management"
-  })
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    toast({
-      title: "Property Added",
-      description: "Your property has been added to your portfolio and submitted to the management company.",
-    })
-    navigate("/owner/property-management")
-  }
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle>Add New Property</CardTitle>
-            <CardDescription>
-              Add a new property to your portfolio and assign it to a management company
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label htmlFor="name">Property Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="e.g., Sunset Apartments"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="type">Property Type *</Label>
-                  <Select 
-                    value={formData.type} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select property type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="apartment">Apartment Complex</SelectItem>
-                      <SelectItem value="single_family">Single Family Home</SelectItem>
-                      <SelectItem value="duplex">Duplex</SelectItem>
-                      <SelectItem value="townhouse">Townhouse</SelectItem>
-                      <SelectItem value="condo">Condominium</SelectItem>
-                      <SelectItem value="commercial">Commercial Property</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="address">Street Address *</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                  placeholder="123 Main Street"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="city">City *</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                    placeholder="Salt Lake City"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="state">State *</Label>
-                  <Select 
-                    value={formData.state} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, state: value }))}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select state" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="UT">Utah</SelectItem>
-                      <SelectItem value="CA">California</SelectItem>
-                      <SelectItem value="TX">Texas</SelectItem>
-                      <SelectItem value="FL">Florida</SelectItem>
-                      <SelectItem value="NY">New York</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="zipCode">ZIP Code *</Label>
-                  <Input
-                    id="zipCode"
-                    value={formData.zipCode}
-                    onChange={(e) => setFormData(prev => ({ ...prev, zipCode: e.target.value }))}
-                    placeholder="84101"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="units">Number of Units *</Label>
-                  <Input
-                    id="units"
-                    type="number"
-                    value={formData.units}
-                    onChange={(e) => setFormData(prev => ({ ...prev, units: e.target.value }))}
-                    placeholder="12"
-                    min="1"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="purchasePrice">Purchase Price *</Label>
-                  <Input
-                    id="purchasePrice"
-                    type="number"
-                    value={formData.purchasePrice}
-                    onChange={(e) => setFormData(prev => ({ ...prev, purchasePrice: e.target.value }))}
-                    placeholder="2400000"
-                    min="0"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="purchaseDate">Purchase Date *</Label>
-                  <Input
-                    id="purchaseDate"
-                    type="date"
-                    value={formData.purchaseDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, purchaseDate: e.target.value }))}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="managementCompany">Management Company</Label>
-                <Select 
-                  value={formData.managementCompany} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, managementCompany: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PropertyMatch Management">PropertyMatch Management</SelectItem>
-                    <SelectItem value="Elite Property Services">Elite Property Services</SelectItem>
-                    <SelectItem value="Premier Real Estate Management">Premier Real Estate Management</SelectItem>
-                    <SelectItem value="self_managed">Self-Managed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="description">Property Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Describe the property, amenities, and any special features..."
-                  rows={4}
-                />
-              </div>
-
-              <div className="flex justify-between">
-                <Link to="/owner/property-management">
-                  <Button type="button" variant="outline">
-                    Cancel
-                  </Button>
-                </Link>
-                <Button type="submit">
-                  Add Property
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  )
-}
-
 export default function OwnerPropertyManagement() {
-  return (
-    <Routes>
-      <Route path="/" element={<PropertyManagementList />} />
-      <Route path="/add" element={<AddProperty />} />
-    </Routes>
-  )
+  return <PropertyManagementList />
 }

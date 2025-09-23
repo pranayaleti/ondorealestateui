@@ -151,15 +151,48 @@ export const authApi = {
 // Token management
 export const tokenManager = {
   getToken(): string | null {
-    return sessionStorage.getItem('ondoToken');
+    // Check sessionStorage first (new method)
+    let token = sessionStorage.getItem('ondoToken');
+    console.log("tokenManager.getToken - sessionStorage:", token ? "found" : "not found");
+    if (token) return token;
+    
+    // Fallback to localStorage (old method)
+    token = localStorage.getItem('ondoToken');
+    console.log("tokenManager.getToken - localStorage ondoToken:", token ? "found" : "not found");
+    if (token) {
+      // Migrate to sessionStorage
+      sessionStorage.setItem('ondoToken', token);
+      localStorage.removeItem('ondoToken');
+      console.log("tokenManager.getToken - migrated from localStorage ondoToken");
+      return token;
+    }
+    
+    // Check for old token key
+    token = localStorage.getItem('token');
+    console.log("tokenManager.getToken - localStorage token:", token ? "found" : "not found");
+    if (token) {
+      // Migrate to sessionStorage with new key
+      sessionStorage.setItem('ondoToken', token);
+      localStorage.removeItem('token');
+      console.log("tokenManager.getToken - migrated from localStorage token");
+      return token;
+    }
+    
+    console.log("tokenManager.getToken - no token found");
+    return null;
   },
 
   setToken(token: string): void {
+    console.log("tokenManager.setToken - storing token");
     sessionStorage.setItem('ondoToken', token);
+    console.log("tokenManager.setToken - stored, verifying:", sessionStorage.getItem('ondoToken') ? "success" : "failed");
   },
 
   removeToken(): void {
+    console.log("tokenManager.removeToken");
     sessionStorage.removeItem('ondoToken');
+    localStorage.removeItem('ondoToken');
+    localStorage.removeItem('token');
   },
 
   isTokenExpired(token: string): boolean {

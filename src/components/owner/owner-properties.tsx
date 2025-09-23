@@ -1,109 +1,198 @@
+import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Building, 
-  DollarSign, 
-  TrendingUp,
-  Users,
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import {
+  Building,
+  Plus,
+  Search,
+  Filter,
   MapPin,
-  Calendar,
   Eye
 } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 
-const mockProperties = [
-  {
-    id: 1,
-    name: "Oak Street Apartments",
-    address: "123 Oak Street, Salt Lake City, UT",
-    units: 12,
-    occupied: 10,
-    monthlyRevenue: 18500,
-    monthlyExpenses: 5200,
-    netIncome: 13300,
-    acquisitionDate: "2020-03-15",
-    currentValue: 2800000,
-    appreciationRate: 8.5
-  },
-  {
-    id: 2,
-    name: "Pine View Complex",
-    address: "456 Pine Avenue, Salt Lake City, UT",
-    units: 8,
-    occupied: 7,
-    monthlyRevenue: 14200,
-    monthlyExpenses: 4100,
-    netIncome: 10100,
-    acquisitionDate: "2019-08-22",
-    currentValue: 2200000,
-    appreciationRate: 6.2
-  }
-]
+interface Property {
+  id: string
+  title: string
+  type: string
+  addressLine1: string
+  city: string
+  state?: string
+  country: string
+  status: "pending" | "approved" | "rejected"
+  createdAt: string
+  updatedAt: string
+  lastReviewComment?: string
+}
 
 export default function OwnerProperties() {
+  const [properties, setProperties] = useState<Property[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
+  const { user } = useAuth()
+
+  useEffect(() => {
+    fetchProperties()
+  }, [statusFilter])
+
+  const fetchProperties = async () => {
+    if (!user?.id) return
+
+    try {
+      const ownerId = user.id
+
+      const params = new URLSearchParams()
+      if (statusFilter) params.append("status", statusFilter)
+      if (search) params.append("q", search)
+
+      const response = await fetch(`/api/owners/${ownerId}/properties?${params}`, {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem('ondoToken')}` },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setProperties(data.properties || [])
+      }
+    } catch (error) {
+      console.error("Error fetching properties:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSearch = () => {
+    fetchProperties()
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "pending":
+        return <Badge variant="secondary">Pending Review</Badge>
+      case "approved":
+        return <Badge variant="default" className="bg-green-600">Approved</Badge>
+      case "rejected":
+        return <Badge variant="destructive">Rejected</Badge>
+      default:
+        return <Badge variant="outline">{status}</Badge>
+    }
+  }
+
+  if (loading) {
+    return <div className="flex justify-center py-8">Loading properties...</div>
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">My Properties</h1>
-        <p className="text-gray-600 dark:text-gray-400">Manage your real estate investment portfolio</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">My Properties</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage your real estate investment portfolio</p>
+          </div>
+          <Button asChild>
+            <Link to="/owner/properties/add">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Property
+            </Link>
+          </Button>
+        </div>
       </div>
 
-      <div className="space-y-6">
-        {mockProperties.map((property) => (
-          <Card key={property.id} className="hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                    <Building className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold">{property.name}</h3>
-                    <div className="flex items-center space-x-2 text-gray-500 mt-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>{property.address}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-400 mt-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>Acquired: {property.acquisitionDate}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge variant="outline">Investment Property</Badge>
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Details
-                  </Button>
-                </div>
+      {/* Filters */}
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex gap-4 items-center">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search properties..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10"
+                />
               </div>
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={handleSearch}>Search</Button>
+          </div>
+        </CardContent>
+      </Card>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <DollarSign className="h-6 w-6 mx-auto mb-2 text-green-600" />
-                  <div className="text-2xl font-bold text-green-600">${property.netIncome.toLocaleString()}</div>
-                  <div className="text-sm text-gray-500">Monthly Net Income</div>
+      {/* Properties Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {properties.map((property) => (
+          <Card key={property.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-lg">{property.title}</CardTitle>
+                  <CardDescription className="flex items-center mt-1">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    {property.addressLine1}, {property.city}
+                  </CardDescription>
                 </div>
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <Users className="h-6 w-6 mx-auto mb-2 text-blue-600" />
-                  <div className="text-2xl font-bold">{property.occupied}/{property.units}</div>
-                  <div className="text-sm text-gray-500">Units Occupied</div>
+                {getStatusBadge(property.status)}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Type:</span>
+                  <span className="capitalize">{property.type}</span>
                 </div>
-                <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <Building className="h-6 w-6 mx-auto mb-2 text-purple-600" />
-                  <div className="text-2xl font-bold">${(property.currentValue / 1000000).toFixed(1)}M</div>
-                  <div className="text-sm text-gray-500">Current Value</div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Added:</span>
+                  <span>{new Date(property.createdAt).toLocaleDateString()}</span>
                 </div>
-                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                  <TrendingUp className="h-6 w-6 mx-auto mb-2 text-orange-600" />
-                  <div className="text-2xl font-bold">{property.appreciationRate}%</div>
-                  <div className="text-sm text-gray-500">Annual Appreciation</div>
+                {property.lastReviewComment && (
+                  <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                    <strong>Review:</strong> {property.lastReviewComment}
+                  </div>
+                )}
+                <div className="flex gap-2 pt-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to={`/owner/properties/${property.id}`}>
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Link>
+                  </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {properties.length === 0 && (
+        <div className="text-center py-12">
+          <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No properties found</h3>
+          <p className="text-gray-600 mb-4">Get started by adding your first property.</p>
+          <Button asChild>
+            <Link to="/owner/properties/add">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Property
+            </Link>
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
