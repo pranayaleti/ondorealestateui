@@ -17,7 +17,8 @@ import {
   Eye
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { propertyApi, type Property as ApiProperty } from "@/lib/api"
+import { propertyApi } from "@/lib/api"
+import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
 
 interface Property {
   id: string
@@ -30,7 +31,7 @@ interface Property {
   ownerId: string
   createdAt: string
   amenities?: { key: string; label: string; value?: string }[]
-  photos?: { id: string; url: string; caption?: string }[]
+  photos?: { id: string; url: string; caption?: string; orderIndex: number }[]
 }
 
 export default function ManagerProperties() {
@@ -167,7 +168,23 @@ export default function ManagerProperties() {
       {/* Properties Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {properties.map((property) => (
-          <Card key={property.id} className="hover:shadow-lg transition-shadow">
+          <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden">
+            {/* Property Image Carousel */}
+            <div className="relative">
+              <PropertyImageCarousel
+                photos={property.photos}
+                propertyTitle={property.title}
+                aspectRatio="video"
+                showControls={true}
+                showIndicators={true}
+                className="h-48"
+              />
+              {/* Status Badge Overlay */}
+              <div className="absolute top-2 right-2">
+                <Badge variant="secondary">Pending Review</Badge>
+              </div>
+            </div>
+            
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
@@ -177,7 +194,6 @@ export default function ManagerProperties() {
                     {property.addressLine1}, {property.city}
                   </CardDescription>
                 </div>
-                <Badge variant="secondary">Pending Review</Badge>
               </div>
             </CardHeader>
             <CardContent>
@@ -189,6 +205,10 @@ export default function ManagerProperties() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Submitted:</span>
                   <span>{new Date(property.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Photos:</span>
+                  <span>{property.photos?.length || 0} {property.photos?.length === 0 && "(Using placeholders)"}</span>
                 </div>
                 {property.amenities && property.amenities.length > 0 && (
                   <div className="text-sm text-gray-600">
@@ -214,7 +234,7 @@ export default function ManagerProperties() {
                   </Button>
                   <Button variant="outline" size="sm">
                     <Eye className="h-4 w-4 mr-1" />
-                    View
+                    View Details
                   </Button>
                 </div>
               </div>

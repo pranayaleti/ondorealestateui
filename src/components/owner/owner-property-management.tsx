@@ -28,6 +28,8 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/lib/auth-context"
+import { propertyApi, type Property } from "@/lib/api"
+import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
 
 // Mock property management data
 const mockPropertyManagement = [

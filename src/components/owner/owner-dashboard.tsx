@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { propertyApi, type Property } from "@/lib/api"
+import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
 
 // Extended property interface for dashboard
 interface DashboardProperty extends Property {
@@ -415,42 +416,46 @@ export default function OwnerDashboard() {
               <div className="space-y-4">
                 {properties.length > 0 ? (
                   properties.map((property) => (
-                    <div key={property.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        {/* Property Image */}
-                        {property.photos && property.photos.length > 0 ? (
-                          <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                            <img
-                              src={property.photos[0].url}
-                              alt={property.title}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                target.nextElementSibling?.classList.remove('hidden');
-                              }}
-                            />
-                            <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center hidden">
-                              <Building className="h-6 w-6 text-gray-400" />
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Building className="h-6 w-6 text-gray-400" />
-                          </div>
-                        )}
-                        <div>
-                          <h3 className="font-semibold">{property.title}</h3>
-                          <p className="text-sm text-gray-500">{property.addressLine1}, {property.city}</p>
-                          <p className="text-xs text-gray-400">
-                            Added: {new Date(property.createdAt).toLocaleDateString()} • Managed by: {property.managementCompany}
-                          </p>
-                        </div>
+                    <div key={property.id} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                      {/* Property Image Carousel */}
+                      <div className="relative">
+                        <PropertyImageCarousel
+                          photos={property.photos}
+                          propertyTitle={property.title}
+                          aspectRatio="wide"
+                          showControls={true}
+                          showIndicators={true}
+                          className="h-48"
+                        />
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-green-600">${(property.netIncome || 0).toLocaleString()}/month</p>
-                        <p className="text-sm text-gray-500">{property.occupied || 0}/{property.units || 0} units occupied</p>
-                        <p className="text-xs text-gray-400">Value: ${((property.currentValue || 0) / 1000000).toFixed(1)}M</p>
+                      
+                      {/* Property Details */}
+                      <div className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h3 className="font-semibold text-lg">{property.title}</h3>
+                            <p className="text-sm text-gray-500">{property.addressLine1}, {property.city}</p>
+                            <p className="text-xs text-gray-400">
+                              Added: {new Date(property.createdAt).toLocaleDateString()} • Managed by: {property.managementCompany}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Property Stats */}
+                        <div className="grid grid-cols-3 gap-4 mt-4">
+                          <div className="text-center">
+                            <p className="font-semibold text-green-600">${(property.netIncome || 0).toLocaleString()}</p>
+                            <p className="text-xs text-gray-500">Monthly Income</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-semibold">{property.occupied || 0}/{property.units || 0}</p>
+                            <p className="text-xs text-gray-500">Units Occupied</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-semibold">${((property.currentValue || 0) / 1000000).toFixed(1)}M</p>
+                            <p className="text-xs text-gray-500">Property Value</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))

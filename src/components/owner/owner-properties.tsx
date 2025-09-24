@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { propertyApi, type Property } from "@/lib/api"
+import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
 
 export default function OwnerProperties() {
   const [properties, setProperties] = useState<Property[]>([])
@@ -146,21 +147,22 @@ export default function OwnerProperties() {
       {/* Properties Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {properties.map((property) => (
-          <Card key={property.id} className="hover:shadow-lg transition-shadow">
-            {/* Property Image */}
-            {property.photos && property.photos.length > 0 && (
-              <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
-                <img
-                  src={property.photos[0].url}
-                  alt={property.title}
-                  className="h-full w-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "/placeholder.svg?height=200&width=300";
-                  }}
-                />
+          <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden">
+            {/* Property Image Carousel */}
+            <div className="relative">
+              <PropertyImageCarousel
+                photos={property.photos}
+                propertyTitle={property.title}
+                aspectRatio="video"
+                showControls={true}
+                showIndicators={true}
+                className="h-48"
+              />
+              {/* Status Badge Overlay */}
+              <div className="absolute top-2 right-2">
+                {getStatusBadge(property.status)}
               </div>
-            )}
+            </div>
             
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -171,7 +173,6 @@ export default function OwnerProperties() {
                     {property.addressLine1}, {property.city}
                   </CardDescription>
                 </div>
-                {getStatusBadge(property.status)}
               </div>
             </CardHeader>
             <CardContent>
@@ -186,13 +187,13 @@ export default function OwnerProperties() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Photos:</span>
-                  <span>{property.photos?.length || 0}</span>
+                  <span>{property.photos?.length || 0} {property.photos?.length === 0 && "(Using placeholders)"}</span>
                 </div>
                 <div className="flex gap-2 pt-2">
                   <Button variant="outline" size="sm" asChild>
                     <Link to={`/owner/properties/${property.id}`}>
                       <Eye className="h-4 w-4 mr-1" />
-                      View
+                      View Details
                     </Link>
                   </Button>
                 </div>

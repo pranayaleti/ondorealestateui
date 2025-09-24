@@ -1,0 +1,41 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="300" fill="#D1D5DB"/>
+  
+  <!-- House structure -->
+  <g fill="#9CA3AF" stroke="#9CA3AF" stroke-width="2">
+    <!-- Main house body -->
+    <path d="M50 180 L50 260 L350 260 L350 180 Z" fill="#B0B0B0"/>
+    
+    <!-- Roof sections -->
+    <path d="M40 180 L130 100 L220 180 Z" fill="#9CA3AF"/>
+    <path d="M180 180 L270 100 L360 180 Z" fill="#9CA3AF"/>
+    <path d="M320 180 L380 120 L440 180 Z" fill="#9CA3AF"/>
+    
+    <!-- House outline -->
+    <path d="M50 180 L50 260 L350 260 L350 180" stroke="#808080" stroke-width="3" fill="none"/>
+    
+    <!-- Roof outlines -->
+    <path d="M40 180 L130 100 L220 180" stroke="#808080" stroke-width="3" fill="none"/>
+    <path d="M180 180 L270 100 L360 180" stroke="#808080" stroke-width="3" fill="none"/>
+    <path d="M320 180 L380 120 L440 180" stroke="#808080" stroke-width="3" fill="none"/>
+  </g>
+  
+  <!-- Windows and details -->
+  <g fill="#E5E7EB">
+    <!-- Left section windows -->
+    <rect x="70" y="150" width="20" height="20"/>
+    <rect x="70" y="200" width="20" height="20"/>
+    <rect x="100" y="200" width="20" height="20"/>
+    <rect x="130" y="200" width="20" height="20"/>
+    <rect x="160" y="200" width="20" height="20"/>
+    
+    <!-- Right section windows -->
+    <rect x="280" y="200" width="20" height="20"/>
+    <rect x="310" y="200" width="20" height="20"/>
+    
+    <!-- Small windows -->
+    <rect x="320" y="200" width="12" height="12"/>
+    <rect x="340" y="200" width="12" height="12"/>
+  </g>
+</svg>
