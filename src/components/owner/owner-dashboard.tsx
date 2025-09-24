@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,87 +9,121 @@ import {
   DollarSign, 
   TrendingUp,
   Users,
-  Calendar,
   FileText,
   BarChart3,
   AlertTriangle,
-  CheckCircle,
-  Eye,
   Plus,
   MessageSquare,
-  Settings,
-  Bell
+  Settings
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
+import { propertyApi, type Property } from "@/lib/api"
 
-// Mock owner data - focused on property ownership perspective
-const mockOwnerData = {
-  portfolio: {
-    totalProperties: 8,
-    totalUnits: 45,
-    occupiedUnits: 38,
-    monthlyRevenue: 78650,
-    monthlyExpenses: 23450,
-    netIncome: 55200,
-    occupancyRate: 84.4
-  },
-  properties: [
-    {
-      id: 1,
-      name: "Oak Street Apartments",
-      address: "123 Oak Street, Salt Lake City, UT",
-      units: 12,
-      occupied: 10,
-      monthlyRevenue: 18500,
-      monthlyExpenses: 5200,
-      netIncome: 13300,
-      managementCompany: "PropertyMatch Management",
-      acquisitionDate: "2020-03-15",
-      currentValue: 2800000
-    },
-    {
-      id: 2,
-      name: "Pine View Complex",
-      address: "456 Pine Avenue, Salt Lake City, UT",
-      units: 8,
-      occupied: 7,
-      monthlyRevenue: 14200,
-      monthlyExpenses: 4100,
-      netIncome: 10100,
-      managementCompany: "PropertyMatch Management",
-      acquisitionDate: "2019-08-22",
-      currentValue: 2200000
-    },
-    {
-      id: 3,
-      name: "Maple Heights",
-      address: "789 Maple Drive, Salt Lake City, UT",
-      units: 15,
-      occupied: 13,
-      monthlyRevenue: 24750,
-      monthlyExpenses: 7800,
-      netIncome: 16950,
-      managementCompany: "PropertyMatch Management",
-      acquisitionDate: "2021-01-10",
-      currentValue: 3500000
-    }
-  ],
+// Extended property interface for dashboard
+interface DashboardProperty extends Property {
+  units?: number;
+  occupied?: number;
+  monthlyRevenue?: number;
+  monthlyExpenses?: number;
+  netIncome?: number;
+  managementCompany?: string;
+  currentValue?: number;
+}
+
+// Mock data for features not yet implemented
+const mockStaticData = {
   recentActivity: [
-    { id: 1, type: "payment", message: "Monthly management report received", time: "2 hours ago", property: "Oak Street Apartments" },
-    { id: 2, type: "maintenance", message: "Major repair completed - HVAC system", time: "1 day ago", property: "Pine View Complex", cost: 3500 },
-    { id: 3, type: "tenant", message: "New lease signed - Unit 2B", time: "2 days ago", property: "Maple Heights" },
-    { id: 4, type: "financial", message: "Quarterly tax documents ready", time: "3 days ago", property: "All Properties" }
+    { id: 1, type: "payment", message: "Monthly management report received", time: "2 hours ago", property: "Property Management" },
+    { id: 2, type: "maintenance", message: "Maintenance request submitted", time: "1 day ago", property: "Property Management", cost: 350 },
+    { id: 3, type: "tenant", message: "New tenant inquiry received", time: "2 days ago", property: "Property Management" },
+    { id: 4, type: "financial", message: "Monthly reports available", time: "3 days ago", property: "All Properties" }
   ],
   alerts: [
-    { id: 1, type: "financial", message: "Property insurance renewal due - Oak Street", priority: "high", dueDate: "Next week" },
-    { id: 2, type: "maintenance", message: "Capital improvement proposal received", priority: "medium", dueDate: "Review needed" },
-    { id: 3, type: "legal", message: "Lease renewal negotiations - 3 units", priority: "medium", dueDate: "This month" }
+    { id: 1, type: "financial", message: "Property insurance renewal due", priority: "high", dueDate: "Next week" },
+    { id: 2, type: "maintenance", message: "Property maintenance scheduled", priority: "medium", dueDate: "Review needed" },
+    { id: 3, type: "legal", message: "Document review required", priority: "medium", dueDate: "This month" }
   ]
 }
 
 export default function OwnerDashboard() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState("overview")
+  const [properties, setProperties] = useState<DashboardProperty[]>([])
+  const [loading, setLoading] = useState(true)
+  const [portfolioStats, setPortfolioStats] = useState({
+    totalProperties: 0,
+    totalUnits: 0,
+    occupiedUnits: 0,
+    monthlyRevenue: 0,
+    monthlyExpenses: 0,
+    netIncome: 0,
+    occupancyRate: 0
+  })
+
+  useEffect(() => {
+    fetchProperties()
+  }, [])
+
+  const fetchProperties = async () => {
+    if (!user?.id) return
+
+    try {
+      setLoading(true)
+      const data = await propertyApi.getProperties()
+      
+      // Filter for owner's approved properties only
+      const ownerProperties = data.filter(property => 
+        property.ownerId === user.id && property.status === "approved"
+      )
+      
+      // Transform properties to include dashboard data (in a real app, this would come from additional API calls)
+      const dashboardProperties: DashboardProperty[] = ownerProperties.map(property => {
+        const units = Math.floor(Math.random() * 20) + 5
+        const occupied = Math.floor(Math.random() * (units - 1)) + 1
+        const monthlyRevenue = Math.floor(Math.random() * 15000) + 8000
+        const monthlyExpenses = Math.floor(Math.random() * 5000) + 2000
+        
+        return {
+          ...property,
+          units,
+          occupied,
+          monthlyRevenue,
+          monthlyExpenses,
+          netIncome: monthlyRevenue - monthlyExpenses,
+          managementCompany: "PropertyMatch Management",
+          currentValue: Math.floor(Math.random() * 2000000) + 1500000
+        }
+      })
+      
+      // Calculate portfolio statistics
+      const stats = dashboardProperties.reduce((acc, property) => {
+        acc.totalProperties += 1
+        acc.totalUnits += property.units || 0
+        acc.occupiedUnits += property.occupied || 0
+        acc.monthlyRevenue += property.monthlyRevenue || 0
+        acc.monthlyExpenses += property.monthlyExpenses || 0
+        acc.netIncome += property.netIncome || 0
+        return acc
+      }, {
+        totalProperties: 0,
+        totalUnits: 0,
+        occupiedUnits: 0,
+        monthlyRevenue: 0,
+        monthlyExpenses: 0,
+        netIncome: 0,
+        occupancyRate: 0
+      })
+      
+      stats.occupancyRate = stats.totalUnits > 0 ? (stats.occupiedUnits / stats.totalUnits) * 100 : 0
+      
+      setProperties(dashboardProperties)
+      setPortfolioStats(stats)
+    } catch (error) {
+      console.error("Error fetching properties:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -118,6 +152,16 @@ export default function OwnerDashboard() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center py-12">
+          <div className="text-lg">Loading dashboard...</div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
@@ -138,9 +182,9 @@ export default function OwnerDashboard() {
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockOwnerData.portfolio.totalProperties}</div>
+            <div className="text-2xl font-bold">{portfolioStats.totalProperties}</div>
             <p className="text-xs text-muted-foreground">
-              {mockOwnerData.portfolio.totalUnits} total units
+              {portfolioStats.totalUnits} total units
             </p>
           </CardContent>
         </Card>
@@ -151,7 +195,7 @@ export default function OwnerDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${mockOwnerData.portfolio.monthlyRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold">${portfolioStats.monthlyRevenue.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               +8.2% from last month
             </p>
@@ -164,9 +208,9 @@ export default function OwnerDashboard() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">${mockOwnerData.portfolio.netIncome.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-green-600">${portfolioStats.netIncome.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              {Math.round((mockOwnerData.portfolio.netIncome / mockOwnerData.portfolio.monthlyRevenue) * 100)}% profit margin
+              {portfolioStats.monthlyRevenue > 0 ? Math.round((portfolioStats.netIncome / portfolioStats.monthlyRevenue) * 100) : 0}% profit margin
             </p>
           </CardContent>
         </Card>
@@ -177,9 +221,9 @@ export default function OwnerDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockOwnerData.portfolio.occupancyRate}%</div>
+            <div className="text-2xl font-bold">{portfolioStats.occupancyRate.toFixed(1)}%</div>
             <p className="text-xs text-muted-foreground">
-              {mockOwnerData.portfolio.occupiedUnits} of {mockOwnerData.portfolio.totalUnits} units
+              {portfolioStats.occupiedUnits} of {portfolioStats.totalUnits} units
             </p>
           </CardContent>
         </Card>
@@ -279,16 +323,16 @@ export default function OwnerDashboard() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">${mockOwnerData.portfolio.monthlyRevenue.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-green-600">${portfolioStats.monthlyRevenue.toLocaleString()}</div>
                     <div className="text-sm text-gray-500">Monthly Revenue</div>
                   </div>
                   <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-red-600">${mockOwnerData.portfolio.monthlyExpenses.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-red-600">${portfolioStats.monthlyExpenses.toLocaleString()}</div>
                     <div className="text-sm text-gray-500">Monthly Expenses</div>
                   </div>
                 </div>
                 <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-3xl font-bold text-blue-600">${mockOwnerData.portfolio.netIncome.toLocaleString()}</div>
+                  <div className="text-3xl font-bold text-blue-600">${portfolioStats.netIncome.toLocaleString()}</div>
                   <div className="text-sm text-gray-500">Net Monthly Income</div>
                 </div>
               </CardContent>
@@ -304,7 +348,7 @@ export default function OwnerDashboard() {
                 <CardDescription>Items requiring your attention</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {mockOwnerData.alerts.map((alert) => (
+                {mockStaticData.alerts.map((alert) => (
                   <div key={alert.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
                       <p className="font-medium">{alert.message}</p>
@@ -349,7 +393,7 @@ export default function OwnerDashboard() {
                 <CardTitle className="text-lg">Cash Flow</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-purple-600">${(mockOwnerData.portfolio.netIncome * 12).toLocaleString()}</div>
+                <div className="text-3xl font-bold text-purple-600">${(portfolioStats.netIncome * 12).toLocaleString()}</div>
                 <p className="text-sm text-gray-500 mt-2">Annual net income</p>
               </CardContent>
             </Card>
@@ -369,25 +413,60 @@ export default function OwnerDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockOwnerData.properties.map((property) => (
-                  <div key={property.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <Building className="h-8 w-8 text-blue-500" />
-                      <div>
-                        <h3 className="font-semibold">{property.name}</h3>
-                        <p className="text-sm text-gray-500">{property.address}</p>
-                        <p className="text-xs text-gray-400">
-                          Acquired: {property.acquisitionDate} • Managed by: {property.managementCompany}
-                        </p>
+                {properties.length > 0 ? (
+                  properties.map((property) => (
+                    <div key={property.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        {/* Property Image */}
+                        {property.photos && property.photos.length > 0 ? (
+                          <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                            <img
+                              src={property.photos[0].url}
+                              alt={property.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                target.nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
+                            <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center hidden">
+                              <Building className="h-6 w-6 text-gray-400" />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Building className="h-6 w-6 text-gray-400" />
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="font-semibold">{property.title}</h3>
+                          <p className="text-sm text-gray-500">{property.addressLine1}, {property.city}</p>
+                          <p className="text-xs text-gray-400">
+                            Added: {new Date(property.createdAt).toLocaleDateString()} • Managed by: {property.managementCompany}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-green-600">${(property.netIncome || 0).toLocaleString()}/month</p>
+                        <p className="text-sm text-gray-500">{property.occupied || 0}/{property.units || 0} units occupied</p>
+                        <p className="text-xs text-gray-400">Value: ${((property.currentValue || 0) / 1000000).toFixed(1)}M</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-green-600">${property.netIncome.toLocaleString()}/month</p>
-                      <p className="text-sm text-gray-500">{property.occupied}/{property.units} units occupied</p>
-                      <p className="text-xs text-gray-400">Value: ${(property.currentValue / 1000000).toFixed(1)}M</p>
-                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No properties found</h3>
+                    <p className="text-gray-600 mb-4">Get started by adding your first property.</p>
+                    <Link to="/owner/properties/add">
+                      <Button className="bg-ondo-orange hover:bg-ondo-red transition-colors">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Property
+                      </Button>
+                    </Link>
                   </div>
-                ))}
+                )}
               </div>
             </CardContent>
           </Card>
@@ -404,7 +483,7 @@ export default function OwnerDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockOwnerData.alerts.map((alert) => (
+                {mockStaticData.alerts.map((alert) => (
                   <Card key={alert.id} className="border-l-4 border-l-orange-500">
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
@@ -437,7 +516,7 @@ export default function OwnerDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockOwnerData.recentActivity.map((activity) => (
+                {mockStaticData.recentActivity.map((activity) => (
                   <div key={activity.id} className="flex items-start justify-between p-4 border rounded-lg">
                     <div className="flex items-start space-x-3">
                       {getActivityIcon(activity.type)}

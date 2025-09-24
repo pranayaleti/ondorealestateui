@@ -4,13 +4,13 @@ import Loading from "@/components/loading"
 
 interface ProtectedRouteProps {
   children: React.ReactNode
-  allowedRoles?: ("super_admin" | "manager" | "owner" | "tenant")[]
+  allowedRoles?: ("manager" | "owner" | "tenant")[]
   redirectTo?: string
 }
 
 export default function ProtectedRoute({ 
   children, 
-  allowedRoles = ["super_admin", "manager", "owner", "tenant"],
+  allowedRoles = ["manager", "owner", "tenant"],
   redirectTo = "/login"
 }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth()

@@ -14,26 +14,13 @@ import {
   Eye
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
-
-interface Property {
-  id: string
-  title: string
-  type: string
-  addressLine1: string
-  city: string
-  state?: string
-  country: string
-  status: "pending" | "approved" | "rejected"
-  createdAt: string
-  updatedAt: string
-  lastReviewComment?: string
-}
+import { propertyApi, type Property } from "@/lib/api"
 
 export default function OwnerProperties() {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
   const { user } = useAuth()
 
   useEffect(() => {
@@ -44,20 +31,41 @@ export default function OwnerProperties() {
     if (!user?.id) return
 
     try {
-      const ownerId = user.id
-
-      const params = new URLSearchParams()
-      if (statusFilter) params.append("status", statusFilter)
-      if (search) params.append("q", search)
-
-      const response = await fetch(`/api/owners/${ownerId}/properties?${params}`, {
-        headers: { Authorization: `Bearer ${sessionStorage.getItem('ondoToken')}` },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setProperties(data.properties || [])
+      console.log("Fetching properties...")
+      const data = await propertyApi.getProperties()
+      console.log("Properties received:", data)
+      // Filter properties based on search and status if needed
+      let filteredProperties = data
+      
+      if (search) {
+        filteredProperties = filteredProperties.filter(property => 
+          property.title.toLowerCase().includes(search.toLowerCase()) ||
+          property.city.toLowerCase().includes(search.toLowerCase()) ||
+          property.addressLine1.toLowerCase().includes(search.toLowerCase())
+        )
       }
+      
+      if (statusFilter && statusFilter !== "all") {
+        filteredProperties = filteredProperties.filter(property => 
+          property.status === statusFilter
+        )
+      }
+      
+      // For owners, only show their own properties and filter by status
+      if (user.role === "owner") {
+        filteredProperties = filteredProperties.filter(property => 
+          property.ownerId === user.id
+        )
+        
+        // By default, owners should only see approved properties unless they specifically filter for pending/rejected
+        if (statusFilter === "all") {
+          filteredProperties = filteredProperties.filter(property => 
+            property.status === "approved"
+          )
+        }
+      }
+      
+      setProperties(filteredProperties)
     } catch (error) {
       console.error("Error fetching properties:", error)
     } finally {
@@ -124,7 +132,7 @@ export default function OwnerProperties() {
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
@@ -139,6 +147,21 @@ export default function OwnerProperties() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {properties.map((property) => (
           <Card key={property.id} className="hover:shadow-lg transition-shadow">
+            {/* Property Image */}
+            {property.photos && property.photos.length > 0 && (
+              <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+                <img
+                  src={property.photos[0].url}
+                  alt={property.title}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/placeholder.svg?height=200&width=300";
+                  }}
+                />
+              </div>
+            )}
+            
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
@@ -161,11 +184,10 @@ export default function OwnerProperties() {
                   <span className="text-gray-600">Added:</span>
                   <span>{new Date(property.createdAt).toLocaleDateString()}</span>
                 </div>
-                {property.lastReviewComment && (
-                  <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                    <strong>Review:</strong> {property.lastReviewComment}
-                  </div>
-                )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Photos:</span>
+                  <span>{property.photos?.length || 0}</span>
+                </div>
                 <div className="flex gap-2 pt-2">
                   <Button variant="outline" size="sm" asChild>
                     <Link to={`/owner/properties/${property.id}`}>

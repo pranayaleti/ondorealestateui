@@ -7,7 +7,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'super_admin' | 'manager' | 'owner' | 'tenant';
+  role: 'manager' | 'owner' | 'tenant';
 }
 
 export interface LoginRequest {
@@ -52,6 +52,66 @@ export interface SignupResponse {
   message: string;
   token: string;
   user: User & { mobile?: string };
+}
+
+// Property Types
+export interface Property {
+  id: string;
+  ownerId: string;
+  tenantId?: string;
+  title: string;
+  type: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state?: string;
+  country: string;
+  zipcode?: string;
+  latitude?: string;
+  longitude?: string;
+  description?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  updatedAt: string;
+  photos?: PropertyPhoto[];
+  amenities?: PropertyAmenity[];
+}
+
+export interface PropertyPhoto {
+  id: string;
+  propertyId: string;
+  url: string;
+  caption?: string;
+  orderIndex: number;
+  createdAt: string;
+}
+
+export interface PropertyAmenity {
+  amenityId: string;
+  value?: string;
+  key: string;
+  label: string;
+}
+
+export interface Amenity {
+  id: string;
+  key: string;
+  label: string;
+}
+
+export interface CreatePropertyRequest {
+  title: string;
+  type: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state?: string;
+  country: string;
+  zipcode?: string;
+  latitude?: string;
+  longitude?: string;
+  description?: string;
+  amenityIds?: string[];
 }
 
 // API Error Class
@@ -202,5 +262,82 @@ export const tokenManager = {
     } catch {
       return true;
     }
+  },
+};
+
+// Property API functions
+export const propertyApi = {
+  // Get all properties
+  async getProperties(): Promise<Property[]> {
+    return apiRequest<Property[]>('/properties');
+  },
+
+  // Get property by ID
+  async getProperty(id: string): Promise<Property> {
+    return apiRequest<Property>(`/properties/${id}`);
+  },
+
+  // Create new property
+  async createProperty(propertyData: CreatePropertyRequest): Promise<Property> {
+    return apiRequest<Property>('/properties', {
+      method: 'POST',
+      body: JSON.stringify(propertyData),
+    });
+  },
+
+  // Update property
+  async updateProperty(id: string, propertyData: Partial<CreatePropertyRequest>): Promise<Property> {
+    return apiRequest<Property>(`/properties/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(propertyData),
+    });
+  },
+
+  // Delete property
+  async deleteProperty(id: string): Promise<{ message: string }> {
+    return apiRequest<{ message: string }>(`/properties/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Upload property photo
+  async uploadPhoto(propertyId: string, file: File, caption?: string, orderIndex: number = 0): Promise<PropertyPhoto> {
+    const formData = new FormData();
+    formData.append('photo', file);
+    formData.append('propertyId', propertyId);
+    formData.append('orderIndex', orderIndex.toString());
+    if (caption) {
+      formData.append('caption', caption);
+    }
+
+    const token = tokenManager.getToken();
+    const response = await fetch(`${API_BASE_URL}/properties/photos`, {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new ApiError(data.message || 'Upload failed', response.status, data.errors);
+    }
+
+    return data;
+  },
+
+  // Get all amenities
+  async getAmenities(): Promise<Amenity[]> {
+    return apiRequest<Amenity[]>('/properties/amenities/list');
+  },
+
+  // Manager functions
+
+  async updatePropertyStatus(id: string, status: 'approved' | 'rejected', comment?: string): Promise<Property> {
+    return apiRequest<Property>(`/properties/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, comment }),
+    });
   },
 };

@@ -7,7 +7,6 @@ import OwnerReports from "@/components/owner/owner-reports"
 import OwnerTenants from "@/components/owner/owner-tenants"
 import OwnerProfile from "@/components/owner/owner-profile"
 import OwnerMessages from "@/components/owner/owner-messages"
-import OwnerPropertyManagement from "@/components/owner/owner-property-management"
 import { AddPropertyForm } from "@/components/owner/add-property-form"
 import { SettingsView } from "@/components/owner/settings-view"
 import Loading from "@/components/loading"
@@ -18,11 +17,10 @@ export default function Owner() {
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="/" element={<OwnerDashboard />} />
-          {/* Single property creation route */}
+          {/* Property creation routes - both old and new URLs */}
           <Route path="/properties/add" element={<AddPropertyForm />} />
+          <Route path="/property-management/add" element={<AddPropertyForm />} />
           <Route path="/properties/*" element={<OwnerProperties />} />
-          {/* Property management overview - no duplicate form */}
-          <Route path="/property-management/*" element={<OwnerPropertyManagement />} />
           <Route path="/finances/*" element={<OwnerFinances />} />
           <Route path="/reports" element={<OwnerReports />} />
           <Route path="/tenants" element={<OwnerTenants />} />

@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { Routes, Route } from "react-router-dom"
 import ManagerDashboard from "@/components/manager/manager-dashboard"
-import ManagerProperties from "@/components/manager/manager-properties"
+import ManagerProperties from "@/components/manager/manager-property-review"
 import ManagerTenants from "@/components/manager/manager-tenants"
 import ManagerOwners from "@/components/manager/manager-owners"
 import ManagerMaintenance from "@/components/manager/manager-maintenance"

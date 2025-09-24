@@ -17,6 +17,7 @@ import {
   Eye
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { propertyApi, type Property as ApiProperty } from "@/lib/api"
 
 interface Property {
   id: string
@@ -36,7 +37,7 @@ export default function ManagerProperties() {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
-  const [cityFilter, setCityFilter] = useState("")
+  const [cityFilter, setCityFilter] = useState("all")
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [reviewDialog, setReviewDialog] = useState<"approve" | "reject" | null>(null)
   const [reviewComment, setReviewComment] = useState("")
@@ -49,21 +50,33 @@ export default function ManagerProperties() {
 
   const fetchReviewQueue = async () => {
     try {
-      const token = localStorage.getItem("token")
-      const params = new URLSearchParams({ status: "pending" })
-      if (search) params.append("q", search)
-      if (cityFilter) params.append("city", cityFilter)
-
-      const response = await fetch(`/api/managers/reviews?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setProperties(data.properties || [])
+      const allProperties = await propertyApi.getProperties()
+      const data = allProperties.filter(p => p.status === "pending")
+      let filteredProperties = data
+      
+      // Apply client-side filtering
+      if (search) {
+        filteredProperties = filteredProperties.filter(property => 
+          property.title.toLowerCase().includes(search.toLowerCase()) ||
+          property.city.toLowerCase().includes(search.toLowerCase()) ||
+          property.addressLine1.toLowerCase().includes(search.toLowerCase())
+        )
       }
+      
+      if (cityFilter && cityFilter !== "all") {
+        filteredProperties = filteredProperties.filter(property => 
+          property.city === cityFilter
+        )
+      }
+      
+      setProperties(filteredProperties)
     } catch (error) {
       console.error("Error fetching review queue:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load pending properties",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -81,27 +94,16 @@ export default function ManagerProperties() {
 
     setSubmitting(true)
     try {
-      const token = localStorage.getItem("token")
-      const response = await fetch(`/api/managers/properties/${propertyId}/${action}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ comment: reviewComment }),
-      })
+      const status = action === "approve" ? "approved" : "rejected"
+      await propertyApi.updatePropertyStatus(propertyId, status, reviewComment)
 
-      if (response.ok) {
-        toast({
-          title: `Property ${action}d`,
-          description: `The property has been ${action}d successfully.`,
-        })
-        setReviewDialog(null)
-        setReviewComment("")
-        fetchReviewQueue() // Refresh the list
-      } else {
-        throw new Error("Failed to review property")
-      }
+      toast({
+        title: `Property ${action}d`,
+        description: `The property has been ${action}d successfully.`,
+      })
+      setReviewDialog(null)
+      setReviewComment("")
+      fetchReviewQueue() // Refresh the list
     } catch (error) {
       toast({
         title: "Error",
@@ -151,7 +153,7 @@ export default function ManagerProperties() {
                 <SelectValue placeholder="Filter by city" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Cities</SelectItem>
+                <SelectItem value="all">All Cities</SelectItem>
                 <SelectItem value="Salt Lake City">Salt Lake City</SelectItem>
                 <SelectItem value="Provo">Provo</SelectItem>
                 <SelectItem value="Ogden">Ogden</SelectItem>
