@@ -54,6 +54,15 @@ export interface SignupResponse {
   user: User & { mobile?: string };
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
+}
+
 // Property Types
 export interface Property {
   id: string;
@@ -204,6 +213,14 @@ export const authApi = {
     return apiRequest<SignupResponse>('/auth/signup', {
       method: 'POST',
       body: JSON.stringify(signupData),
+    });
+  },
+
+  // Change password for authenticated user
+  async changePassword(passwordData: ChangePasswordRequest): Promise<ChangePasswordResponse> {
+    return apiRequest<ChangePasswordResponse>('/password/change-password', {
+      method: 'POST',
+      body: JSON.stringify(passwordData),
     });
   },
 };

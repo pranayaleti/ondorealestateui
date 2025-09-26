@@ -5,14 +5,12 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { 
-  User, 
-  Building,
-  Settings,
   Shield
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { useState, useEffect } from "react"
+import { authApi, ApiError } from "@/lib/api"
 
 const getInitialProfileData = (user: any) => ({
   personalInfo: {
@@ -44,6 +42,14 @@ export default function OwnerProfile() {
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [profileData, setProfileData] = useState(() => getInitialProfileData(user))
+
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
+
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
 
   // Update profile data when user data changes
   useEffect(() => {
@@ -95,6 +101,62 @@ export default function OwnerProfile() {
   const handleCancel = () => {
     setProfileData(getInitialProfileData(user))
     setIsEditing(false)
+  }
+
+  const handlePasswordInputChange = (field: string, value: string) => {
+    setPasswordData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handlePasswordChange = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords do not match.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      toast({
+        title: "Error", 
+        description: "New password must be at least 8 characters long.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsChangingPassword(true)
+    try {
+      await authApi.changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      })
+
+      toast({
+        title: "Success",
+        description: "Password changed successfully.",
+      })
+
+      // Clear password fields
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      })
+    } catch (error) {
+      const errorMessage = error instanceof ApiError 
+        ? error.message 
+        : "Failed to change password. Please try again."
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    } finally {
+      setIsChangingPassword(false)
+    }
   }
 
   return (
@@ -301,17 +363,40 @@ export default function OwnerProfile() {
                     <div className="space-y-4 max-w-md">
                       <div>
                         <Label htmlFor="currentPassword">Current Password</Label>
-                        <Input id="currentPassword" type="password" />
+                        <Input 
+                          id="currentPassword" 
+                          type="password" 
+                          value={passwordData.currentPassword}
+                          onChange={(e) => handlePasswordInputChange("currentPassword", e.target.value)}
+                          disabled={isChangingPassword}
+                        />
                       </div>
                       <div>
                         <Label htmlFor="newPassword">New Password</Label>
-                        <Input id="newPassword" type="password" />
+                        <Input 
+                          id="newPassword" 
+                          type="password" 
+                          value={passwordData.newPassword}
+                          onChange={(e) => handlePasswordInputChange("newPassword", e.target.value)}
+                          disabled={isChangingPassword}
+                        />
                       </div>
                       <div>
                         <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                        <Input id="confirmPassword" type="password" />
+                        <Input 
+                          id="confirmPassword" 
+                          type="password" 
+                          value={passwordData.confirmPassword}
+                          onChange={(e) => handlePasswordInputChange("confirmPassword", e.target.value)}
+                          disabled={isChangingPassword}
+                        />
                       </div>
-                      <Button>Update Password</Button>
+                      <Button 
+                        onClick={handlePasswordChange}
+                        disabled={isChangingPassword || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                      >
+                        {isChangingPassword ? "Updating..." : "Update Password"}
+                      </Button>
                     </div>
                   </div>
 
