@@ -23,9 +23,9 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const success = await login(email, password)
+      const result = await login(email, password)
 
-      if (success) {
+      if (result.success) {
         // The auth context will handle redirection based on user role
         toast({
           title: "Login successful",
@@ -34,7 +34,7 @@ export default function LoginPage() {
       } else {
         toast({
           title: "Login failed",
-          description: "Invalid email or password. Please try again.",
+          description: result.message || "Invalid email or password. Please try again.",
           variant: "destructive",
         })
       }

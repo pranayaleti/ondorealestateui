@@ -32,27 +32,57 @@ export default function ManagerPropertyReview() {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [reviewComment, setReviewComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [statusFilter, setStatusFilter] = useState<string>("pending")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [ownerFilter, setOwnerFilter] = useState<string>("all")
+  const [owners, setOwners] = useState<{id: string, name: string}[]>([])
   const { } = useAuth()
   const { toast } = useToast()
 
   useEffect(() => {
     fetchProperties()
-  }, [statusFilter])
+  }, [statusFilter, ownerFilter])
 
   const fetchProperties = async () => {
     setLoading(true)
     try {
       // Get all properties and filter by status
       const allProperties = await propertyApi.getProperties()
+      console.log("All properties fetched:", allProperties.length)
+      console.log("Properties by status:", allProperties.reduce((acc, p) => {
+        acc[p.status] = (acc[p.status] || 0) + 1
+        return acc
+      }, {} as Record<string, number>))
+      
       let data: Property[]
       
       if (statusFilter === "all") {
         data = allProperties
+        console.log("Showing all properties:", data.length)
       } else {
         data = allProperties.filter(p => p.status === statusFilter)
+        console.log(`Showing ${statusFilter} properties:`, data.length)
       }
+
+      // Apply owner filter
+      if (ownerFilter !== "all") {
+        data = data.filter(p => p.ownerId === ownerFilter)
+        console.log(`Filtered by owner ${ownerFilter}:`, data.length)
+      }
+
+      // Extract unique owners for the filter dropdown
+      const uniqueOwners = allProperties
+        .filter(p => p.owner) // Only properties with owner info
+        .reduce((acc, p) => {
+          if (p.owner && !acc.find(o => o.id === p.owner!.id)) {
+            acc.push({
+              id: p.owner.id,
+              name: `${p.owner.firstName} ${p.owner.lastName}`
+            })
+          }
+          return acc
+        }, [] as {id: string, name: string}[])
       
+      setOwners(uniqueOwners)
       setProperties(data)
     } catch (error) {
       console.error("Error fetching properties:", error)

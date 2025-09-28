@@ -34,6 +34,7 @@ export default function ManagerProfile() {
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [portfolioStats, setPortfolioStats] = useState<ManagerPortfolioStats | null>(null)
   const [isLoadingStats, setIsLoadingStats] = useState(true)
+  
 
   // Update form data when user data changes
   useEffect(() => {
@@ -207,6 +208,7 @@ export default function ManagerProfile() {
     }
   }
 
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -348,7 +350,6 @@ export default function ManagerProfile() {
                 </CardContent>
               </Card>
             </TabsContent>
-
 
             <TabsContent value="security" className="space-y-6">
               <Card>

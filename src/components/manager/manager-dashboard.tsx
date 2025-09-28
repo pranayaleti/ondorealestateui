@@ -1,18 +1,29 @@
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { 
   Building, 
   AlertTriangle,
   Clock,
-  BarChart3
+  BarChart3,
+  UserPlus,
+  Mail,
+  Users,
+  MapPin,
+  Check,
+  X,
+  Shield,
+  ShieldOff
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
-import { propertyApi, type Property } from "@/lib/api"
+import { propertyApi, authApi, ApiError, type Property, type InvitedUser } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
+import { PropertyDetailModal } from "@/components/property-detail-modal"
 
 export default function ManagerDashboard() {
   const { user } = useAuth()
@@ -21,9 +32,25 @@ export default function ManagerDashboard() {
   const [properties, setProperties] = useState<Property[]>([])
   const [pendingProperties, setPendingProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // Invite functionality
+  const [inviteData, setInviteData] = useState({
+    email: "",
+    role: "owner" as "owner" | "tenant"
+  })
+  const [isSendingInvite, setIsSendingInvite] = useState(false)
+  
+  // Invited users
+  const [invitedUsers, setInvitedUsers] = useState<InvitedUser[]>([])
+  const [loadingUsers, setLoadingUsers] = useState(false)
+  
+  // Property detail modal
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [showPropertyDetail, setShowPropertyDetail] = useState(false)
 
   useEffect(() => {
     fetchDashboardData()
+    fetchInvitedUsers()
   }, [])
 
   const fetchDashboardData = async () => {
@@ -35,6 +62,9 @@ export default function ManagerDashboard() {
       
       setProperties(allProps)
       setPendingProperties(pendingProps)
+      
+      console.log("Fetched properties:", allProps)
+      console.log("Properties with owners:", allProps.filter(p => p.owner))
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
       toast({
@@ -47,6 +77,24 @@ export default function ManagerDashboard() {
     }
   }
 
+  const fetchInvitedUsers = async () => {
+    try {
+      setLoadingUsers(true)
+      const users = await authApi.getInvitedUsers()
+      console.log("Fetched users:", users) // Debug log
+      setInvitedUsers(users)
+    } catch (error) {
+      console.error("Failed to fetch invited users:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load users. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoadingUsers(false)
+    }
+  }
+
   // Calculate stats from real data
   const stats = {
     totalProperties: properties.length,
@@ -55,6 +103,108 @@ export default function ManagerDashboard() {
     rejectedProperties: properties.filter(p => p.status === "rejected").length,
   }
 
+  const handlePropertyStatusUpdate = async (propertyId: string, status: 'approved' | 'rejected') => {
+    try {
+      await propertyApi.updatePropertyStatus(propertyId, status)
+      
+      toast({
+        title: "Property Updated",
+        description: `Property has been ${status}.`,
+      })
+      
+      // Refresh properties to show updated status
+      fetchDashboardData()
+      
+      // Close modal if it's open
+      if (showPropertyDetail) {
+        setShowPropertyDetail(false)
+      }
+    } catch (error) {
+      const errorMessage = error instanceof ApiError 
+        ? error.message 
+        : `Failed to ${status} property. Please try again.`
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleViewProperty = (property: Property) => {
+    setSelectedProperty(property)
+    setShowPropertyDetail(true)
+  }
+
+  const handleUserStatusUpdate = async (userId: string, isActive: boolean) => {
+    try {
+      await authApi.updateUserStatus(userId, isActive)
+      
+      toast({
+        title: "User Status Updated",
+        description: `User has been ${isActive ? 'enabled' : 'disabled'}.`,
+      })
+      
+      // Refresh users list
+      fetchInvitedUsers()
+    } catch (error) {
+      const errorMessage = error instanceof ApiError 
+        ? error.message 
+        : `Failed to ${isActive ? 'enable' : 'disable'} user. Please try again.`
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleSendInvite = async () => {
+    if (!inviteData.email.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter an email address.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSendingInvite(true)
+    try {
+      await authApi.invite({
+        email: inviteData.email.trim(),
+        role: inviteData.role,
+      })
+
+      toast({
+        title: "Invitation Sent",
+        description: `Invitation sent to ${inviteData.email} as ${inviteData.role}.`,
+      })
+
+      // Clear invite form and refresh users
+      setInviteData({
+        email: "",
+        role: "owner"
+      })
+      
+      // Refresh invited users list
+      fetchInvitedUsers()
+    } catch (error) {
+      const errorMessage = error instanceof ApiError 
+        ? error.message 
+        : "Failed to send invitation. Please try again."
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    } finally {
+      setIsSendingInvite(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -69,14 +219,17 @@ export default function ManagerDashboard() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Manager Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400">Welcome back, {user?.email}</p>
+        <h1 className="text-3xl font-bold">Welcome back, {user?.firstName} {user?.lastName}!</h1>
+        <p className="text-gray-600 dark:text-gray-400">Here's your property management overview.</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="properties">Properties</TabsTrigger>
+          <TabsTrigger value="owner-properties">Owner Properties</TabsTrigger>
+          <TabsTrigger value="my-users">My Users</TabsTrigger>
+          <TabsTrigger value="user-management">User Management</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -89,9 +242,7 @@ export default function ManagerDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.totalProperties}</div>
-                <p className="text-xs text-muted-foreground">
-                  All registered properties
-                </p>
+                <p className="text-xs text-muted-foreground">All registered properties</p>
               </CardContent>
             </Card>
             <Card>
@@ -101,127 +252,156 @@ export default function ManagerDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.pendingReview}</div>
-                <p className="text-xs text-muted-foreground">
-                  Awaiting approval
-                </p>
+                <p className="text-xs text-muted-foreground">Awaiting approval</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Approved</CardTitle>
-                <Building className="h-4 w-4 text-green-500" />
+                <BarChart3 className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.approvedProperties}</div>
-                <p className="text-xs text-muted-foreground">
-                  Active properties
-                </p>
+                <p className="text-xs text-muted-foreground">Active properties</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Rejected</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-red-500" />
+                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.rejectedProperties}</div>
-                <p className="text-xs text-muted-foreground">
-                  Rejected submissions
-                </p>
+                <p className="text-xs text-muted-foreground">Rejected submissions</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Link to="/dashboard/properties">
-                  <Button className="w-full justify-start">
-                    <Building className="h-4 w-4 mr-2" />
-                    Review Properties
-                  </Button>
-                </Link>
-                <Button className="w-full justify-start" variant="outline" onClick={fetchDashboardData}>
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Refresh Data
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Recent Submissions</CardTitle>
-                <CardDescription>Latest property submissions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {pendingProperties.slice(0, 3).map((property) => (
-                    <div key={property.id} className="flex items-center space-x-3">
-                      <Clock className="h-4 w-4 text-orange-500" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{property.title}</p>
-                        <p className="text-xs text-gray-500">{property.city}</p>
+          {/* Recent Properties */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Property Submissions</CardTitle>
+              <CardDescription>Latest properties submitted for review</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {pendingProperties.slice(0, 5).map((property) => (
+                  <div key={property.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <Building className="h-8 w-8 text-blue-500" />
+                      <div>
+                        <p className="font-medium">{property.title}</p>
+                        <p className="text-sm text-gray-600">{property.addressLine1}, {property.city}</p>
+                        {property.owner && (
+                          <p className="text-xs text-gray-500">Owner: {property.owner.firstName} {property.owner.lastName}</p>
+                        )}
                       </div>
-                      <Badge variant="secondary">Pending</Badge>
                     </div>
-                  ))}
-                  {pendingProperties.length === 0 && (
-                    <p className="text-sm text-gray-500">No pending submissions</p>
-                  )}
-                </div>
-                <Link to="/dashboard/properties">
-                  <Button variant="outline" size="sm" className="w-full mt-3">
-                    Review All Properties
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">
+                        <Clock className="h-3 w-3 mr-1" />
+                        Pending
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleViewProperty(property)}
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      >
+                        View Details
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handlePropertyStatusUpdate(property.id, 'approved')}
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handlePropertyStatusUpdate(property.id, 'rejected')}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {pendingProperties.length === 0 && (
+                  <p className="text-center text-gray-500 py-8">No pending properties</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="properties" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Property Overview</h2>
-            <Link to="/dashboard/properties">
-              <Button>
-                <Building className="h-4 w-4 mr-2" />
-                Manage Properties
-              </Button>
-            </Link>
-          </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {properties.slice(0, 6).map((property) => (
+            {properties.map((property) => (
               <Card key={property.id}>
                 <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">{property.title}</CardTitle>
-                      <CardDescription>{property.city}, {property.country}</CardDescription>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{property.title}</CardTitle>
                     <Badge variant={
                       property.status === "approved" ? "default" : 
                       property.status === "rejected" ? "destructive" : 
                       "secondary"
                     }>
-                      {property.status}
+                      {property.status === "pending" && <Clock className="h-3 w-3 mr-1" />}
+                      {property.status.charAt(0).toUpperCase() + property.status.slice(1)}
                     </Badge>
                   </div>
+                  <CardDescription>{property.addressLine1}, {property.city}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Type:</span>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Type:</span>
                       <span className="capitalize">{property.type}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Submitted:</span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Owner:</span>
+                      <span>{property.owner ? `${property.owner.firstName} ${property.owner.lastName}` : 'Unknown'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Submitted:</span>
                       <span>{new Date(property.createdAt).toLocaleDateString()}</span>
                     </div>
+                  </div>
+                  
+                  {/* Action buttons */}
+                  <div className="flex gap-2 mt-4 pt-4 border-t">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleViewProperty(property)}
+                      className="flex-1"
+                    >
+                      View Details
+                    </Button>
+                    {property.status === 'pending' && (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() => handlePropertyStatusUpdate(property.id, 'approved')}
+                          className="flex-1 bg-green-600 hover:bg-green-700"
+                        >
+                          <Check className="h-4 w-4 mr-1" />
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handlePropertyStatusUpdate(property.id, 'rejected')}
+                          className="flex-1"
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Reject
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -236,7 +416,428 @@ export default function ManagerDashboard() {
             </div>
           )}
         </TabsContent>
+
+        <TabsContent value="owner-properties" className="space-y-4">
+          {/* Owner Properties Grouped View */}
+          {(() => {
+            // Group properties by owner
+            const propertiesByOwner = properties.reduce((acc, property) => {
+              if (property.owner) {
+                const ownerKey = property.owner.id;
+                if (!acc[ownerKey]) {
+                  acc[ownerKey] = {
+                    owner: property.owner,
+                    properties: []
+                  };
+                }
+                acc[ownerKey].properties.push(property);
+              }
+              return acc;
+            }, {} as Record<string, { owner: any, properties: Property[] }>);
+
+            const ownerGroups = Object.values(propertiesByOwner);
+
+            if (ownerGroups.length === 0) {
+              return (
+                <div className="text-center py-12">
+                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No owners found</h3>
+                  <p className="text-gray-600">Property owners will appear here once they submit properties.</p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="space-y-6">
+                {ownerGroups.map(({ owner, properties: ownerProperties }) => (
+                  <Card key={owner.id}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <Users className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">
+                              {owner.firstName} {owner.lastName}
+                            </CardTitle>
+                            <CardDescription>{owner.email}</CardDescription>
+                          </div>
+                        </div>
+                        <Badge variant="secondary">
+                          {ownerProperties.length} {ownerProperties.length === 1 ? 'Property' : 'Properties'}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {ownerProperties.map((property) => (
+                          <Card key={property.id} className="border-l-4 border-l-blue-500">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-center justify-between">
+                                <CardTitle className="text-sm font-medium">{property.title}</CardTitle>
+                                <Badge variant={
+                                  property.status === "approved" ? "default" : 
+                                  property.status === "rejected" ? "destructive" : 
+                                  "secondary"
+                                }>
+                                  {property.status === "pending" && <Clock className="h-3 w-3 mr-1" />}
+                                  {property.status.charAt(0).toUpperCase() + property.status.slice(1)}
+                                </Badge>
+                              </div>
+                              <CardDescription className="flex items-center">
+                                <MapPin className="h-3 w-3 mr-1" />
+                                {property.addressLine1}, {property.city}
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                              <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Type:</span>
+                                  <span className="capitalize">{property.type}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Submitted:</span>
+                                  <span>{new Date(property.createdAt).toLocaleDateString()}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Photos:</span>
+                                  <span>{property.photos?.length || 0}</span>
+                                </div>
+                              </div>
+                              
+                              {/* Action buttons */}
+                              <div className="flex gap-2 mt-3 pt-3 border-t">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleViewProperty(property)}
+                                  className="flex-1 text-xs"
+                                >
+                                  View Details
+                                </Button>
+                                {property.status === 'pending' && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handlePropertyStatusUpdate(property.id, 'approved')}
+                                      className="flex-1 bg-green-600 hover:bg-green-700 text-xs"
+                                    >
+                                      <Check className="h-3 w-3 mr-1" />
+                                      Approve
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => handlePropertyStatusUpdate(property.id, 'rejected')}
+                                      className="flex-1 text-xs"
+                                    >
+                                      <X className="h-3 w-3 mr-1" />
+                                      Reject
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            );
+          })()}
+        </TabsContent>
+
+        <TabsContent value="my-users" className="space-y-4">
+          {/* My Invited Users */}
+          {loadingUsers ? (
+            <div className="text-center py-12">
+              <div className="text-lg">Loading users...</div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Owners Section */}
+              {(() => {
+                const owners = invitedUsers.filter(user => user.role === 'owner');
+                if (owners.length > 0) {
+                  return (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="h-5 w-5" />
+                          Property Owners ({owners.length})
+                        </CardTitle>
+                        <CardDescription>Owners you have invited to the platform</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {owners.map((owner) => (
+                            <Card key={owner.id} className="border-l-4 border-l-green-500">
+                              <CardHeader className="pb-3">
+                                <div className="flex items-center justify-between">
+                                  <CardTitle className="text-sm font-medium">
+                                    {owner.firstName} {owner.lastName}
+                                  </CardTitle>
+                                  <Badge variant="default">Owner</Badge>
+                                </div>
+                                <CardDescription>{owner.email}</CardDescription>
+                              </CardHeader>
+                              <CardContent className="pt-0">
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Properties:</span>
+                                    <span>{owner.propertyCount}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Joined:</span>
+                                    <span>{new Date(owner.createdAt).toLocaleDateString()}</span>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* Tenants Section */}
+              {(() => {
+                const tenants = invitedUsers.filter(user => user.role === 'tenant');
+                if (tenants.length > 0) {
+                  return (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="h-5 w-5" />
+                          Tenants ({tenants.length})
+                        </CardTitle>
+                        <CardDescription>Tenants you have invited to the platform</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {tenants.map((tenant) => (
+                            <Card key={tenant.id} className="border-l-4 border-l-purple-500">
+                              <CardHeader className="pb-3">
+                                <div className="flex items-center justify-between">
+                                  <CardTitle className="text-sm font-medium">
+                                    {tenant.firstName} {tenant.lastName}
+                                  </CardTitle>
+                                  <Badge variant="secondary">Tenant</Badge>
+                                </div>
+                                <CardDescription>{tenant.email}</CardDescription>
+                              </CardHeader>
+                              <CardContent className="pt-0">
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Joined:</span>
+                                    <span>{new Date(tenant.createdAt).toLocaleDateString()}</span>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* Empty State */}
+              {invitedUsers.length === 0 && (
+                <div className="text-center py-12">
+                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No users invited yet</h3>
+                  <p className="text-gray-600">Users you invite will appear here. Use the User Management tab to send invitations.</p>
+                </div>
+              )}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="user-management" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Invite Form */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserPlus className="h-5 w-5" />
+                  Invite Users
+                </CardTitle>
+                <CardDescription>Send invitations to property owners and tenants</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="inviteEmail">Email Address</Label>
+                  <Input
+                    id="inviteEmail"
+                    type="email"
+                    placeholder="Enter email address"
+                    value={inviteData.email}
+                    onChange={(e) => setInviteData(prev => ({ ...prev, email: e.target.value }))}
+                    disabled={isSendingInvite}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="inviteRole">Role</Label>
+                  <Select 
+                    value={inviteData.role} 
+                    onValueChange={(value: "owner" | "tenant") => setInviteData(prev => ({ ...prev, role: value }))}
+                    disabled={isSendingInvite}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="owner">Property Owner</SelectItem>
+                      <SelectItem value="tenant">Tenant</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button 
+                  onClick={handleSendInvite}
+                  disabled={isSendingInvite || !inviteData.email.trim()}
+                  className="w-full"
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  {isSendingInvite ? "Sending Invitation..." : "Send Invitation"}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* User Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Manage Users
+                </CardTitle>
+                <CardDescription>Control user access and permissions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingUsers ? (
+                  <div className="text-center py-8">
+                    <div className="text-sm text-gray-500">Loading users...</div>
+                  </div>
+                ) : invitedUsers.length > 0 ? (
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {invitedUsers.map((user) => {
+                      console.log(`User ${user.firstName} ${user.lastName} - isActive:`, user.isActive) // Debug log
+                      return (
+                      <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                            user.role === 'owner' ? 'bg-blue-100' : 'bg-purple-100'
+                          }`}>
+                            <Users className={`h-4 w-4 ${
+                              user.role === 'owner' ? 'text-blue-600' : 'text-purple-600'
+                            }`} />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">
+                              {user.firstName} {user.lastName}
+                            </p>
+                            <p className="text-xs text-gray-500">{user.email}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant={user.role === 'owner' ? 'default' : 'secondary'} className="text-xs">
+                                {user.role}
+                              </Badge>
+                              {user.role === 'owner' && (
+                                <span className="text-xs text-gray-500">
+                                  {user.propertyCount} properties
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            <label className="flex items-center gap-1 cursor-pointer">
+                              <input
+                                type="radio"
+                                name={`user-${user.id}`}
+                                checked={user.isActive}
+                                onChange={() => handleUserStatusUpdate(user.id, true)}
+                                className="text-green-600"
+                              />
+                              <Shield className="h-4 w-4 text-green-600" />
+                              <span className="text-xs text-green-600">Enable</span>
+                            </label>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <label className="flex items-center gap-1 cursor-pointer">
+                              <input
+                                type="radio"
+                                name={`user-${user.id}`}
+                                checked={!user.isActive}
+                                onChange={() => handleUserStatusUpdate(user.id, false)}
+                                className="text-red-600"
+                              />
+                              <ShieldOff className="h-4 w-4 text-red-600" />
+                              <span className="text-xs text-red-600">Disable</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">No users found</p>
+                    <p className="text-xs text-gray-400">Invited users will appear here</p>
+                  </div>
+                )}
+                
+                <div className="border-t pt-4 mt-6">
+                  <h4 className="font-medium mb-2 text-sm">Quick Actions</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      size="sm"
+                      variant="outline" 
+                      onClick={() => setInviteData({ email: "", role: "owner" })}
+                      disabled={isSendingInvite}
+                      className="text-xs"
+                    >
+                      <UserPlus className="h-3 w-3 mr-1" />
+                      Invite Owner
+                    </Button>
+                    <Button 
+                      size="sm"
+                      variant="outline" 
+                      onClick={() => setInviteData({ email: "", role: "tenant" })}
+                      disabled={isSendingInvite}
+                      className="text-xs"
+                    >
+                      <UserPlus className="h-3 w-3 mr-1" />
+                      Invite Tenant
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
       </Tabs>
+
+      {/* Property Detail Modal */}
+      <PropertyDetailModal
+        property={selectedProperty}
+        open={showPropertyDetail}
+        onOpenChange={setShowPropertyDetail}
+        onApprove={(propertyId) => handlePropertyStatusUpdate(propertyId, 'approved')}
+        onReject={(propertyId) => handlePropertyStatusUpdate(propertyId, 'rejected')}
+        showActions={true}
+      />
     </div>
   )
 }

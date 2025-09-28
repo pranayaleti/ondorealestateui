@@ -18,7 +18,7 @@ export interface UserData {
 
 interface AuthContextType {
   user: UserData | null
-  login: (email: string, password: string) => Promise<boolean>
+  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>
   logout: () => void
   isLoading: boolean
   refreshUser: () => Promise<void>
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkSession()
   }, [])
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     setIsLoading(true)
     console.log("Auth context login - starting")
 
@@ -89,11 +89,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       navigate(redirectPath)
       
       setIsLoading(false)
-      return true
+      return { success: true }
     } catch (error) {
       console.error("Login failed", error)
       setIsLoading(false)
-      return false
+      
+      // Extract error message from ApiError
+      let errorMessage = "An unexpected error occurred. Please try again."
+      if (error instanceof ApiError) {
+        errorMessage = error.message
+      } else if (error instanceof Error) {
+        errorMessage = error.message
+      }
+      
+      return { success: false, message: errorMessage }
     }
   }
 

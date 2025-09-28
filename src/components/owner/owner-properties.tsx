@@ -28,13 +28,25 @@ export default function OwnerProperties() {
     fetchProperties()
   }, [statusFilter])
 
+  useEffect(() => {
+    if (search === "") {
+      fetchProperties()
+    }
+  }, [search])
+
   const fetchProperties = async () => {
     if (!user?.id) return
 
     try {
       console.log("Fetching properties...")
       const data = await propertyApi.getProperties()
-      console.log("Properties received:", data)
+      console.log("Properties received:", data.length)
+      console.log("Properties with photos:", data.map(p => ({ 
+        id: p.id, 
+        title: p.title, 
+        photosCount: p.photos?.length || 0,
+        photos: p.photos?.map(photo => ({ url: photo.url, orderIndex: photo.orderIndex }))
+      })))
       // Filter properties based on search and status if needed
       let filteredProperties = data
       
@@ -52,18 +64,13 @@ export default function OwnerProperties() {
         )
       }
       
-      // For owners, only show their own properties and filter by status
+      // For owners, only show their own properties
       if (user.role === "owner") {
         filteredProperties = filteredProperties.filter(property => 
           property.ownerId === user.id
         )
-        
-        // By default, owners should only see approved properties unless they specifically filter for pending/rejected
-        if (statusFilter === "all") {
-          filteredProperties = filteredProperties.filter(property => 
-            property.status === "approved"
-          )
-        }
+        // When "all" is selected, show all statuses (pending, approved, rejected)
+        // No additional filtering needed - let the user see all their properties
       }
       
       setProperties(filteredProperties)

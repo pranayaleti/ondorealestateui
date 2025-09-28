@@ -96,7 +96,26 @@ export interface ManagerPortfolioStats {
   occupancyRate: number;
 }
 
+export interface InvitedUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: 'owner' | 'tenant';
+  createdAt: string;
+  invitedBy: string;
+  propertyCount: number;
+  isActive: boolean;
+}
+
 // Property Types
+export interface PropertyOwner {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
 export interface Property {
   id: string;
   ownerId: string;
@@ -117,6 +136,7 @@ export interface Property {
   updatedAt: string;
   photos?: PropertyPhoto[];
   amenities?: PropertyAmenity[];
+  owner?: PropertyOwner; // Only available for managers
 }
 
 export interface PropertyPhoto {
@@ -269,6 +289,19 @@ export const authApi = {
   async getPortfolioStats(): Promise<PortfolioStats> {
     return apiRequest<PortfolioStats>('/auth/portfolio-stats');
   },
+
+  // Get users invited by the current manager
+  async getInvitedUsers(): Promise<InvitedUser[]> {
+    return apiRequest<InvitedUser[]>('/auth/invited-users');
+  },
+
+  // Update user status (enable/disable)
+  async updateUserStatus(userId: string, isActive: boolean): Promise<{ message: string; user: any }> {
+    return apiRequest<{ message: string; user: any }>(`/auth/users/${userId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive }),
+    });
+  },
 };
 
 // Token management
@@ -397,8 +430,8 @@ export const propertyApi = {
 
   // Manager functions
 
-  async updatePropertyStatus(id: string, status: 'approved' | 'rejected', comment?: string): Promise<Property> {
-    return apiRequest<Property>(`/properties/${id}/status`, {
+  async updatePropertyStatus(propertyId: string, status: 'approved' | 'rejected', comment?: string): Promise<Property> {
+    return apiRequest<Property>(`/properties/${propertyId}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status, comment }),
     });

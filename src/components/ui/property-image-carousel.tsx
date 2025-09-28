@@ -34,6 +34,12 @@ export function PropertyImageCarousel({
   autoPlay = false,
   autoPlayInterval = 5000
 }: PropertyImageCarouselProps) {
+  // Debug logging
+  console.log(`PropertyImageCarousel for ${propertyTitle}:`, {
+    photosCount: photos.length,
+    photos: photos.map(p => ({ url: p.url, orderIndex: p.orderIndex }))
+  })
+  
   // Use photos if available, otherwise use single placeholder image
   const images = photos.length > 0 
     ? photos.sort((a, b) => a.orderIndex - b.orderIndex).map(photo => ({
@@ -46,6 +52,8 @@ export function PropertyImageCarousel({
         caption: `${propertyTitle} - No images available`,
         isPlaceholder: true
       }]
+  
+  console.log(`Images processed for ${propertyTitle}:`, images.length)
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<number>>(new Set())
@@ -140,7 +148,7 @@ export function PropertyImageCarousel({
         )}
 
         {/* Navigation Controls - Only show if there are multiple images and not just a placeholder */}
-        {showControls && images.length > 1 && !images[0].isPlaceholder && (
+        {showControls && images.length > 1 && !images[0]?.isPlaceholder && (
           <>
             <Button
               variant="ghost"
@@ -162,7 +170,7 @@ export function PropertyImageCarousel({
         )}
 
         {/* Image Counter - Only show if there are multiple real images */}
-        {images.length > 1 && !images[0].isPlaceholder && (
+        {images.length > 1 && !images[0]?.isPlaceholder && (
           <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
             {currentIndex + 1} / {images.length}
           </div>
@@ -170,7 +178,7 @@ export function PropertyImageCarousel({
       </div>
 
       {/* Indicators - Only show if there are multiple real images */}
-      {showIndicators && images.length > 1 && !images[0].isPlaceholder && (
+      {showIndicators && images.length > 1 && !images[0]?.isPlaceholder && (
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1">
           {images.map((_, index: number) => (
             <button
