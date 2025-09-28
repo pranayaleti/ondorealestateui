@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,19 +10,18 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
-import { authApi, ApiError } from "@/lib/api"
+import { authApi, ApiError, type ManagerPortfolioStats } from "@/lib/api"
 
 export default function ManagerProfile() {
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
     email: user?.email || "",
-    phone: "",
-    company: "",
-    address: "",
+    phone: user?.phone || "",
+    address: user?.address || "",
   })
 
   const [passwordData, setPasswordData] = useState({
@@ -32,18 +31,113 @@ export default function ManagerProfile() {
   })
 
   const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [portfolioStats, setPortfolioStats] = useState<ManagerPortfolioStats | null>(null)
+  const [isLoadingStats, setIsLoadingStats] = useState(true)
+
+  // Update form data when user data changes
+  useEffect(() => {
+    console.log("Manager Profile - User data changed:", user)
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        address: user.address || "",
+      }))
+    }
+  }, [user])
+
+  // Fetch portfolio statistics
+  useEffect(() => {
+    const fetchPortfolioStats = async () => {
+      if (!user || user.role !== "manager") return
+
+      try {
+        setIsLoadingStats(true)
+        const stats = await authApi.getPortfolioStats() as unknown as ManagerPortfolioStats
+        setPortfolioStats(stats)
+      } catch (error) {
+        console.error("Error fetching manager portfolio stats:", error)
+        // Set default values if API fails
+        setPortfolioStats({
+          propertiesManaged: 0,
+          totalUnits: 0,
+          activeTenants: 0,
+          monthlyRevenue: 0,
+          formattedMonthlyRevenue: "$0K",
+          occupancyRate: 0
+        })
+      } finally {
+        setIsLoadingStats(false)
+      }
+    }
+
+    fetchPortfolioStats()
+  }, [user])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSave = () => {
-    // TODO: Implement API call to update profile
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been saved successfully.",
-    })
-    setIsEditing(false)
+  const handleSave = async () => {
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields (First Name, Last Name).",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSavingProfile(true)
+    try {
+      const response = await authApi.updateProfile({
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        phone: formData.phone.trim() || undefined,
+        address: formData.address.trim() || undefined,
+      })
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved successfully.",
+      })
+      
+      // Refresh user data in context
+      console.log("About to call refreshUser...")
+      await refreshUser()
+      console.log("refreshUser completed")
+      
+      // Also update the form data immediately with the response
+      if (response.user) {
+        console.log("Updating form data with response:", response.user)
+        setFormData(prev => ({
+          ...prev,
+          firstName: response.user.firstName,
+          lastName: response.user.lastName,
+          email: response.user.email,
+          phone: response.user.phone || "",
+          address: response.user.address || "",
+        }))
+      }
+      
+      setIsEditing(false)
+    } catch (error) {
+      const errorMessage = error instanceof ApiError 
+        ? error.message 
+        : "Failed to update profile. Please try again."
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    } finally {
+      setIsSavingProfile(false)
+    }
   }
 
   const handleCancel = () => {
@@ -51,9 +145,8 @@ export default function ManagerProfile() {
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
       email: user?.email || "",
-      phone: "",
-      company: "",
-      address: "",
+      phone: user?.phone || "",
+      address: user?.address || "",
     })
     setIsEditing(false)
   }
@@ -142,19 +235,27 @@ export default function ManagerProfile() {
                 <div className="w-full mt-6 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Properties Managed:</span>
-                    <span className="font-medium">24</span>
+                    <span className="font-medium">
+                      {isLoadingStats ? "..." : portfolioStats?.propertiesManaged || 0}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Total Units:</span>
-                    <span className="font-medium">156</span>
+                    <span className="font-medium">
+                      {isLoadingStats ? "..." : portfolioStats?.totalUnits || 0}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Active Tenants:</span>
-                    <span className="font-medium">142</span>
+                    <span className="font-medium">
+                      {isLoadingStats ? "..." : portfolioStats?.activeTenants || 0}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Monthly Revenue:</span>
-                    <span className="font-medium">$185K</span>
+                    <span className="font-medium">
+                      {isLoadingStats ? "..." : portfolioStats?.formattedMonthlyRevenue || "$0K"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -165,9 +266,8 @@ export default function ManagerProfile() {
         {/* Profile Details */}
         <div className="lg:col-span-3">
           <Tabs defaultValue="personal" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="personal">Personal Info</TabsTrigger>
-              <TabsTrigger value="company">Company Details</TabsTrigger>
               <TabsTrigger value="security">Security</TabsTrigger>
             </TabsList>
 
@@ -182,8 +282,10 @@ export default function ManagerProfile() {
                     <Button onClick={() => setIsEditing(true)}>Edit</Button>
                   ) : (
                     <div className="space-x-2">
-                      <Button variant="outline" size="sm" onClick={handleCancel}>Cancel</Button>
-                      <Button size="sm" onClick={handleSave}>Save</Button>
+                      <Button variant="outline" size="sm" onClick={handleCancel} disabled={isSavingProfile}>Cancel</Button>
+                      <Button size="sm" onClick={handleSave} disabled={isSavingProfile}>
+                        {isSavingProfile ? "Saving..." : "Save"}
+                      </Button>
                     </div>
                   )}
                 </CardHeader>
@@ -195,7 +297,7 @@ export default function ManagerProfile() {
                         id="firstName"
                         value={formData.firstName}
                         onChange={(e) => handleInputChange("firstName", e.target.value)}
-                        disabled={!isEditing}
+                        disabled={!isEditing || isSavingProfile}
                       />
                     </div>
                     <div>
@@ -204,7 +306,7 @@ export default function ManagerProfile() {
                         id="lastName"
                         value={formData.lastName}
                         onChange={(e) => handleInputChange("lastName", e.target.value)}
-                        disabled={!isEditing}
+                        disabled={!isEditing || isSavingProfile}
                       />
                     </div>
                   </div>
@@ -216,9 +318,10 @@ export default function ManagerProfile() {
                         id="email"
                         type="email"
                         value={formData.email}
-                        onChange={(e) => handleInputChange("email", e.target.value)}
-                        disabled={!isEditing}
+                        disabled={true}
+                        className="bg-gray-50 text-gray-500"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                     </div>
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
@@ -226,7 +329,7 @@ export default function ManagerProfile() {
                         id="phone"
                         value={formData.phone}
                         onChange={(e) => handleInputChange("phone", e.target.value)}
-                        disabled={!isEditing}
+                        disabled={!isEditing || isSavingProfile}
                         placeholder="Enter phone number"
                       />
                     </div>
@@ -238,7 +341,7 @@ export default function ManagerProfile() {
                       id="address"
                       value={formData.address}
                       onChange={(e) => handleInputChange("address", e.target.value)}
-                      disabled={!isEditing}
+                      disabled={!isEditing || isSavingProfile}
                       placeholder="Enter your address"
                     />
                   </div>
@@ -246,61 +349,6 @@ export default function ManagerProfile() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="company" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Company Information</CardTitle>
-                  <CardDescription>Manage your company details and preferences</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div>
-                    <Label htmlFor="company">Company Name</Label>
-                    <Input
-                      id="company"
-                      value={formData.company}
-                      onChange={(e) => handleInputChange("company", e.target.value)}
-                      placeholder="Enter company name"
-                    />
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label>Property Management Services</Label>
-                        <p className="text-sm text-gray-500">Offer comprehensive property management services</p>
-                      </div>
-                      <input type="checkbox" defaultChecked className="h-4 w-4" />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label>Maintenance Coordination</Label>
-                        <p className="text-sm text-gray-500">Handle maintenance requests and repairs</p>
-                      </div>
-                      <input type="checkbox" defaultChecked className="h-4 w-4" />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label>Tenant Screening</Label>
-                        <p className="text-sm text-gray-500">Conduct background and credit checks</p>
-                      </div>
-                      <input type="checkbox" defaultChecked className="h-4 w-4" />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label>Financial Reporting</Label>
-                        <p className="text-sm text-gray-500">Provide detailed financial reports to owners</p>
-                      </div>
-                      <input type="checkbox" defaultChecked className="h-4 w-4" />
-                    </div>
-                  </div>
-
-                  <Button>Save Company Settings</Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="security" className="space-y-6">
               <Card>

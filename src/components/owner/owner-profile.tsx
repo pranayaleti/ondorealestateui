@@ -10,15 +10,15 @@ import {
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { useState, useEffect } from "react"
-import { authApi, ApiError } from "@/lib/api"
+import { authApi, ApiError, type PortfolioStats } from "@/lib/api"
 
 const getInitialProfileData = (user: any) => ({
   personalInfo: {
-    firstName: user?.firstName || "John",
-    lastName: user?.lastName || "Doe",
-    email: user?.email || "john.doe@email.com",
-    phone: "(555) 123-4567",
-    address: "456 Investment Ave, Salt Lake City, UT 84101"
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    address: user?.address || ""
   },
   investmentPreferences: {
     monthlyReports: true,
@@ -38,7 +38,7 @@ const getInitialProfileData = (user: any) => ({
 })
 
 export default function OwnerProfile() {
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [profileData, setProfileData] = useState(() => getInitialProfileData(user))
@@ -50,10 +50,40 @@ export default function OwnerProfile() {
   })
 
   const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [portfolioStats, setPortfolioStats] = useState<PortfolioStats | null>(null)
+  const [isLoadingStats, setIsLoadingStats] = useState(true)
 
   // Update profile data when user data changes
   useEffect(() => {
+    console.log("Owner Profile - User data changed:", user)
     setProfileData(getInitialProfileData(user))
+  }, [user])
+
+  // Fetch portfolio statistics
+  useEffect(() => {
+    const fetchPortfolioStats = async () => {
+      if (!user || user.role !== "owner") return
+
+      try {
+        setIsLoadingStats(true)
+        const stats = await authApi.getPortfolioStats()
+        setPortfolioStats(stats)
+      } catch (error) {
+        console.error("Error fetching portfolio stats:", error)
+        // Set default values if API fails
+        setPortfolioStats({
+          propertiesOwned: 0,
+          totalUnits: 0,
+          portfolioValue: 0,
+          formattedPortfolioValue: "$0.0M"
+        })
+      } finally {
+        setIsLoadingStats(false)
+      }
+    }
+
+    fetchPortfolioStats()
   }, [user])
 
   const handleInputChange = (section: string, field: string, value: string) => {
@@ -76,26 +106,66 @@ export default function OwnerProfile() {
     }))
   }
 
-  const handleServiceChange = (field: string, value: boolean) => {
-    setProfileData(prev => ({
-      ...prev,
-      companyInfo: {
-        ...prev.companyInfo,
-        services: {
-          ...prev.companyInfo.services,
-          [field]: value
-        }
-      }
-    }))
-  }
 
-  const handleSave = () => {
-    // TODO: Implement API call to update profile
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been saved successfully.",
-    })
-    setIsEditing(false)
+  const handleSave = async () => {
+    if (!profileData.personalInfo.firstName.trim() || !profileData.personalInfo.lastName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields (First Name, Last Name).",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSavingProfile(true)
+    try {
+      const response = await authApi.updateProfile({
+        firstName: profileData.personalInfo.firstName.trim(),
+        lastName: profileData.personalInfo.lastName.trim(),
+        phone: profileData.personalInfo.phone.trim() || undefined,
+        address: profileData.personalInfo.address.trim() || undefined,
+      })
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved successfully.",
+      })
+      
+      // Refresh user data in context
+      console.log("About to call refreshUser...")
+      await refreshUser()
+      console.log("refreshUser completed")
+      
+      // Also update the profile data immediately with the response
+      if (response.user) {
+        console.log("Updating profile data with response:", response.user)
+        setProfileData(prev => ({
+          ...prev,
+          personalInfo: {
+            ...prev.personalInfo,
+            firstName: response.user.firstName,
+            lastName: response.user.lastName,
+            email: response.user.email,
+            phone: response.user.phone || "",
+            address: response.user.address || "",
+          }
+        }))
+      }
+      
+      setIsEditing(false)
+    } catch (error) {
+      const errorMessage = error instanceof ApiError 
+        ? error.message 
+        : "Failed to update profile. Please try again."
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    } finally {
+      setIsSavingProfile(false)
+    }
   }
 
   const handleCancel = () => {
@@ -187,15 +257,21 @@ export default function OwnerProfile() {
                 <div className="w-full mt-6 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Properties Owned:</span>
-                    <span className="font-medium">8</span>
+                    <span className="font-medium">
+                      {isLoadingStats ? "..." : portfolioStats?.propertiesOwned || 0}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Total Units:</span>
-                    <span className="font-medium">45</span>
+                    <span className="font-medium">
+                      {isLoadingStats ? "..." : portfolioStats?.totalUnits || 0}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Portfolio Value:</span>
-                    <span className="font-medium">$8.5M</span>
+                    <span className="font-medium">
+                      {isLoadingStats ? "..." : portfolioStats?.formattedPortfolioValue || "$0.0M"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -223,8 +299,10 @@ export default function OwnerProfile() {
                     <Button onClick={() => setIsEditing(true)}>Edit</Button>
                   ) : (
                     <div className="space-x-2">
-                      <Button variant="outline" size="sm" onClick={handleCancel}>Cancel</Button>
-                      <Button size="sm" onClick={handleSave}>Save</Button>
+                      <Button variant="outline" size="sm" onClick={handleCancel} disabled={isSavingProfile}>Cancel</Button>
+                      <Button size="sm" onClick={handleSave} disabled={isSavingProfile}>
+                        {isSavingProfile ? "Saving..." : "Save"}
+                      </Button>
                     </div>
                   )}
                 </CardHeader>
@@ -236,7 +314,7 @@ export default function OwnerProfile() {
                         id="firstName"
                         value={profileData.personalInfo.firstName}
                         onChange={(e) => handleInputChange("personalInfo", "firstName", e.target.value)}
-                        disabled={!isEditing}
+                        disabled={!isEditing || isSavingProfile}
                       />
                     </div>
                     <div>
@@ -245,7 +323,7 @@ export default function OwnerProfile() {
                         id="lastName"
                         value={profileData.personalInfo.lastName}
                         onChange={(e) => handleInputChange("personalInfo", "lastName", e.target.value)}
-                        disabled={!isEditing}
+                        disabled={!isEditing || isSavingProfile}
                       />
                     </div>
                   </div>
@@ -257,9 +335,10 @@ export default function OwnerProfile() {
                         id="email"
                         type="email"
                         value={profileData.personalInfo.email}
-                        onChange={(e) => handleInputChange("personalInfo", "email", e.target.value)}
-                        disabled={!isEditing}
+                        disabled={true}
+                        className="bg-gray-50 text-gray-500"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                     </div>
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
@@ -267,7 +346,7 @@ export default function OwnerProfile() {
                         id="phone"
                         value={profileData.personalInfo.phone}
                         onChange={(e) => handleInputChange("personalInfo", "phone", e.target.value)}
-                        disabled={!isEditing}
+                        disabled={!isEditing || isSavingProfile}
                       />
                     </div>
                   </div>
@@ -278,7 +357,7 @@ export default function OwnerProfile() {
                       id="address"
                       value={profileData.personalInfo.address}
                       onChange={(e) => handleInputChange("personalInfo", "address", e.target.value)}
-                      disabled={!isEditing}
+                      disabled={!isEditing || isSavingProfile}
                     />
                   </div>
                 </CardContent>

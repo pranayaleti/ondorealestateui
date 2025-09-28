@@ -10,6 +10,9 @@ export interface UserData {
   lastName: string
   email: string
   role: UserRole
+  phone?: string
+  address?: string
+  profilePicture?: string
   avatar?: string
 }
 
@@ -35,7 +38,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     lastName: apiUser.lastName,
     email: apiUser.email,
     role: apiUser.role,
-    avatar: "/abstract-geometric-shapes.png", // Default avatar
+    phone: apiUser.phone,
+    address: apiUser.address,
+    profilePicture: apiUser.profilePicture,
+    avatar: apiUser.profilePicture || "/abstract-geometric-shapes.png", // Use profile picture or default
   })
 
   // Check for existing session on mount

@@ -4,10 +4,13 @@ const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://loca
 // Types
 export interface User {
   id: string;
-  email: string;
   firstName: string;
   lastName: string;
-  role: 'manager' | 'owner' | 'tenant';
+  email: string;
+  role: "manager" | "owner" | "tenant";
+  phone?: string;
+  address?: string;
+  profilePicture?: string;
 }
 
 export interface LoginRequest {
@@ -61,6 +64,36 @@ export interface ChangePasswordRequest {
 
 export interface ChangePasswordResponse {
   message: string;
+}
+
+export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  profilePicture?: string;
+}
+
+export interface UpdateProfileResponse {
+  message: string;
+  user: User;
+}
+
+export interface PortfolioStats {
+  propertiesOwned: number;
+  totalUnits: number;
+  portfolioValue: number;
+  formattedPortfolioValue: string;
+}
+
+export interface ManagerPortfolioStats {
+  propertiesManaged: number;
+  totalUnits: number;
+  activeTenants: number;
+  monthlyRevenue: number;
+  formattedMonthlyRevenue: string;
+  occupancyRate: number;
 }
 
 // Property Types
@@ -222,6 +255,19 @@ export const authApi = {
       method: 'POST',
       body: JSON.stringify(passwordData),
     });
+  },
+
+  // Update user profile
+  async updateProfile(profileData: UpdateProfileRequest): Promise<UpdateProfileResponse> {
+    return apiRequest<UpdateProfileResponse>('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+  },
+
+  // Get portfolio statistics for owners
+  async getPortfolioStats(): Promise<PortfolioStats> {
+    return apiRequest<PortfolioStats>('/auth/portfolio-stats');
   },
 };
 
