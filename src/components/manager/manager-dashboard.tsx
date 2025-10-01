@@ -110,6 +110,7 @@ export default function ManagerDashboard() {
       toast({
         title: "Property Updated",
         description: `Property has been ${status}.`,
+        duration: 1000, // 4 seconds for property updates
       })
       
       // Refresh properties to show updated status
@@ -128,6 +129,7 @@ export default function ManagerDashboard() {
         title: "Error",
         description: errorMessage,
         variant: "destructive",
+        duration: 6000, // 6 seconds for error messages
       })
     }
   }
@@ -144,6 +146,7 @@ export default function ManagerDashboard() {
       toast({
         title: "User Status Updated",
         description: `User has been ${isActive ? 'enabled' : 'disabled'}.`,
+        duration: 4000, // 4 seconds for user status updates
       })
       
       // Refresh users list
@@ -157,6 +160,7 @@ export default function ManagerDashboard() {
         title: "Error",
         description: errorMessage,
         variant: "destructive",
+        duration: 6000, // 6 seconds for error messages
       })
     }
   }
@@ -167,6 +171,7 @@ export default function ManagerDashboard() {
         title: "Error",
         description: "Please enter an email address.",
         variant: "destructive",
+        duration: 4000, // 4 seconds for validation errors
       })
       return
     }
@@ -181,6 +186,7 @@ export default function ManagerDashboard() {
       toast({
         title: "Invitation Sent",
         description: `Invitation sent to ${inviteData.email} as ${inviteData.role}.`,
+        duration: 5000, // 5 seconds for successful invitations
       })
 
       // Clear invite form and refresh users
@@ -200,6 +206,7 @@ export default function ManagerDashboard() {
         title: "Error",
         description: errorMessage,
         variant: "destructive",
+        duration: 6000, // 6 seconds for error messages
       })
     } finally {
       setIsSendingInvite(false)

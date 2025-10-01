@@ -30,12 +30,14 @@ export default function LoginPage() {
         toast({
           title: "Login successful",
           description: "Welcome back to OnDo!",
+          duration: 1000, // 3 seconds for success messages
         })
       } else {
         toast({
           title: "Login failed",
           description: result.message || "Invalid email or password. Please try again.",
           variant: "destructive",
+          duration: 6000, // 6 seconds for error messages (longer to read)
         })
       }
     } catch (error) {
@@ -43,6 +45,7 @@ export default function LoginPage() {
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
+        duration: 6000, // 6 seconds for error messages
       })
     } finally {
       setIsLoading(false)
