@@ -21,7 +21,7 @@ import {
   ShieldOff
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
-import { propertyApi, authApi, ApiError, type Property, type InvitedUser } from "@/lib/api"
+import { propertyApi, authApi, leadApi, ApiError, type Property, type InvitedUser, type Lead } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 import { PropertyDetailModal } from "@/components/property-detail-modal"
 
@@ -47,10 +47,15 @@ export default function ManagerDashboard() {
   // Property detail modal
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [showPropertyDetail, setShowPropertyDetail] = useState(false)
+  
+  // Leads functionality
+  const [leads, setLeads] = useState<Lead[]>([])
+  const [loadingLeads, setLoadingLeads] = useState(false)
 
   useEffect(() => {
     fetchDashboardData()
     fetchInvitedUsers()
+    fetchLeads()
   }, [])
 
   const fetchDashboardData = async () => {
@@ -92,6 +97,23 @@ export default function ManagerDashboard() {
       })
     } finally {
       setLoadingUsers(false)
+    }
+  }
+
+  const fetchLeads = async () => {
+    try {
+      setLoadingLeads(true)
+      const managerLeads = await leadApi.getManagerLeads()
+      setLeads(managerLeads)
+    } catch (error) {
+      console.error("Failed to fetch leads:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load leads. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoadingLeads(false)
     }
   }
 
@@ -137,6 +159,27 @@ export default function ManagerDashboard() {
   const handleViewProperty = (property: Property) => {
     setSelectedProperty(property)
     setShowPropertyDetail(true)
+  }
+
+  const handleLeadStatusUpdate = async (leadId: string, status: Lead['status']) => {
+    try {
+      await leadApi.updateLeadStatus(leadId, status)
+      
+      toast({
+        title: "Lead Updated",
+        description: `Lead status updated to ${status}.`,
+      })
+      
+      // Refresh leads to show updated status
+      fetchLeads()
+    } catch (error) {
+      console.error("Failed to update lead status:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update lead status. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleUserStatusUpdate = async (userId: string, isActive: boolean) => {
@@ -235,6 +278,7 @@ export default function ManagerDashboard() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="properties">Properties</TabsTrigger>
           <TabsTrigger value="owner-properties">Owner Properties</TabsTrigger>
+          <TabsTrigger value="leads">Leads</TabsTrigger>
           <TabsTrigger value="my-users">My Users</TabsTrigger>
           <TabsTrigger value="user-management">User Management</TabsTrigger>
         </TabsList>
@@ -833,6 +877,116 @@ export default function ManagerDashboard() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="leads" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Property Leads
+              </CardTitle>
+              <CardDescription>
+                Manage tenant inquiries and leads from your properties
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingLeads ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                  <p className="text-sm text-gray-500 mt-2">Loading leads...</p>
+                </div>
+              ) : leads.length > 0 ? (
+                <div className="space-y-4">
+                  {leads.map((lead) => (
+                    <div key={lead.id} className="border rounded-lg p-4 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-lg">{lead.tenantName}</h4>
+                          <p className="text-sm text-gray-600">{lead.tenantEmail} • {lead.tenantPhone}</p>
+                        </div>
+                        <Badge variant={
+                          lead.status === "new" ? "secondary" :
+                          lead.status === "contacted" ? "default" :
+                          lead.status === "qualified" ? "default" :
+                          lead.status === "converted" ? "default" :
+                          "outline"
+                        }>
+                          {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                        </Badge>
+                      </div>
+                      
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Building className="h-4 w-4 text-gray-500" />
+                          <span className="font-medium">{lead.propertyTitle}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <MapPin className="h-3 w-3" />
+                          <span>{lead.propertyAddress}, {lead.propertyCity}</span>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {lead.propertyType} • Owner: {lead.ownerFirstName} {lead.ownerLastName}
+                        </div>
+                      </div>
+                      
+                      {lead.message && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-md p-3">
+                          <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">Message:</p>
+                          <p className="text-sm text-blue-800 dark:text-blue-200">{lead.message}</p>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>Submitted: {new Date(lead.createdAt).toLocaleDateString()}</span>
+                        <span>Source: {lead.source}</span>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Select
+                          value={lead.status}
+                          onValueChange={(newStatus) => handleLeadStatusUpdate(lead.id, newStatus as Lead['status'])}
+                        >
+                          <SelectTrigger className="w-40">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="new">New</SelectItem>
+                            <SelectItem value="contacted">Contacted</SelectItem>
+                            <SelectItem value="qualified">Qualified</SelectItem>
+                            <SelectItem value="converted">Converted</SelectItem>
+                            <SelectItem value="closed">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const subject = `Re: Interest in ${lead.propertyTitle}`;
+                            const body = `Hello ${lead.tenantName},\n\nThank you for your interest in "${lead.propertyTitle}" located at ${lead.propertyAddress}, ${lead.propertyCity}.\n\n${lead.message ? `Regarding your message: "${lead.message}"\n\n` : ''}I would be happy to discuss this property with you further.\n\nBest regards`;
+                            const mailtoLink = `mailto:${lead.tenantEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                            window.open(mailtoLink, '_blank');
+                          }}
+                        >
+                          <Mail className="h-4 w-4 mr-2" />
+                          Contact
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                  <p className="text-lg font-medium text-gray-900 dark:text-gray-100">No leads yet</p>
+                  <p className="text-sm text-gray-500">
+                    Tenant inquiries from your properties will appear here
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 

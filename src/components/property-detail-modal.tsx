@@ -2,6 +2,10 @@ import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
 import {
   MapPin,
   ChevronLeft,
@@ -11,10 +15,15 @@ import {
   User,
   Check,
   X,
-  Building
+  Building,
+  Phone,
+  Mail,
+  UserCheck,
+  Heart,
+  Send
 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { type Property } from "@/lib/api"
+import { type Property, leadApi } from "@/lib/api"
 
 interface PropertyDetailModalProps {
   property: Property | null
@@ -34,6 +43,15 @@ export function PropertyDetailModal({
   showActions = false 
 }: PropertyDetailModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [showLeadForm, setShowLeadForm] = useState(false)
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false)
+  const [leadFormData, setLeadFormData] = useState({
+    tenantName: '',
+    tenantEmail: '',
+    tenantPhone: '',
+    message: ''
+  })
+  const { toast } = useToast()
 
   if (!property) return null
 
@@ -46,6 +64,53 @@ export function PropertyDetailModal({
   const prevImage = () => {
     if (property.photos && property.photos.length > 0) {
       setCurrentImageIndex((prev) => (prev - 1 + property.photos.length) % property.photos.length)
+    }
+  }
+
+  const handleLeadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!leadFormData.tenantName || !leadFormData.tenantEmail || !leadFormData.tenantPhone) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields (Name, Email, Phone).",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSubmittingLead(true)
+    
+    try {
+      await leadApi.submitLead({
+        propertyId: property.id,
+        tenantName: leadFormData.tenantName,
+        tenantEmail: leadFormData.tenantEmail,
+        tenantPhone: leadFormData.tenantPhone,
+        message: leadFormData.message || undefined,
+      })
+
+      toast({
+        title: "Interest Submitted!",
+        description: "Thank you for your interest. The property manager will contact you soon.",
+      })
+
+      // Reset form and close
+      setLeadFormData({
+        tenantName: '',
+        tenantEmail: '',
+        tenantPhone: '',
+        message: ''
+      })
+      setShowLeadForm(false)
+    } catch (error: any) {
+      toast({
+        title: "Submission Failed",
+        description: error.message || "Failed to submit your interest. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmittingLead(false)
     }
   }
 
@@ -147,10 +212,11 @@ export function PropertyDetailModal({
           </div>
 
           <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid grid-cols-3 mb-6">
+            <TabsList className="grid grid-cols-4 mb-6">
               <TabsTrigger value="details">Property Details</TabsTrigger>
               <TabsTrigger value="location">Location</TabsTrigger>
               <TabsTrigger value="amenities">Amenities</TabsTrigger>
+              <TabsTrigger value="contact">Contact</TabsTrigger>
             </TabsList>
 
             <TabsContent value="details" className="space-y-6">
@@ -267,6 +333,163 @@ export function PropertyDetailModal({
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center py-8">No amenities listed for this property</p>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="contact" className="space-y-4">
+              <div>
+                <h4 className="text-lg font-semibold mb-4">Property Manager Contact</h4>
+                {property.manager ? (
+                  <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                    <div className="space-y-4">
+                      {/* Manager Name */}
+                      <div className="flex items-center">
+                        <UserCheck className="h-5 w-5 mr-3 text-blue-500" />
+                        <div>
+                          <p className="font-medium text-lg">
+                            {property.manager.firstName} {property.manager.lastName}
+                          </p>
+                          <p className="text-sm text-gray-600">Property Manager</p>
+                        </div>
+                      </div>
+
+                      {/* Manager Email */}
+                      <div className="flex items-center">
+                        <Mail className="h-5 w-5 mr-3 text-gray-500" />
+                        <div>
+                          <p className="font-medium">Email</p>
+                          <a 
+                            href={`mailto:${property.manager.email}`}
+                            className="text-blue-600 hover:text-blue-800 underline"
+                          >
+                            {property.manager.email}
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Manager Phone */}
+                      {property.manager.phone && (
+                        <div className="flex items-center">
+                          <Phone className="h-5 w-5 mr-3 text-gray-500" />
+                          <div>
+                            <p className="font-medium">Phone</p>
+                            <a 
+                              href={`tel:${property.manager.phone}`}
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              {property.manager.phone}
+                            </a>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Contact Instructions */}
+                      <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                          Interested in this property?
+                        </h5>
+                        <p className="text-sm text-blue-800 dark:text-blue-200">
+                          Contact the property manager directly using the information above to inquire about availability, 
+                          schedule a viewing, or get more details about this property. The manager will assist you with 
+                          your rental application and answer any questions you may have.
+                        </p>
+                      </div>
+
+                      {/* Lead Form or Interest Button */}
+                      <div className="mt-6">
+                        {!showLeadForm ? (
+                          <Button 
+                            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 text-lg"
+                            onClick={() => setShowLeadForm(true)}
+                          >
+                            <Heart className="h-5 w-5" />
+                            I'm Interested
+                          </Button>
+                        ) : (
+                          <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                            <h4 className="font-semibold text-lg">Express Your Interest</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Fill out this form and the property manager will contact you directly.
+                            </p>
+                            
+                            <form onSubmit={handleLeadSubmit} className="space-y-4">
+                              <div>
+                                <Label htmlFor="tenantName">Full Name *</Label>
+                                <Input
+                                  id="tenantName"
+                                  type="text"
+                                  value={leadFormData.tenantName}
+                                  onChange={(e) => setLeadFormData(prev => ({ ...prev, tenantName: e.target.value }))}
+                                  placeholder="Enter your full name"
+                                  required
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="tenantEmail">Email Address *</Label>
+                                <Input
+                                  id="tenantEmail"
+                                  type="email"
+                                  value={leadFormData.tenantEmail}
+                                  onChange={(e) => setLeadFormData(prev => ({ ...prev, tenantEmail: e.target.value }))}
+                                  placeholder="Enter your email address"
+                                  required
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="tenantPhone">Phone Number *</Label>
+                                <Input
+                                  id="tenantPhone"
+                                  type="tel"
+                                  value={leadFormData.tenantPhone}
+                                  onChange={(e) => setLeadFormData(prev => ({ ...prev, tenantPhone: e.target.value }))}
+                                  placeholder="Enter your phone number"
+                                  required
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="message">Message (Optional)</Label>
+                                <Textarea
+                                  id="message"
+                                  value={leadFormData.message}
+                                  onChange={(e) => setLeadFormData(prev => ({ ...prev, message: e.target.value }))}
+                                  placeholder="Any specific questions or requirements..."
+                                  rows={3}
+                                />
+                              </div>
+                              
+                              <div className="flex gap-2">
+                                <Button
+                                  type="submit"
+                                  disabled={isSubmittingLead}
+                                  className="flex-1 bg-green-600 hover:bg-green-700"
+                                >
+                                  <Send className="h-4 w-4 mr-2" />
+                                  {isSubmittingLead ? "Submitting..." : "Submit Interest"}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => setShowLeadForm(false)}
+                                  disabled={isSubmittingLead}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </form>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <UserCheck className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                    <p className="text-gray-500">No manager contact information available</p>
+                  </div>
                 )}
               </div>
             </TabsContent>

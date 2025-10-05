@@ -116,6 +116,49 @@ export interface PropertyOwner {
   email: string;
 }
 
+export interface PropertyManager {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+}
+
+export interface LeadSubmissionRequest {
+  propertyId: string;
+  tenantName: string;
+  tenantEmail: string;
+  tenantPhone: string;
+  message?: string;
+}
+
+export interface LeadSubmissionResponse {
+  message: string;
+  leadId: string;
+}
+
+export interface Lead {
+  id: string;
+  propertyId: string;
+  tenantName: string;
+  tenantEmail: string;
+  tenantPhone: string;
+  message?: string;
+  status: 'new' | 'contacted' | 'qualified' | 'converted' | 'closed';
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+  // Property information
+  propertyTitle: string;
+  propertyType: string;
+  propertyAddress: string;
+  propertyCity: string;
+  // Owner information
+  ownerFirstName?: string;
+  ownerLastName?: string;
+  ownerEmail?: string;
+}
+
 export interface Property {
   id: string;
   ownerId: string;
@@ -137,6 +180,7 @@ export interface Property {
   photos?: PropertyPhoto[];
   amenities?: PropertyAmenity[];
   owner?: PropertyOwner; // Only available for managers
+  manager?: PropertyManager; // Property manager contact details
 }
 
 export interface PropertyPhoto {
@@ -434,6 +478,40 @@ export const propertyApi = {
     return apiRequest<Property>(`/properties/${propertyId}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status, comment }),
+    });
+  },
+};
+
+// Lead API functions
+export const leadApi = {
+  // Submit lead (public API - no authentication required)
+  async submitLead(leadData: LeadSubmissionRequest): Promise<LeadSubmissionResponse> {
+    const response = await fetch(`${API_BASE_URL}/leads/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(leadData),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new ApiError(data.message || 'Lead submission failed', response.status, data.errors);
+    }
+
+    return data;
+  },
+
+  // Get manager leads (authenticated)
+  async getManagerLeads(): Promise<Lead[]> {
+    return apiRequest<Lead[]>('/leads');
+  },
+
+  // Update lead status (authenticated)
+  async updateLeadStatus(leadId: string, status: Lead['status']): Promise<{ message: string; lead: Lead }> {
+    return apiRequest<{ message: string; lead: Lead }>(`/leads/${leadId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
     });
   },
 };
