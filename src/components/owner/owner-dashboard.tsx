@@ -72,9 +72,9 @@ export default function OwnerDashboard() {
       setLoading(true)
       const data = await propertyApi.getProperties()
       
-      // Filter for owner's approved properties only
+      // Filter for owner's properties (all statuses - pending, approved, rejected)
       const ownerProperties = data.filter(property => 
-        property.ownerId === user.id && property.status === "approved"
+        property.ownerId === user.id
       )
       
       // Transform properties to include dashboard data (in a real app, this would come from additional API calls)
@@ -438,6 +438,23 @@ export default function OwnerDashboard() {
                             <p className="text-xs text-gray-400">
                               Added: {new Date(property.createdAt).toLocaleDateString()} • Managed by: {property.managementCompany}
                             </p>
+                          </div>
+                          <div>
+                            {property.status === "pending" && (
+                              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                                Pending Review
+                              </Badge>
+                            )}
+                            {property.status === "approved" && (
+                              <Badge variant="default" className="bg-green-600">
+                                Approved
+                              </Badge>
+                            )}
+                            {property.status === "rejected" && (
+                              <Badge variant="destructive">
+                                Rejected
+                              </Badge>
+                            )}
                           </div>
                         </div>
                         
