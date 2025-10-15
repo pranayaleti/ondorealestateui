@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,15 +14,38 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Upload, X } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
-import { propertyApi, type Amenity } from "@/lib/api"
+import { propertyApi } from "@/lib/api"
 
 export function AddPropertyForm() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const { user } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [amenities, setAmenities] = useState<Amenity[]>([])
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+
+  // Predefined amenities list
+  const predefinedAmenities = [
+    { key: "parking", label: "Parking" },
+    { key: "gym", label: "Gym/Fitness Center" },
+    { key: "pool", label: "Swimming Pool" },
+    { key: "laundry", label: "Laundry Facilities" },
+    { key: "elevator", label: "Elevator" },
+    { key: "balcony", label: "Balcony/Terrace" },
+    { key: "air_conditioning", label: "Air Conditioning" },
+    { key: "heating", label: "Heating" },
+    { key: "dishwasher", label: "Dishwasher" },
+    { key: "microwave", label: "Microwave" },
+    { key: "refrigerator", label: "Refrigerator" },
+    { key: "washer_dryer", label: "Washer/Dryer" },
+    { key: "internet", label: "Internet/WiFi" },
+    { key: "cable_tv", label: "Cable TV" },
+    { key: "security", label: "Security System" },
+    { key: "doorman", label: "Doorman/Concierge" },
+    { key: "pet_friendly", label: "Pet Friendly" },
+    { key: "garden", label: "Garden/Yard" },
+    { key: "fireplace", label: "Fireplace" },
+    { key: "storage", label: "Storage Space" },
+  ]
 
   const [formData, setFormData] = useState({
     title: "",
@@ -33,11 +56,28 @@ export function AddPropertyForm() {
     state: "",
     country: "",
     zipcode: "",
-    // Remove latitude and longitude
-    // latitude: "",
-    // longitude: "",
     description: "",
-    amenityIds: [] as string[],
+    
+    // Property Details
+    price: "",
+    bedrooms: "",
+    bathrooms: "",
+    sqft: "",
+    
+    // Contact & Business Info
+    phone: "",
+    website: "",
+    
+    // Property Management Details
+    leaseTerms: "",
+    fees: "",
+    availability: "",
+    
+    // Arrays
+    specialties: [] as string[],
+    services: [] as string[],
+    valueRanges: [] as string[],
+    amenities: [] as string[], // Changed from amenityIds to amenities
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -49,22 +89,7 @@ export function AddPropertyForm() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  useEffect(() => {
-    const loadAmenities = async () => {
-      try {
-        const amenitiesData = await propertyApi.getAmenities()
-        setAmenities(amenitiesData)
-      } catch (error) {
-        console.error('Failed to load amenities:', error)
-        toast({
-          title: "Error",
-          description: "Failed to load amenities. Please refresh the page.",
-          variant: "destructive",
-        })
-      }
-    }
-    loadAmenities()
-  }, [])
+  // Removed useEffect for loading amenities - now using predefined list
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,10 +109,26 @@ export function AddPropertyForm() {
     console.log("Adding property with user:", { user })
 
     try {
-      console.log("Creating property with data:", formData)
+      // Convert string values to appropriate types for API
+      const propertyData = {
+        ...formData,
+        // Convert numeric fields
+        price: formData.price ? parseFloat(formData.price) : undefined,
+        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : undefined,
+        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : undefined,
+        sqft: formData.sqft ? parseInt(formData.sqft) : undefined,
+        // Remove empty strings
+        website: formData.website || undefined,
+        phone: formData.phone || undefined,
+        leaseTerms: formData.leaseTerms || undefined,
+        fees: formData.fees || undefined,
+        availability: formData.availability || undefined,
+      }
+
+      console.log("Creating property with data:", propertyData)
 
       // Create the property
-      const newProperty = await propertyApi.createProperty(formData)
+      const newProperty = await propertyApi.createProperty(propertyData)
       console.log("Property created:", newProperty)
 
       // Upload photos if any
@@ -241,6 +282,124 @@ export function AddPropertyForm() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Property Details Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Property Details</CardTitle>
+              <CardDescription>Rental and property specifications</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="price">Monthly Rent ($)</Label>
+                  <Input
+                    id="price"
+                    name="price"
+                    type="number"
+                    placeholder="e.g. 1850"
+                    value={formData.price}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="sqft">Square Footage</Label>
+                  <Input
+                    id="sqft"
+                    name="sqft"
+                    type="number"
+                    placeholder="e.g. 950"
+                    value={formData.sqft}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="bedrooms">Bedrooms</Label>
+                  <Input
+                    id="bedrooms"
+                    name="bedrooms"
+                    type="number"
+                    placeholder="e.g. 2"
+                    value={formData.bedrooms}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="bathrooms">Bathrooms</Label>
+                  <Input
+                    id="bathrooms"
+                    name="bathrooms"
+                    type="number"
+                    placeholder="e.g. 2"
+                    value={formData.bathrooms}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="phone">Contact Phone</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    placeholder="e.g. (801) 555-1234"
+                    value={formData.phone}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    name="website"
+                    type="url"
+                    placeholder="e.g. www.property.com"
+                    value={formData.website}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="availability">Availability</Label>
+                <Input
+                  id="availability"
+                  name="availability"
+                  placeholder="e.g. Immediate, Available Jan 1"
+                  value={formData.availability}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="leaseTerms">Lease Terms</Label>
+                <Textarea
+                  id="leaseTerms"
+                  name="leaseTerms"
+                  placeholder="e.g. 12-month minimum lease term with option to renew. $50 application fee per adult."
+                  value={formData.leaseTerms}
+                  onChange={handleChange}
+                  className="min-h-[80px]"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="fees">Management Fees</Label>
+                <Textarea
+                  id="fees"
+                  name="fees"
+                  placeholder="e.g. Management fee: 8% of monthly rent. Leasing fee: 50% of first month's rent."
+                  value={formData.fees}
+                  onChange={handleChange}
+                  className="min-h-[80px]"
+                />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="space-y-6">
@@ -307,27 +466,27 @@ export function AddPropertyForm() {
               <CardDescription>Select the amenities available at this property</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 gap-3">
-                {amenities.map((amenity) => (
-                  <div key={amenity.id} className="flex items-center space-x-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {predefinedAmenities.map((amenity) => (
+                  <div key={amenity.key} className="flex items-center space-x-2">
                     <Checkbox
-                      id={`amenity-${amenity.id}`}
-                      checked={formData.amenityIds.includes(amenity.id)}
+                      id={`amenity-${amenity.key}`}
+                      checked={formData.amenities.includes(amenity.key)}
                       onCheckedChange={(checked) => {
                         if (checked) {
                           setFormData((prev) => ({
                             ...prev,
-                            amenityIds: [...prev.amenityIds, amenity.id],
+                            amenities: [...prev.amenities, amenity.key],
                           }))
                         } else {
                           setFormData((prev) => ({
                             ...prev,
-                            amenityIds: prev.amenityIds.filter((id) => id !== amenity.id),
+                            amenities: prev.amenities.filter((key) => key !== amenity.key),
                           }))
                         }
                       }}
                     />
-                    <Label htmlFor={`amenity-${amenity.id}`} className="cursor-pointer">
+                    <Label htmlFor={`amenity-${amenity.key}`} className="cursor-pointer">
                       {amenity.label}
                     </Label>
                   </div>
