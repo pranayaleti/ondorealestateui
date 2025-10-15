@@ -16,12 +16,15 @@ import {
 import { useAuth } from "@/lib/auth-context"
 import { propertyApi, type Property } from "@/lib/api"
 import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
+import { PropertyDetailModal } from "@/components/property-detail-modal"
 
 export default function OwnerProperties() {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [showPropertyDetail, setShowPropertyDetail] = useState(false)
   const { user } = useAuth()
 
   useEffect(() => {
@@ -83,6 +86,11 @@ export default function OwnerProperties() {
 
   const handleSearch = () => {
     fetchProperties()
+  }
+
+  const handleViewProperty = (property: Property) => {
+    setSelectedProperty(property)
+    setShowPropertyDetail(true)
   }
 
   const getStatusBadge = (status: string) => {
@@ -197,11 +205,13 @@ export default function OwnerProperties() {
                   <span>{property.photos?.length || 0} {property.photos?.length === 0 && "(Using placeholders)"}</span>
                 </div>
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to={`/owner/properties/${property.id}`}>
-                      <Eye className="h-4 w-4 mr-1" />
-                      View Details
-                    </Link>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleViewProperty(property)}
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    View Details
                   </Button>
                 </div>
               </div>
@@ -223,6 +233,14 @@ export default function OwnerProperties() {
           </Button>
         </div>
       )}
+
+      {/* Property Detail Modal */}
+      <PropertyDetailModal
+        property={selectedProperty}
+        open={showPropertyDetail}
+        onOpenChange={setShowPropertyDetail}
+        showActions={false}
+      />
     </div>
   )
 }
