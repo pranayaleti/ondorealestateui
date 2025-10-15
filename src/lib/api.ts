@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'https://ondorealestateserver.onrender.com/api';
 
 // Types
 export interface User {
@@ -176,11 +176,36 @@ export interface Property {
   latitude?: string;
   longitude?: string;
   description?: string;
+  
+  // Property Details
+  price?: number; // Monthly rent price
+  bedrooms?: number;
+  bathrooms?: number;
+  sqft?: number; // Square footage
+  
+  // Contact & Business Info
+  phone?: string;
+  website?: string;
+  
+  // Property Management Details
+  leaseTerms?: string;
+  fees?: string; // Management fees, leasing fees, etc.
+  availability?: string; // e.g., "Immediate", "Available Jan 1"
+  
+  // Rating & Reviews
+  rating?: number; // e.g., 4.85
+  reviewCount?: number;
+  
+  // Amenities and Services (arrays)
+  amenities?: string[]; // Array of amenity keys
+  specialties?: string[];
+  services?: string[];
+  valueRanges?: string[];
+  
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   updatedAt: string;
   photos?: PropertyPhoto[];
-  amenities?: PropertyAmenity[];
   owner?: PropertyOwner; // Only available for managers
   manager?: PropertyManager; // Property manager contact details
 }

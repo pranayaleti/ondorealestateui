@@ -715,7 +715,7 @@ export function DocumentsView() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => setActiveTab("all") || setFolderFilter(folder.name)}>
+                          <DropdownMenuItem onClick={() => { setActiveTab("all"); setFolderFilter(folder.name); }}>
                             <Eye className="h-4 w-4 mr-2" />
                             View Contents
                           </DropdownMenuItem>

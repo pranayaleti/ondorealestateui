@@ -25,7 +25,7 @@ import {
   Store,
   Users,
 } from "lucide-react"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 
 // Mock data for properties
 const properties = [
@@ -282,17 +282,17 @@ export function PropertiesTable() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/properties/view/${property.id}`}>View details</Link>
+                      <Link to={`/dashboard/properties/view/${property.id}`}>View details</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/properties/edit/${property.id}`}>Edit property</Link>
+                      <Link to={`/dashboard/properties/edit/${property.id}`}>Edit property</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/properties/status/${property.id}`}>Change status</Link>
+                      <Link to={`/dashboard/properties/status/${property.id}`}>Change status</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/properties/assign/${property.id}`}>Assign manager</Link>
+                      <Link to={`/dashboard/properties/assign/${property.id}`}>Assign manager</Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, MessageSquare, Paperclip, Send, User, Home, Phone, Mail } from "lucide-react"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -172,7 +172,7 @@ export function OwnerMaintenanceDetail({ requestId = "req-001" }: { requestId?: 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center">
-        <Link href="/owner/maintenance" className="mr-4">
+        <Link to="/owner/maintenance" className="mr-4">
           <Button variant="outline" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Requests

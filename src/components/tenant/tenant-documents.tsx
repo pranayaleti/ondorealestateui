@@ -207,7 +207,7 @@ export default function TenantDocuments() {
           {/* Expiring Documents Alert */}
           {activeTab === "all" && (
             <div className="space-y-4">
-              {getAllDocuments().some(doc => isExpiringSoon(doc.expiryDate)) && (
+              {getAllDocuments().some(doc => (doc as any).expiryDate && isExpiringSoon((doc as any).expiryDate)) && (
                 <Card className="border-orange-200 bg-orange-50 dark:bg-orange-900/20">
                   <CardHeader>
                     <CardTitle className="text-orange-800 dark:text-orange-200 flex items-center">
@@ -218,12 +218,12 @@ export default function TenantDocuments() {
                   <CardContent>
                     <div className="space-y-2">
                       {getAllDocuments()
-                        .filter(doc => isExpiringSoon(doc.expiryDate))
+                        .filter(doc => (doc as any).expiryDate && isExpiringSoon((doc as any).expiryDate))
                         .map(doc => (
                           <div key={doc.id} className="flex items-center justify-between">
                             <span className="text-sm">{doc.name}</span>
                             <span className="text-sm text-orange-600">
-                              Expires {doc.expiryDate}
+                              Expires {(doc as any).expiryDate || 'N/A'}
                             </span>
                           </div>
                         ))}
@@ -249,9 +249,9 @@ export default function TenantDocuments() {
                         <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
                           <span>Size: {document.size}</span>
                           <span>Uploaded: {document.uploadDate}</span>
-                          {document.expiryDate && (
-                            <span className={isExpiringSoon(document.expiryDate) ? "text-orange-600" : ""}>
-                              Expires: {document.expiryDate}
+                          {(document as any).expiryDate && (
+                            <span className={(document as any).expiryDate && isExpiringSoon((document as any).expiryDate) ? "text-orange-600" : ""}>
+                              Expires: {(document as any).expiryDate}
                             </span>
                           )}
                         </div>

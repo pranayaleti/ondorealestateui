@@ -17,9 +17,10 @@ export function PropertyFinancials({ property }: PropertyFinancialsProps) {
 
   // Calculate financial metrics
   const financials = property.financials
-  const totalExpenses = Object.values(financials.expenses).reduce((sum: number, expense: any) => sum + expense, 0)
-  const netIncome = financials.monthlyRent - totalExpenses
-  const cashFlowPercentage = (netIncome / financials.monthlyRent) * 100
+  const totalExpenses = Object.values(financials?.expenses || {}).reduce((sum: number, expense: any) => sum + (Number(expense) || 0), 0) as number
+  const monthlyRent = Number(financials?.monthlyRent) || 0
+  const netIncome = monthlyRent - totalExpenses
+  const cashFlowPercentage = monthlyRent > 0 ? (netIncome / monthlyRent) * 100 : 0
   const capRate = ((netIncome * 12) / (property.value || 300000)) * 100 // Assuming property value if not provided
 
   // Generate transaction history
@@ -94,7 +95,7 @@ export function PropertyFinancials({ property }: PropertyFinancialsProps) {
           <CardContent>
             <div className="text-2xl font-bold">${totalExpenses.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              <TrendingDown className="inline h-3 w-3 text-red-500 mr-1" />${(totalExpenses * 12).toLocaleString()}{" "}
+              <TrendingDown className="inline h-3 w-3 text-red-500 mr-1" />${((Number(totalExpenses) || 0) * 12).toLocaleString()}{" "}
               annually
             </p>
           </CardContent>
@@ -148,7 +149,7 @@ export function PropertyFinancials({ property }: PropertyFinancialsProps) {
                     <span className="capitalize">{category}</span>
                     <span>${amount.toLocaleString()}</span>
                   </div>
-                  <Progress value={(amount / totalExpenses) * 100} className="h-2" />
+                  <Progress value={(Number(totalExpenses) || 0) > 0 ? ((Number(amount) || 0) / (Number(totalExpenses) || 1)) * 100 : 0} className="h-2" />
                 </div>
               ))}
             </div>

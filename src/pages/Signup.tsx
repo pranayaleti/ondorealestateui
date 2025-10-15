@@ -5,16 +5,14 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, EyeIcon, EyeOffIcon, CheckCircle, AlertTriangle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { authApi, type InvitationDetails } from "@/lib/api"
+import { authApi } from "@/lib/api"
 import { useApi } from "@/hooks/useApi"
-import { useAuth } from "@/lib/auth-context"
 import Loading from "@/components/loading"
 
 export default function Signup() {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
   const { toast } = useToast()
-  const { login } = useAuth()
   
   const [formData, setFormData] = useState({
     firstName: "",

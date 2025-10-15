@@ -223,11 +223,10 @@ export default function ResultsGrid({ properties }: ResultsGridProps) {
         properties.map((property) => (
           <Card key={property.id} className="overflow-hidden">
             <div className="relative h-48 w-full">
-              <Image
+              <img
                 src={property.image || "/placeholder.svg?height=300&width=400"}
                 alt={property.title}
-                fill
-                className="object-cover"
+                className="w-full h-full object-cover"
               />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                 <h3 className="font-bold text-lg text-white">{property.title}</h3>

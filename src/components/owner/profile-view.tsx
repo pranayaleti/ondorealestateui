@@ -25,7 +25,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
+import { useNavigate } from "react-router-dom"
 
 // Mock user data
 const USER = {
@@ -57,7 +57,7 @@ const USER = {
 }
 
 export function ProfileView() {
-  const router = useRouter()
+  const navigate = useNavigate()
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("personal")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -154,7 +154,7 @@ export function ProfileView() {
       title: "Logged out",
       description: "You have been successfully logged out.",
     })
-    router.push("/auth")
+    navigate("/auth")
   }
 
   const handleDeleteAccount = () => {
@@ -163,7 +163,7 @@ export function ProfileView() {
       title: "Account deleted",
       description: "Your account has been successfully deleted.",
     })
-    router.push("/auth")
+    navigate("/auth")
   }
 
   return (

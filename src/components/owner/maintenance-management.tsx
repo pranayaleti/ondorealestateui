@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CheckCircle, Clock, PenToolIcon as Tool, Search, ArrowRight, Calendar, Home, AlertCircle } from "lucide-react"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 
 // Mock data for maintenance requests
 const MOCK_REQUESTS = [
@@ -262,7 +262,7 @@ export function OwnerMaintenanceManagement() {
                           </div>
                         </div>
                       </div>
-                      <Link href={`/owner/maintenance/${request.id}`} className="sm:shrink-0">
+                      <Link to={`/owner/maintenance/${request.id}`} className="sm:shrink-0">
                         <Button variant="outline" size="sm" className="w-full sm:w-auto">
                           <span className="mr-1">Manage</span>
                           <ArrowRight className="h-4 w-4" />

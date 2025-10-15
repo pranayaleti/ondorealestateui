@@ -20,8 +20,8 @@ import {
   BarChart,
   User,
 } from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
+import { Link } from "react-router-dom"
+// import Image from "next/image" // Replaced with img tag
 import { PropertyOverview } from "@/components/owner/property-overview"
 import { PropertyUnits } from "@/components/owner/property-units"
 import { PropertyFinancials } from "@/components/owner/property-financials"
@@ -82,7 +82,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" asChild>
-            <Link href={`/owner/properties/${property.id}/edit`}>
+            <Link to={`/owner/properties/${property.id}/edit`}>
               <Edit className="h-4 w-4 mr-2" />
               Edit Property
             </Link>
@@ -115,11 +115,10 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="md:col-span-2">
           <div className="relative h-64 w-full">
-            <Image
+            <img
               src={property.image || "/placeholder.svg"}
               alt={property.name}
-              fill
-              className="object-cover rounded-t-lg"
+              className="w-full h-full object-cover rounded-t-lg"
             />
           </div>
           <CardContent className="p-6">
@@ -195,7 +194,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
           </CardContent>
           <CardFooter>
             <Button className="w-full" asChild>
-              <Link href={`/owner/properties/${property.id}/tenants`}>
+              <Link to={`/owner/properties/${property.id}/tenants`}>
                 <User className="h-4 w-4 mr-2" />
                 Manage Tenants
               </Link>
@@ -233,7 +232,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
         </TabsContent>
 
         <TabsContent value="units">
-          <PropertyUnits property={property} />
+          <PropertyUnits />
         </TabsContent>
 
         <TabsContent value="financials">

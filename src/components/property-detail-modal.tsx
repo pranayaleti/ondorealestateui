@@ -57,13 +57,13 @@ export function PropertyDetailModal({
 
   const nextImage = () => {
     if (property.photos && property.photos.length > 0) {
-      setCurrentImageIndex((prev) => (prev + 1) % property.photos.length)
+      setCurrentImageIndex((prev) => (prev + 1) % property.photos!.length)
     }
   }
 
   const prevImage = () => {
     if (property.photos && property.photos.length > 0) {
-      setCurrentImageIndex((prev) => (prev - 1 + property.photos.length) % property.photos.length)
+      setCurrentImageIndex((prev) => (prev - 1 + property.photos!.length) % property.photos!.length)
     }
   }
 
@@ -131,13 +131,13 @@ export function PropertyDetailModal({
           {hasImages ? (
             <div className="relative h-[300px] md:h-[400px] mb-6 rounded-lg overflow-hidden bg-gray-100">
               <img
-                src={property.photos[currentImageIndex].url}
+                src={property.photos?.[currentImageIndex]?.url || '/placeholder.svg'}
                 alt={`${property.title} - Image ${currentImageIndex + 1}`}
                 className="w-full h-full object-cover"
               />
 
               {/* Navigation Arrows */}
-              {property.photos.length > 1 && (
+              {property.photos && property.photos.length > 1 && (
                 <>
                   <Button
                     variant="ghost"
@@ -159,15 +159,15 @@ export function PropertyDetailModal({
 
                   {/* Image Counter */}
                   <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-                    {currentImageIndex + 1} / {property.photos.length}
+                    {currentImageIndex + 1} / {property.photos?.length || 0}
                   </div>
                 </>
               )}
 
               {/* Caption */}
-              {property.photos[currentImageIndex].caption && (
+              {property.photos?.[currentImageIndex]?.caption && (
                 <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-md text-sm max-w-xs">
-                  {property.photos[currentImageIndex].caption}
+                  {property.photos?.[currentImageIndex]?.caption}
                 </div>
               )}
             </div>
@@ -324,12 +324,38 @@ export function PropertyDetailModal({
                 <h4 className="text-lg font-semibold mb-4">Property Amenities</h4>
                 {property.amenities && property.amenities.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {property.amenities.map((amenity, index) => (
-                      <div key={index} className="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <Check className="h-4 w-4 mr-3 text-green-500" />
-                        <span>{amenity.name}</span>
-                      </div>
-                    ))}
+                    {property.amenities.map((amenityKey, index) => {
+                      // Map amenity keys to readable labels
+                      const amenityLabels: Record<string, string> = {
+                        parking: "Parking",
+                        gym: "Gym/Fitness Center",
+                        pool: "Swimming Pool",
+                        laundry: "Laundry Facilities",
+                        elevator: "Elevator",
+                        balcony: "Balcony/Terrace",
+                        air_conditioning: "Air Conditioning",
+                        heating: "Heating",
+                        dishwasher: "Dishwasher",
+                        microwave: "Microwave",
+                        refrigerator: "Refrigerator",
+                        washer_dryer: "Washer/Dryer",
+                        internet: "Internet/WiFi",
+                        cable_tv: "Cable TV",
+                        security: "Security System",
+                        doorman: "Doorman/Concierge",
+                        pet_friendly: "Pet Friendly",
+                        garden: "Garden/Yard",
+                        fireplace: "Fireplace",
+                        storage: "Storage Space",
+                      };
+                      
+                      return (
+                        <div key={index} className="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <Check className="h-4 w-4 mr-3 text-green-500" />
+                          <span>{amenityLabels[amenityKey] || amenityKey}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center py-8">No amenities listed for this property</p>

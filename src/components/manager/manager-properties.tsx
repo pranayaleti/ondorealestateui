@@ -17,21 +17,34 @@ import {
   Eye
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { propertyApi } from "@/lib/api"
+import { propertyApi, type Property } from "@/lib/api"
 import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
 
-interface Property {
-  id: string
-  title: string
-  type: string
-  addressLine1: string
-  city: string
-  state?: string
-  country: string
-  ownerId: string
-  createdAt: string
-  amenities?: { key: string; label: string; value?: string }[]
-  photos?: { id: string; url: string; caption?: string; orderIndex: number }[]
+// Helper function to convert amenity keys to readable labels
+const getAmenityLabel = (key: string): string => {
+  const amenityLabels: Record<string, string> = {
+    parking: "Parking",
+    gym: "Gym/Fitness Center", 
+    pool: "Swimming Pool",
+    laundry: "Laundry Facilities",
+    elevator: "Elevator",
+    balcony: "Balcony/Patio",
+    air_conditioning: "Air Conditioning",
+    heating: "Heating",
+    dishwasher: "Dishwasher",
+    refrigerator: "Refrigerator",
+    microwave: "Microwave",
+    washer_dryer: "Washer/Dryer",
+    pet_friendly: "Pet Friendly",
+    furnished: "Furnished",
+    hardwood_floors: "Hardwood Floors",
+    carpet: "Carpet",
+    tile: "Tile Flooring",
+    walk_in_closet: "Walk-in Closet",
+    fireplace: "Fireplace",
+    garden: "Garden/Yard"
+  }
+  return amenityLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 }
 
 export default function ManagerProperties() {
@@ -212,7 +225,7 @@ export default function ManagerProperties() {
                 </div>
                 {property.amenities && property.amenities.length > 0 && (
                   <div className="text-sm text-gray-600">
-                    <strong>Amenities:</strong> {property.amenities.map(a => a.label).join(", ")}
+                    <strong>Amenities:</strong> {property.amenities.map(key => getAmenityLabel(key)).join(", ")}
                   </div>
                 )}
                 <div className="flex gap-2 pt-2">

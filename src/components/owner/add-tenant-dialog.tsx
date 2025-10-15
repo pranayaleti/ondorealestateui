@@ -19,7 +19,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UserPlus, AlertTriangle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-export function AddTenantDialog() {
+interface AddTenantDialogProps {
+  onAddTenant?: (data: any) => void;
+}
+
+export function AddTenantDialog({ onAddTenant }: AddTenantDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
