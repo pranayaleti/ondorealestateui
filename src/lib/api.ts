@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'https://ondorealestateserver.onrender.com/api';
 
 // Types
 export interface User {

@@ -27,7 +27,7 @@ export default function ForgotPassword() {
     setIsLoading(true)
 
     try {
-      const response = await fetch("http://localhost:3000/api/password/forgot-password", {
+      const response = await fetch("https://ondorealestateserver.onrender.com/api/password/forgot-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
