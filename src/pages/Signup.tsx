@@ -19,7 +19,9 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    mobile: "",
+    phone: "",
+    address: "",
+    profilePicture: "",
     password: "",
     confirmPassword: ""
   })
@@ -72,7 +74,9 @@ export default function Signup() {
         token,
         firstName: formData.firstName,
         lastName: formData.lastName,
-        mobile: formData.mobile || undefined,
+        phone: formData.phone || undefined,
+        address: formData.address || undefined,
+        profilePicture: formData.profilePicture || undefined,
         password: formData.password,
       })
 
@@ -251,8 +255,32 @@ export default function Signup() {
                   id="mobile"
                   type="tel"
                   placeholder="+1 (555) 123-4567"
-                  value={formData.mobile}
-                  onChange={(e) => setFormData(prev => ({ ...prev, mobile: e.target.value }))}
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address" className="text-gray-700">Address (Optional)</Label>
+                <Input
+                  id="address"
+                  type="text"
+                  placeholder="123 Main St, City, State 12345"
+                  value={formData.address}
+                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                  className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="profilePicture" className="text-gray-700">Profile Picture URL (Optional)</Label>
+                <Input
+                  id="profilePicture"
+                  type="url"
+                  placeholder="https://example.com/profile.jpg"
+                  value={formData.profilePicture}
+                  onChange={(e) => setFormData(prev => ({ ...prev, profilePicture: e.target.value }))}
                   className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500"
                 />
               </div>

@@ -47,14 +47,16 @@ export interface SignupRequest {
   token: string;
   firstName: string;
   lastName: string;
-  mobile?: string;
+  phone?: string;
+  address?: string;
+  profilePicture?: string;
   password: string;
 }
 
 export interface SignupResponse {
   message: string;
   token: string;
-  user: User & { mobile?: string };
+  user: User;
 }
 
 export interface ChangePasswordRequest {
