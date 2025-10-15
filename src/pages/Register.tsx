@@ -1,11 +1,13 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TextField } from "@mui/material";
-import { ArrowForward } from "@mui/icons-material";
 import { Link, useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { ArrowRight } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import useApiRequest from "../hooks/useApiRequest";
-import { toast } from "react-toastify";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Please enter your name" }),
@@ -15,32 +17,26 @@ const formSchema = z.object({
 
 type FormType = z.infer<typeof formSchema>;
 
-const inputActiveStyle = {
-  width: "100%",
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "0.75rem",
-    "& fieldset": { borderRadius: "0.75rem" },
-    "&.Mui-focused fieldset": { borderColor: "black" },
-  },
-  "& .MuiInputLabel-root.Mui-focused": { color: "black" },
-};
 
 export default function Register() {
   const { register, handleSubmit, formState: { errors } } =
     useForm<FormType>({ resolver: zodResolver(formSchema) });
 
   const navigate = useNavigate();
-  const USER_SERVICE_BASEURL = import.meta.env.VITE_USER_BASEURL;
+  const { toast } = useToast();
   const { request, loading } = useApiRequest();
 
   const onSubmit = async (body: FormType) => {
     const data = await request<{ status?: string; message?: string }>({
-      url: `${USER_SERVICE_BASEURL}/auth/signup`,
+      url: `/auth/signup`,
       method: "POST",
       body,
     });
     if (data?.status === "success") {
-      toast.success("Account created. Please login.");
+      toast({
+        title: "Success",
+        description: "Account created. Please login.",
+      });
       navigate("/login");
     }
   };
@@ -60,37 +56,48 @@ export default function Register() {
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center gap-5 w-[29rem]">
-        <TextField
-          {...register("name")}
-          error={!!errors.name?.message}
-          helperText={errors.name?.message}
-          label="Full Name"
-          sx={inputActiveStyle}
-        />
-        <TextField
-          {...register("email")}
-          error={!!errors.email?.message}
-          helperText={errors.email?.message}
-          type="email"
-          label="Company Email"
-          sx={inputActiveStyle}
-        />
-        <TextField
-          {...register("password")}
-          error={!!errors.password?.message}
-          helperText={errors.password?.message}
-          type="password"
-          label="Password"
-          sx={inputActiveStyle}
-        />
+        <div className="w-full">
+          <Label htmlFor="name">Full Name</Label>
+          <Input
+            {...register("name")}
+            id="name"
+            placeholder="Enter your full name"
+            className={errors.name ? "border-red-500" : ""}
+          />
+          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+        </div>
+        
+        <div className="w-full">
+          <Label htmlFor="email">Company Email</Label>
+          <Input
+            {...register("email")}
+            id="email"
+            type="email"
+            placeholder="Enter your email"
+            className={errors.email ? "border-red-500" : ""}
+          />
+          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+        </div>
+        
+        <div className="w-full">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            {...register("password")}
+            id="password"
+            type="password"
+            placeholder="Enter your password"
+            className={errors.password ? "border-red-500" : ""}
+          />
+          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
+        </div>
 
-        <button
+        <Button
           disabled={loading}
           type="submit"
           className="bg-gradient-to-r from-orange-500 to-red-800 py-4 rounded-2xl text-white text-xl w-full"
         >
-          Submit <ArrowForward />
-        </button>
+          Submit <ArrowRight className="ml-2 h-5 w-5" />
+        </Button>
 
         <p className="text-center">
           Already have an account?{" "}

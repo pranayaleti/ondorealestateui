@@ -73,11 +73,10 @@ export function PropertyDetailsModal({ company, open, onOpenChange }: PropertyDe
           <div className="mt-4">
             {/* Image Slider */}
             <div className="relative h-[300px] md:h-[400px] mb-6 rounded-lg overflow-hidden">
-              <Image
+              <img
                 src={company.images[currentImageIndex] || "/placeholder.svg"}
                 alt={`${company.name} property image ${currentImageIndex + 1}`}
-                fill
-                className="object-cover"
+                className="w-full h-full object-cover"
               />
 
               {/* Navigation Arrows */}
@@ -108,11 +107,10 @@ export function PropertyDetailsModal({ company, open, onOpenChange }: PropertyDe
             {/* Company Info */}
             <div className="flex items-center mb-6">
               <div className="relative h-20 w-20 rounded-md overflow-hidden bg-gray-100 mr-4">
-                <Image
+                <img
                   src={company.logo || "/placeholder.svg"}
                   alt={`${company.name} logo`}
-                  fill
-                  className="object-contain p-2"
+                  className="w-full h-full object-contain p-2"
                 />
               </div>
               <div>
@@ -229,7 +227,7 @@ export function PropertyDetailsModal({ company, open, onOpenChange }: PropertyDe
                   <div className="flex items-center">
                     <Globe className="h-5 w-5 mr-3 text-primary" />
                     <a
-                      to={`https://${company.website}`}
+                      href={`https://${company.website}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary hover:underline"

@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Building, Plus, Search, Grid, List, Filter, HomeIcon, Users, Store, Hotel } from "lucide-react"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 import { PropertyCard } from "@/components/owner/property-card"
 import { PropertyListItem } from "@/components/owner/property-list-item"
 import { PropertyFilters } from "@/components/owner/property-filters"
@@ -178,7 +178,7 @@ export function OwnerPropertiesView() {
             </Button>
           </div>
           <Button asChild>
-            <Link href="/owner/properties/add">
+            <Link to="/owner/properties/add">
               <Plus className="h-4 w-4 mr-2" />
               Add Property
             </Link>
@@ -206,7 +206,7 @@ export function OwnerPropertiesView() {
                   {searchTerm ? "Try adjusting your search or filters" : "Add your first property to get started"}
                 </p>
                 <Button asChild>
-                  <Link href="/owner/properties/add">
+                  <Link to="/owner/properties/add">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Property
                   </Link>

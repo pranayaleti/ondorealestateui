@@ -85,11 +85,10 @@ export default function ResultsList({ properties }: ResultsListProps) {
             <CardContent className="p-0">
               <div className="flex flex-col md:flex-row">
                 <div className="relative h-48 md:h-auto md:w-1/3">
-                  <Image
+                  <img
                     src={property.image || "/placeholder.svg?height=300&width=400"}
                     alt={property.title}
-                    fill
-                    className="object-cover"
+                    className="w-full h-full object-cover"
                   />
                 </div>
 

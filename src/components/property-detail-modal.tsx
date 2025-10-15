@@ -57,13 +57,13 @@ export function PropertyDetailModal({
 
   const nextImage = () => {
     if (property.photos && property.photos.length > 0) {
-      setCurrentImageIndex((prev) => (prev + 1) % property.photos.length)
+      setCurrentImageIndex((prev) => (prev + 1) % property.photos!.length)
     }
   }
 
   const prevImage = () => {
     if (property.photos && property.photos.length > 0) {
-      setCurrentImageIndex((prev) => (prev - 1 + property.photos.length) % property.photos.length)
+      setCurrentImageIndex((prev) => (prev - 1 + property.photos!.length) % property.photos!.length)
     }
   }
 
@@ -131,13 +131,13 @@ export function PropertyDetailModal({
           {hasImages ? (
             <div className="relative h-[300px] md:h-[400px] mb-6 rounded-lg overflow-hidden bg-gray-100">
               <img
-                src={property.photos[currentImageIndex].url}
+                src={property.photos?.[currentImageIndex]?.url || '/placeholder.svg'}
                 alt={`${property.title} - Image ${currentImageIndex + 1}`}
                 className="w-full h-full object-cover"
               />
 
               {/* Navigation Arrows */}
-              {property.photos.length > 1 && (
+              {property.photos && property.photos.length > 1 && (
                 <>
                   <Button
                     variant="ghost"
@@ -159,15 +159,15 @@ export function PropertyDetailModal({
 
                   {/* Image Counter */}
                   <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-                    {currentImageIndex + 1} / {property.photos.length}
+                    {currentImageIndex + 1} / {property.photos?.length || 0}
                   </div>
                 </>
               )}
 
               {/* Caption */}
-              {property.photos[currentImageIndex].caption && (
+              {property.photos?.[currentImageIndex]?.caption && (
                 <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-md text-sm max-w-xs">
-                  {property.photos[currentImageIndex].caption}
+                  {property.photos?.[currentImageIndex]?.caption}
                 </div>
               )}
             </div>
