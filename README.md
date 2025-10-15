@@ -118,7 +118,7 @@ npm run dev                  # Start frontend (:3001)
 ```
 
 ### **3. Test the System**
-1. **Login**: `http://localhost:3001/login`
+1. **Login**: `https://pranayaleti.github.io/ondorealestateui/login`
 2. **Super Admin**: `iamharikrishnaa@gmail.com` / `Hari@123`
 3. **Invite Manager**: Use admin interface
 4. **Complete Signup**: Use invitation URL
