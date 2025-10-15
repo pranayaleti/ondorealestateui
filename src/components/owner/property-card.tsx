@@ -12,8 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import Link from "next/link"
-import Image from "next/image"
+import { Link } from "react-router-dom"
+// import Image from "next/image" // Replaced with img tag
 
 interface PropertyCardProps {
   property: any
@@ -24,7 +24,7 @@ export function PropertyCard({ property, getPropertyTypeIcon }: PropertyCardProp
   return (
     <Card className="overflow-hidden">
       <div className="relative h-48">
-        <Image src={property.image || "/placeholder.svg"} alt={property.name} fill className="object-cover" />
+        <img src={property.image || "/placeholder.svg"} alt={property.name} className="w-full h-full object-cover" />
         <div className="absolute top-2 right-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -35,17 +35,17 @@ export function PropertyCard({ property, getPropertyTypeIcon }: PropertyCardProp
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem asChild>
-                <Link href={`/owner/properties/${property.id}`}>View details</Link>
+                <Link to={`/owner/properties/${property.id}`}>View details</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/owner/properties/${property.id}/edit`}>Edit property</Link>
+                <Link to={`/owner/properties/${property.id}/edit`}>Edit property</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href={`/owner/properties/${property.id}/tenants`}>Manage tenants</Link>
+                <Link to={`/owner/properties/${property.id}/tenants`}>Manage tenants</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/owner/properties/${property.id}/finances`}>Financial details</Link>
+                <Link to={`/owner/properties/${property.id}/finances`}>Financial details</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -105,10 +105,10 @@ export function PropertyCard({ property, getPropertyTypeIcon }: PropertyCardProp
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between">
         <Button variant="outline" asChild>
-          <Link href={`/owner/properties/${property.id}`}>View Details</Link>
+          <Link to={`/owner/properties/${property.id}`}>View Details</Link>
         </Button>
         <Button variant="outline" asChild>
-          <Link href={`/owner/properties/${property.id}/tenants`}>Manage</Link>
+          <Link to={`/owner/properties/${property.id}/tenants`}>Manage</Link>
         </Button>
       </CardFooter>
     </Card>

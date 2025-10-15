@@ -12,8 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import Link from "next/link"
-import Image from "next/image"
+import { Link } from "react-router-dom"
+// import Image from "next/image" // Replaced with img tag
 
 interface PropertyListItemProps {
   property: any
@@ -26,7 +26,7 @@ export function PropertyListItem({ property, getPropertyTypeIcon }: PropertyList
       <CardContent className="p-0">
         <div className="flex flex-col sm:flex-row">
           <div className="relative w-full sm:w-48 h-32">
-            <Image src={property.image || "/placeholder.svg"} alt={property.name} fill className="object-cover" />
+            <img src={property.image || "/placeholder.svg"} alt={property.name} className="w-full h-full object-cover" />
           </div>
           <div className="flex-1 p-4">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
@@ -84,7 +84,7 @@ export function PropertyListItem({ property, getPropertyTypeIcon }: PropertyList
 
           <div className="flex sm:flex-col justify-between items-center p-4 border-t sm:border-t-0 sm:border-l">
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/owner/properties/${property.id}`}>
+              <Link to={`/owner/properties/${property.id}`}>
                 <span className="mr-1">Details</span>
                 <ChevronRight className="h-4 w-4" />
               </Link>
@@ -100,14 +100,14 @@ export function PropertyListItem({ property, getPropertyTypeIcon }: PropertyList
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuItem asChild>
-                  <Link href={`/owner/properties/${property.id}/edit`}>Edit property</Link>
+                  <Link to={`/owner/properties/${property.id}/edit`}>Edit property</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href={`/owner/properties/${property.id}/tenants`}>Manage tenants</Link>
+                  <Link to={`/owner/properties/${property.id}/tenants`}>Manage tenants</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href={`/owner/properties/${property.id}/finances`}>Financial details</Link>
+                  <Link to={`/owner/properties/${property.id}/finances`}>Financial details</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
