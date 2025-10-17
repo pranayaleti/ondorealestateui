@@ -282,9 +282,9 @@ export default function OwnerProfile() {
         {/* Profile Details */}
         <div className="lg:col-span-3">
           <Tabs defaultValue="personal" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="personal">Personal Info</TabsTrigger>
-              <TabsTrigger value="investment">Investment Preferences</TabsTrigger>
+              {/* <TabsTrigger value="investment">Investment Preferences</TabsTrigger> */}
               <TabsTrigger value="security">Security</TabsTrigger>
             </TabsList>
 

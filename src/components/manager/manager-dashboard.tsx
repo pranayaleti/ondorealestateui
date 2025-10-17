@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -51,6 +52,10 @@ export default function ManagerDashboard() {
   // Leads functionality
   const [leads, setLeads] = useState<Lead[]>([])
   const [loadingLeads, setLoadingLeads] = useState(false)
+  
+  // Invite modal (from lead)
+  const [showInviteModal, setShowInviteModal] = useState(false)
+  const [inviteModalData, setInviteModalData] = useState({ email: "", role: "tenant" as "owner" | "tenant" })
 
   useEffect(() => {
     fetchDashboardData()
@@ -179,6 +184,33 @@ export default function ManagerDashboard() {
         description: "Failed to update lead status. Please try again.",
         variant: "destructive",
       })
+    }
+  }
+
+  // Prefill invite form from a lead and navigate to the invite section
+  const handleInviteFromLead = (lead: Lead) => {
+    setInviteModalData({ email: lead.tenantEmail, role: "tenant" })
+    setShowInviteModal(true)
+  }
+
+  const handleSendInviteFromModal = async () => {
+    if (!inviteModalData.email.trim()) {
+      toast({ title: "Error", description: "Please enter an email address.", variant: "destructive" })
+      return
+    }
+    try {
+      setIsSendingInvite(true)
+      const res = await authApi.invite({ email: inviteModalData.email, role: inviteModalData.role })
+      toast({ title: "Invitation Sent", description: `Invitation sent to ${inviteModalData.email}.` })
+      console.log("Invitation URL:", (res as any)?.inviteUrl)
+      setShowInviteModal(false)
+      setInviteModalData({ email: "", role: "tenant" })
+      fetchInvitedUsers()
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : "Failed to send invitation. Please try again."
+      toast({ title: "Invitation Failed", description: message, variant: "destructive" })
+    } finally {
+      setIsSendingInvite(false)
     }
   }
 
@@ -972,6 +1004,14 @@ export default function ManagerDashboard() {
                           <Mail className="h-4 w-4 mr-2" />
                           Contact
                         </Button>
+
+                        <Button
+                          size="sm"
+                          onClick={() => handleInviteFromLead(lead)}
+                        >
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Invite
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -999,6 +1039,52 @@ export default function ManagerDashboard() {
         onReject={(propertyId) => handlePropertyStatusUpdate(propertyId, 'rejected')}
         showActions={true}
       />
+
+      {/* Invite from Lead Modal */}
+      <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5" /> Invite Tenant
+            </DialogTitle>
+            <DialogDescription>Send an invitation to this lead to join as a tenant.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="inviteEmailModal">Email Address</Label>
+              <Input
+                id="inviteEmailModal"
+                type="email"
+                placeholder="Enter email address"
+                value={inviteModalData.email}
+                onChange={(e) => setInviteModalData(prev => ({ ...prev, email: e.target.value }))}
+                disabled={isSendingInvite}
+              />
+            </div>
+            <div>
+              <Label htmlFor="inviteRoleModal">Role</Label>
+              <Select 
+                value={inviteModalData.role}
+                onValueChange={(value: "owner" | "tenant") => setInviteModalData(prev => ({ ...prev, role: value }))}
+                disabled={isSendingInvite}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tenant">Tenant</SelectItem>
+                  <SelectItem value="owner">Property Owner</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleSendInviteFromModal} disabled={isSendingInvite}>
+              {isSendingInvite ? "Sending..." : "Send Invite"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
