@@ -18,6 +18,12 @@ import {
   Building,
   Phone,
   Mail,
+  DollarSign,
+  Star,
+  Globe,
+  FileText,
+  Clock,
+  Tag,
   UserCheck,
   Heart,
   Send
@@ -156,14 +162,12 @@ export function PropertyDetailModal({
                   >
                     <ChevronRight className="h-6 w-6" />
                   </Button>
-
                   {/* Image Counter */}
                   <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
                     {currentImageIndex + 1} / {property.photos?.length || 0}
                   </div>
                 </>
               )}
-
               {/* Caption */}
               {property.photos?.[currentImageIndex]?.caption && (
                 <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-md text-sm max-w-xs">
@@ -179,7 +183,6 @@ export function PropertyDetailModal({
               </div>
             </div>
           )}
-
           {/* Property Status Badge */}
           <div className="flex items-center justify-between mb-6">
             <Badge variant={
@@ -210,7 +213,6 @@ export function PropertyDetailModal({
               </div>
             )}
           </div>
-
           <Tabs defaultValue="details" className="w-full">
             <TabsList className="grid grid-cols-4 mb-6">
               <TabsTrigger value="details">Property Details</TabsTrigger>
@@ -218,81 +220,229 @@ export function PropertyDetailModal({
               <TabsTrigger value="amenities">Amenities</TabsTrigger>
               <TabsTrigger value="contact">Contact</TabsTrigger>
             </TabsList>
-
             <TabsContent value="details" className="space-y-6">
-              {/* Basic Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-lg font-semibold mb-3">Basic Information</h4>
-                    <div className="space-y-3">
-                      <div className="flex items-center">
-                        <Home className="h-4 w-4 mr-3 text-gray-500" />
-                        <span className="text-sm text-gray-600">Type:</span>
-                        <span className="ml-2 capitalize font-medium">{property.type}</span>
-                      </div>
-                      
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-3 text-gray-500" />
-                        <span className="text-sm text-gray-600">Submitted:</span>
-                        <span className="ml-2 font-medium">{new Date(property.createdAt).toLocaleDateString()}</span>
-                      </div>
-                      
-                      {property.owner && (
-                        <div className="flex items-center">
-                          <User className="h-4 w-4 mr-3 text-gray-500" />
-                          <span className="text-sm text-gray-600">Owner:</span>
-                          <span className="ml-2 font-medium">{property.owner.firstName} {property.owner.lastName}</span>
-                        </div>
-                      )}
+              {/* Property Overview Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {/* Basic Info Card */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center">
+                    <Home className="h-4 w-4 mr-2" />
+                    Basic Information
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Type:</span>
+                      <span className="font-medium capitalize">{property.type}</span>
                     </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Submitted:</span>
+                      <span className="font-medium">{new Date(property.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    {property.owner && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Owner:</span>
+                        <span className="font-medium">{property.owner.firstName} {property.owner.lastName}</span>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Description */}
-                  {property.description && (
-                    <div>
-                      <h4 className="text-lg font-semibold mb-3">Description</h4>
-                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                        {property.description}
-                      </p>
-                    </div>
-                  )}
                 </div>
 
-                <div className="space-y-4">
-                  {/* Address Information */}
-                  <div>
-                    <h4 className="text-lg font-semibold mb-3">Address</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-start">
-                        <MapPin className="h-4 w-4 mr-3 text-gray-500 mt-0.5" />
-                        <div>
-                          <p className="font-medium">{property.addressLine1}</p>
-                          {property.addressLine2 && (
-                            <p className="text-gray-600">{property.addressLine2}</p>
-                          )}
-                          <p className="text-gray-600">
-                            {property.city}
-                            {property.state && `, ${property.state}`}
-                            {property.zipcode && ` ${property.zipcode}`}
-                          </p>
-                          <p className="text-gray-600">{property.country}</p>
+                {/* Property Specs Card */}
+                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                  <h4 className="font-semibold text-green-900 dark:text-green-100 mb-3 flex items-center">
+                    <Building className="h-4 w-4 mr-2" />
+                    Property Specs
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    {property.price && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Price:</span>
+                        <span className="font-medium text-green-700">${property.price}/month</span>
+                      </div>
+                    )}
+                    {property.bedrooms && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Bedrooms:</span>
+                        <span className="font-medium">{property.bedrooms}</span>
+                      </div>
+                    )}
+                    {property.bathrooms && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Bathrooms:</span>
+                        <span className="font-medium">{property.bathrooms}</span>
+                      </div>
+                    )}
+                    {property.sqft && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Square Feet:</span>
+                        <span className="font-medium">{property.sqft.toLocaleString()}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Rating & Media Card */}
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-3 flex items-center">
+                    <Star className="h-4 w-4 mr-2" />
+                    Rating & Media
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    {property.rating && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Rating:</span>
+                        <div className="flex items-center">
+                          <Star className="h-3 w-3 text-yellow-500 mr-1" />
+                          <span className="font-medium">{property.rating}/5</span>
                         </div>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Photos Information */}
-                  <div>
-                    <h4 className="text-lg font-semibold mb-3">Media</h4>
-                    <div className="text-sm text-gray-600">
-                      <p>{property.photos?.length || 0} photo{(property.photos?.length || 0) !== 1 ? 's' : ''} uploaded</p>
+                    )}
+                    {property.reviewCount && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Reviews:</span>
+                        <span className="font-medium">{property.reviewCount}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Photos:</span>
+                      <span className="font-medium">{property.photos?.length || 0}</span>
                     </div>
                   </div>
                 </div>
               </div>
-            </TabsContent>
+              {/* Description */}
+              {property.description && (
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
+                  <h4 className="text-lg font-semibold mb-3 flex items-center">
+                    <FileText className="h-5 w-5 mr-2 text-gray-500" />
+                    Description
+                  </h4>
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {property.description}
+                  </p>
+                </div>
+              )}
+              {/* Property Categories */}
+              {(property.specialties?.length > 0 || property.services?.length > 0 || property.valueRanges?.length > 0) && (
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
+                  <h4 className="text-lg font-semibold mb-4">Property Categories</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {property.specialties?.length > 0 && (
+                      <div>
+                        <h5 className="font-medium mb-3 flex items-center text-blue-600">
+                          <Tag className="h-4 w-4 mr-2" />
+                          Specialties
+                        </h5>
+                        <div className="flex flex-wrap gap-2">
+                          {property.specialties.map((specialty, index) => (
+                            <Badge key={index} variant="secondary" className="capitalize">
+                              {specialty}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
+                    {property.services?.length > 0 && (
+                      <div>
+                        <h5 className="font-medium mb-3 flex items-center text-green-600">
+                          <Building className="h-4 w-4 mr-2" />
+                          Services
+                        </h5>
+                        <div className="flex flex-wrap gap-2">
+                          {property.services.map((service, index) => (
+                            <Badge key={index} variant="outline" className="capitalize">
+                              {service}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {property.valueRanges?.length > 0 && (
+                      <div>
+                        <h5 className="font-medium mb-3 flex items-center text-purple-600">
+                          <DollarSign className="h-4 w-4 mr-2" />
+                          Value Ranges
+                        </h5>
+                        <div className="flex flex-wrap gap-2">
+                          {property.valueRanges.map((range, index) => (
+                            <Badge key={index} variant="default" className="capitalize">
+                              {range}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {/* Lease Information */}
+              {(property.leaseTerms || property.fees || property.availability) && (
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
+                  <h4 className="text-lg font-semibold mb-4">Lease Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {property.availability && (
+                      <div>
+                        <h5 className="font-medium mb-2 flex items-center text-orange-600">
+                          <Clock className="h-4 w-4 mr-2" />
+                          Availability
+                        </h5>
+                        <p className="text-gray-700 dark:text-gray-300 text-sm">{property.availability}</p>
+                      </div>
+                    )}
+
+                    {property.leaseTerms && (
+                      <div>
+                        <h5 className="font-medium mb-2 flex items-center text-blue-600">
+                          <FileText className="h-4 w-4 mr-2" />
+                          Lease Terms
+                        </h5>
+                        <p className="text-gray-700 dark:text-gray-300 text-sm">{property.leaseTerms}</p>
+                      </div>
+                    )}
+
+                    {property.fees && (
+                      <div>
+                        <h5 className="font-medium mb-2 flex items-center text-green-600">
+                          <DollarSign className="h-4 w-4 mr-2" />
+                          Management Fees
+                        </h5>
+                        <p className="text-gray-700 dark:text-gray-300 text-sm">{property.fees}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {/* Contact Information */}
+              {property.phone && (
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
+                  <h4 className="text-lg font-semibold mb-4">Contact Information</h4>
+                  <div className="flex flex-wrap gap-6">
+                    <div className="flex items-center">
+                      <Phone className="h-5 w-5 mr-3 text-gray-500" />
+                      <div>
+                        <p className="text-sm text-gray-600">Phone</p>
+                        <a href={`tel:${property.phone}`} className="text-blue-600 hover:underline font-medium">
+                          {property.phone}
+                        </a>
+                      </div>
+                    </div>
+                    {property.website && (
+                      <div className="flex items-center">
+                        <Globe className="h-5 w-5 mr-3 text-gray-500" />
+                        <div>
+                          <p className="text-sm text-gray-600">Website</p>
+                          <a href={property.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
+                            {property.website}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
             <TabsContent value="location" className="space-y-4">
               <div className="space-y-4">
                 <h4 className="text-lg font-semibold">Location Details</h4>
@@ -318,7 +468,6 @@ export function PropertyDetailModal({
                 )}
               </div>
             </TabsContent>
-
             <TabsContent value="amenities" className="space-y-4">
               <div>
                 <h4 className="text-lg font-semibold mb-4">Property Amenities</h4>
@@ -362,7 +511,6 @@ export function PropertyDetailModal({
                 )}
               </div>
             </TabsContent>
-
             <TabsContent value="contact" className="space-y-4">
               <div>
                 <h4 className="text-lg font-semibold mb-4">Property Manager Contact</h4>
@@ -379,7 +527,6 @@ export function PropertyDetailModal({
                           <p className="text-sm text-gray-600">Property Manager</p>
                         </div>
                       </div>
-
                       {/* Manager Email */}
                       <div className="flex items-center">
                         <Mail className="h-5 w-5 mr-3 text-gray-500" />
@@ -393,7 +540,6 @@ export function PropertyDetailModal({
                           </a>
                         </div>
                       </div>
-
                       {/* Manager Phone */}
                       {property.manager.phone && (
                         <div className="flex items-center">
@@ -408,107 +554,7 @@ export function PropertyDetailModal({
                             </a>
                           </div>
                         </div>
-                      )}
-
-                      {/* Contact Instructions */}
-                      <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
-                          Interested in this property?
-                        </h5>
-                        <p className="text-sm text-blue-800 dark:text-blue-200">
-                          Contact the property manager directly using the information above to inquire about availability, 
-                          schedule a viewing, or get more details about this property. The manager will assist you with 
-                          your rental application and answer any questions you may have.
-                        </p>
-                      </div>
-
-                      {/* Lead Form or Interest Button */}
-                      <div className="mt-6">
-                        {!showLeadForm ? (
-                          <Button 
-                            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 text-lg"
-                            onClick={() => setShowLeadForm(true)}
-                          >
-                            <Heart className="h-5 w-5" />
-                            I'm Interested
-                          </Button>
-                        ) : (
-                          <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
-                            <h4 className="font-semibold text-lg">Express Your Interest</h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Fill out this form and the property manager will contact you directly.
-                            </p>
-                            
-                            <form onSubmit={handleLeadSubmit} className="space-y-4">
-                              <div>
-                                <Label htmlFor="tenantName">Full Name *</Label>
-                                <Input
-                                  id="tenantName"
-                                  type="text"
-                                  value={leadFormData.tenantName}
-                                  onChange={(e) => setLeadFormData(prev => ({ ...prev, tenantName: e.target.value }))}
-                                  placeholder="Enter your full name"
-                                  required
-                                />
-                              </div>
-                              
-                              <div>
-                                <Label htmlFor="tenantEmail">Email Address *</Label>
-                                <Input
-                                  id="tenantEmail"
-                                  type="email"
-                                  value={leadFormData.tenantEmail}
-                                  onChange={(e) => setLeadFormData(prev => ({ ...prev, tenantEmail: e.target.value }))}
-                                  placeholder="Enter your email address"
-                                  required
-                                />
-                              </div>
-                              
-                              <div>
-                                <Label htmlFor="tenantPhone">Phone Number *</Label>
-                                <Input
-                                  id="tenantPhone"
-                                  type="tel"
-                                  value={leadFormData.tenantPhone}
-                                  onChange={(e) => setLeadFormData(prev => ({ ...prev, tenantPhone: e.target.value }))}
-                                  placeholder="Enter your phone number"
-                                  required
-                                />
-                              </div>
-                              
-                              <div>
-                                <Label htmlFor="message">Message (Optional)</Label>
-                                <Textarea
-                                  id="message"
-                                  value={leadFormData.message}
-                                  onChange={(e) => setLeadFormData(prev => ({ ...prev, message: e.target.value }))}
-                                  placeholder="Any specific questions or requirements..."
-                                  rows={3}
-                                />
-                              </div>
-                              
-                              <div className="flex gap-2">
-                                <Button
-                                  type="submit"
-                                  disabled={isSubmittingLead}
-                                  className="flex-1 bg-green-600 hover:bg-green-700"
-                                >
-                                  <Send className="h-4 w-4 mr-2" />
-                                  {isSubmittingLead ? "Submitting..." : "Submit Interest"}
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  onClick={() => setShowLeadForm(false)}
-                                  disabled={isSubmittingLead}
-                                >
-                                  Cancel
-                                </Button>
-                              </div>
-                            </form>
-                          </div>
-                        )}
-                      </div>
+                      )}                    
                     </div>
                   </div>
                 ) : (

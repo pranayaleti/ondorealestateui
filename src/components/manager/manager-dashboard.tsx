@@ -19,12 +19,17 @@ import {
   Check,
   X,
   Shield,
-  ShieldOff
+  ShieldOff,
+  Calendar,
+  DollarSign,
+  Home,
+  Heart
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { propertyApi, authApi, leadApi, ApiError, type Property, type InvitedUser, type Lead } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 import { PropertyDetailModal } from "@/components/property-detail-modal"
+import { ModernPropertyCard } from "@/components/owner/modern-property-card"
 
 export default function ManagerDashboard() {
   const { user } = useAuth()
@@ -421,73 +426,16 @@ export default function ManagerDashboard() {
         </TabsContent>
 
         <TabsContent value="properties" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {properties.map((property) => (
-              <Card key={property.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{property.title}</CardTitle>
-                    <Badge variant={
-                      property.status === "approved" ? "default" : 
-                      property.status === "rejected" ? "destructive" : 
-                      "secondary"
-                    }>
-                      {property.status === "pending" && <Clock className="h-3 w-3 mr-1" />}
-                      {property.status.charAt(0).toUpperCase() + property.status.slice(1)}
-                    </Badge>
-                  </div>
-                  <CardDescription>{property.addressLine1}, {property.city}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Type:</span>
-                      <span className="capitalize">{property.type}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Owner:</span>
-                      <span>{property.owner ? `${property.owner.firstName} ${property.owner.lastName}` : 'Unknown'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Submitted:</span>
-                      <span>{new Date(property.createdAt).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Action buttons */}
-                  <div className="flex gap-2 mt-4 pt-4 border-t">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleViewProperty(property)}
-                      className="flex-1"
-                    >
-                      View Details
-                    </Button>
-                    {property.status === 'pending' && (
-                      <>
-                        <Button
-                          size="sm"
-                          onClick={() => handlePropertyStatusUpdate(property.id, 'approved')}
-                          className="flex-1 bg-green-600 hover:bg-green-700"
-                        >
-                          <Check className="h-4 w-4 mr-1" />
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handlePropertyStatusUpdate(property.id, 'rejected')}
-                          className="flex-1"
-                        >
-                          <X className="h-4 w-4 mr-1" />
-                          Reject
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <ModernPropertyCard
+                key={property.id}
+                property={property}
+                onViewDetails={(prop) => {
+                  setSelectedProperty(prop)
+                  setShowPropertyDetail(true)
+                }}
+              />
             ))}
           </div>
           
@@ -931,11 +879,12 @@ export default function ManagerDashboard() {
               ) : leads.length > 0 ? (
                 <div className="space-y-4">
                   {leads.map((lead) => (
-                    <div key={lead.id} className="border rounded-lg p-4 space-y-3">
-                      <div className="flex items-start justify-between">
+                    <div key={lead.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                      {/* Header - Compact */}
+                      <div className="flex items-center justify-between mb-3">
                         <div className="flex-1">
-                          <h4 className="font-semibold text-lg">{lead.tenantName}</h4>
-                          <p className="text-sm text-gray-600">{lead.tenantEmail} • {lead.tenantPhone}</p>
+                          <h4 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{lead.tenantName}</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{lead.tenantEmail} • {lead.tenantPhone}</p>
                         </div>
                         <Badge variant={
                           lead.status === "new" ? "secondary" :
@@ -943,75 +892,104 @@ export default function ManagerDashboard() {
                           lead.status === "qualified" ? "default" :
                           lead.status === "converted" ? "default" :
                           "outline"
-                        }>
+                        } className="text-xs">
                           {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
                         </Badge>
                       </div>
                       
-                      <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-3">
-                        <div className="flex items-center gap-2 mb-2">
+                      {/* Property Information - Compact */}
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-md p-3 mb-3">
+                        <div className="flex items-center gap-2 mb-1">
                           <Building className="h-4 w-4 text-gray-500" />
-                          <span className="font-medium">{lead.propertyTitle}</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">{lead.propertyTitle}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                           <MapPin className="h-3 w-3" />
                           <span>{lead.propertyAddress}, {lead.propertyCity}</span>
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                           {lead.propertyType} • Owner: {lead.ownerFirstName} {lead.ownerLastName}
                         </div>
                       </div>
+
+                      {/* Rental Details - Compact Grid */}
+                      {(lead.moveInDate || lead.monthlyBudget || lead.occupants !== undefined || lead.hasPets !== undefined) && (
+                        <div className="bg-green-50 dark:bg-green-900/20 rounded-md p-3 mb-3">
+                          <h5 className="font-medium text-green-900 dark:text-green-100 mb-2 text-sm">Rental Preferences</h5>
+                          <div className="grid grid-cols-4 gap-3">
+                            {lead.moveInDate && (
+                              <div className="text-center">
+                                <Calendar className="h-4 w-4 text-green-600 mx-auto mb-1" />
+                                <p className="text-xs text-green-600 font-medium">Move-in</p>
+                                <p className="text-xs text-green-800 dark:text-green-200">{new Date(lead.moveInDate).toLocaleDateString()}</p>
+                              </div>
+                            )}
+                            {lead.monthlyBudget && (
+                              <div className="text-center">
+                                <DollarSign className="h-4 w-4 text-green-600 mx-auto mb-1" />
+                                <p className="text-xs text-green-600 font-medium">Budget</p>
+                                <p className="text-xs text-green-800 dark:text-green-200">${lead.monthlyBudget}/mo</p>
+                              </div>
+                            )}
+                            {lead.occupants !== undefined && (
+                              <div className="text-center">
+                                <Users className="h-4 w-4 text-green-600 mx-auto mb-1" />
+                                <p className="text-xs text-green-600 font-medium">Occupants</p>
+                                <p className="text-xs text-green-800 dark:text-green-200">{lead.occupants}</p>
+                              </div>
+                            )}
+                            {lead.hasPets !== undefined && (
+                              <div className="text-center">
+                                <Heart className="h-4 w-4 text-green-600 mx-auto mb-1" />
+                                <p className="text-xs text-green-600 font-medium">Pets</p>
+                                <p className="text-xs text-green-800 dark:text-green-200">{lead.hasPets ? 'Yes' : 'No'}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                       
+                      {/* Message - Compact */}
                       {lead.message && (
-                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-md p-3">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-md p-3 mb-3">
                           <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">Message:</p>
                           <p className="text-sm text-blue-800 dark:text-blue-200">{lead.message}</p>
                         </div>
                       )}
                       
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>Submitted: {new Date(lead.createdAt).toLocaleDateString()}</span>
-                        <span>Source: {lead.source}</span>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Select
-                          value={lead.status}
-                          onValueChange={(newStatus) => handleLeadStatusUpdate(lead.id, newStatus as Lead['status'])}
-                        >
-                          <SelectTrigger className="w-40">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="new">New</SelectItem>
-                            <SelectItem value="contacted">Contacted</SelectItem>
-                            <SelectItem value="qualified">Qualified</SelectItem>
-                            <SelectItem value="converted">Converted</SelectItem>
-                            <SelectItem value="closed">Closed</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      {/* Footer and Actions - Single Row */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                          <span>Submitted: {new Date(lead.createdAt).toLocaleDateString()}</span>
+                          <span>Source: {lead.source}</span>
+                        </div>
                         
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            const subject = `Re: Interest in ${lead.propertyTitle}`;
-                            const body = `Hello ${lead.tenantName},\n\nThank you for your interest in "${lead.propertyTitle}" located at ${lead.propertyAddress}, ${lead.propertyCity}.\n\n${lead.message ? `Regarding your message: "${lead.message}"\n\n` : ''}I would be happy to discuss this property with you further.\n\nBest regards`;
-                            const mailtoLink = `mailto:${lead.tenantEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                            window.open(mailtoLink, '_blank');
-                          }}
-                        >
-                          <Mail className="h-4 w-4 mr-2" />
-                          Contact
-                        </Button>
-
-                        <Button
-                          size="sm"
-                          onClick={() => handleInviteFromLead(lead)}
-                        >
-                          <UserPlus className="h-4 w-4 mr-2" />
-                          Invite
-                        </Button>
+                        <div className="flex gap-2">
+                          <Select
+                            value={lead.status}
+                            onValueChange={(newStatus) => handleLeadStatusUpdate(lead.id, newStatus as Lead['status'])}
+                          >
+                            <SelectTrigger className="w-32 h-8">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="new">New</SelectItem>
+                              <SelectItem value="contacted">Contacted</SelectItem>
+                              <SelectItem value="qualified">Qualified</SelectItem>
+                              <SelectItem value="converted">Converted</SelectItem>
+                              <SelectItem value="closed">Closed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          
+                          <Button
+                            size="sm"
+                            onClick={() => handleInviteFromLead(lead)}
+                            className="bg-orange-500 hover:bg-orange-600 text-white h-8 px-3"
+                          >
+                            <UserPlus className="h-3 w-3 mr-1" />
+                            Invite
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}

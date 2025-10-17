@@ -19,6 +19,8 @@ import {
 import { useAuth } from "@/lib/auth-context"
 import { propertyApi, type Property } from "@/lib/api"
 import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
+import { ModernPropertyCard } from "./modern-property-card"
+import { PropertyDetailModal } from "@/components/property-detail-modal"
 
 // Extended property interface for dashboard
 interface DashboardProperty extends Property {
@@ -51,6 +53,8 @@ export default function OwnerDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
   const [properties, setProperties] = useState<DashboardProperty[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [showPropertyDetail, setShowPropertyDetail] = useState(false)
   const [portfolioStats, setPortfolioStats] = useState({
     totalProperties: 0,
     totalUnits: 0,
@@ -124,6 +128,11 @@ export default function OwnerDashboard() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleViewProperty = (property: Property) => {
+    setSelectedProperty(property)
+    setShowPropertyDetail(true)
   }
 
   const getActivityIcon = (type: string) => {
@@ -403,71 +412,17 @@ export default function OwnerDashboard() {
               </Link>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {properties.length > 0 ? (
                   properties.map((property) => (
-                    <div key={property.id} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                      {/* Property Image Carousel */}
-                      <div className="relative">
-                        <PropertyImageCarousel
-                          photos={property.photos}
-                          propertyTitle={property.title}
-                          aspectRatio="wide"
-                          showControls={true}
-                          showIndicators={true}
-                          className="h-48"
-                        />
-                      </div>
-                      
-                      {/* Property Details */}
-                      <div className="p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <h3 className="font-semibold text-lg">{property.title}</h3>
-                            <p className="text-sm text-gray-500">{property.addressLine1}, {property.city}</p>
-                            <p className="text-xs text-gray-400">
-                              Added: {new Date(property.createdAt).toLocaleDateString()} • Managed by: {property.managementCompany}
-                            </p>
-                          </div>
-                          <div>
-                            {property.status === "pending" && (
-                              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                                Pending Review
-                              </Badge>
-                            )}
-                            {property.status === "approved" && (
-                              <Badge variant="default" className="bg-green-600">
-                                Approved
-                              </Badge>
-                            )}
-                            {property.status === "rejected" && (
-                              <Badge variant="destructive">
-                                Rejected
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Property Stats */}
-                        <div className="grid grid-cols-3 gap-4 mt-4">
-                          <div className="text-center">
-                            <p className="font-semibold text-green-600">${(property.netIncome || 0).toLocaleString()}</p>
-                            <p className="text-xs text-gray-500">Monthly Income</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="font-semibold">{property.occupied || 0}/{property.units || 0}</p>
-                            <p className="text-xs text-gray-500">Units Occupied</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="font-semibold">${((property.currentValue || 0) / 1000000).toFixed(1)}M</p>
-                            <p className="text-xs text-gray-500">Property Value</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <ModernPropertyCard
+                      key={property.id}
+                      property={property}
+                      onViewDetails={handleViewProperty}
+                    />
                   ))
                 ) : (
-                  <div className="text-center py-8">
+                  <div className="col-span-full text-center py-8">
                     <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No properties found</h3>
                     <p className="text-gray-600 mb-4">Get started by adding your first property.</p>
@@ -553,6 +508,14 @@ export default function OwnerDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Property Detail Modal */}
+      <PropertyDetailModal
+        property={selectedProperty}
+        open={showPropertyDetail}
+        onOpenChange={setShowPropertyDetail}
+        showActions={false}
+      />
     </div>
   )
 }

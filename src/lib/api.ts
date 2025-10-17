@@ -7,7 +7,7 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
-  role: "manager" | "owner" | "tenant";
+  role: "admin" | "manager" | "owner" | "tenant";
   phone?: string;
   address?: string;
   profilePicture?: string;
@@ -128,6 +128,20 @@ export interface PropertyManager {
   phone?: string;
 }
 
+export interface PublicPropertyOwner {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+}
+
+export interface PublicPropertyManager {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+}
+
 export interface LeadSubmissionRequest {
   propertyId: string;
   tenantName: string;
@@ -148,6 +162,11 @@ export interface Lead {
   tenantEmail: string;
   tenantPhone: string;
   message?: string;
+  // Rental details
+  moveInDate?: string;
+  monthlyBudget?: string;
+  occupants?: number;
+  hasPets?: boolean;
   status: 'new' | 'contacted' | 'qualified' | 'converted' | 'closed';
   source: string;
   createdAt: string;
@@ -219,6 +238,51 @@ export interface PropertyPhoto {
   caption?: string;
   orderIndex: number;
   createdAt: string;
+}
+
+export interface PublicProperty {
+  id: string;
+  publicId: string;
+  title: string;
+  type: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state?: string;
+  country: string;
+  zipcode?: string;
+  description?: string;
+  
+  // Property Details
+  price?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  sqft?: number;
+  phone?: string;
+  website?: string;
+  leaseTerms?: string;
+  fees?: string;
+  availability?: string;
+  rating?: number;
+  reviewCount?: number;
+  
+  // Arrays
+  amenities: string[];
+  specialties: string[];
+  services: string[];
+  valueRanges: string[];
+  
+  // Contact details (without IDs)
+  owner: PublicPropertyOwner;
+  manager: PublicPropertyManager;
+  
+  // Photos
+  photos: PropertyPhoto[];
+  
+  // Status and timestamps
+  status: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PropertyAmenity {
@@ -439,6 +503,11 @@ export const propertyApi = {
   // Get all properties
   async getProperties(): Promise<Property[]> {
     return apiRequest<Property[]>('/properties');
+  },
+
+  // Get public properties (no auth required)
+  async getPublicProperties(): Promise<PublicProperty[]> {
+    return apiRequest<PublicProperty[]>('/properties/public');
   },
 
   // Get property by ID

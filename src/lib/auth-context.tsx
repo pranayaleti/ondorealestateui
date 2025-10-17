@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { authApi, tokenManager, type User, ApiError } from "@/lib/api"
 
-export type UserRole = "manager" | "owner" | "tenant"
+export type UserRole = "admin" | "manager" | "owner" | "tenant"
 
 export interface UserData {
   id: string

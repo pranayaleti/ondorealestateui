@@ -4,13 +4,13 @@ import Loading from "@/components/loading"
 
 interface ProtectedRouteProps {
   children: React.ReactNode
-  allowedRoles?: ("manager" | "owner" | "tenant")[]
+  allowedRoles?: ("admin" | "manager" | "owner" | "tenant")[]
   redirectTo?: string
 }
 
 export default function ProtectedRoute({ 
   children, 
-  allowedRoles = ["manager", "owner", "tenant"],
+  allowedRoles = ["admin", "manager", "owner", "tenant"],
   redirectTo = "/login"
 }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth()
@@ -31,7 +31,8 @@ export default function ProtectedRoute({
     // Redirect to appropriate dashboard based on user role
     const userDashboard = user.role === "tenant" ? "/tenant" : 
                          user.role === "owner" ? "/owner" : 
-                         user.role === "manager" ? "/dashboard" : "/"
+                         user.role === "manager" ? "/dashboard" :
+                         user.role === "admin" ? "/admin" : "/"
     return <Navigate to={userDashboard} replace />
   }
 

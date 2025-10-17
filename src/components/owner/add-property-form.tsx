@@ -78,6 +78,15 @@ export function AddPropertyForm() {
     services: [] as string[],
     valueRanges: [] as string[],
     amenities: [] as string[], // Changed from amenityIds to amenities
+    
+    // Raw input values for comma-separated fields
+    specialtiesInput: "",
+    servicesInput: "",
+    valueRangesInput: "",
+    
+    // Rating fields
+    rating: "",
+    reviewCount: "",
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -87,6 +96,28 @@ export function AddPropertyForm() {
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleArrayFieldChange = (fieldName: string, value: string) => {
+    console.log('handleArrayFieldChange called:', fieldName, value);
+    // Split by commas and clean up
+    const arrayValue = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    console.log('Processed array:', arrayValue);
+    setFormData((prev) => ({
+      ...prev,
+      [fieldName]: arrayValue
+    }))
+  }
+
+  const handleArrayFieldBlur = (fieldName: string, value: string) => {
+    console.log('handleArrayFieldBlur called:', fieldName, value);
+    // Process on blur to allow typing commas without interference
+    const arrayValue = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    console.log('Processed array on blur:', arrayValue);
+    setFormData((prev) => ({
+      ...prev,
+      [fieldName]: arrayValue
+    }))
   }
 
   // Removed useEffect for loading amenities - now using predefined list
@@ -117,6 +148,8 @@ export function AddPropertyForm() {
         bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : undefined,
         bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : undefined,
         sqft: formData.sqft ? parseInt(formData.sqft) : undefined,
+        rating: formData.rating ? parseFloat(formData.rating) : undefined,
+        reviewCount: formData.reviewCount ? parseInt(formData.reviewCount) : undefined,
         // Remove empty strings
         website: formData.website || undefined,
         phone: formData.phone || undefined,
@@ -126,6 +159,9 @@ export function AddPropertyForm() {
       }
 
       console.log("Creating property with data:", propertyData)
+      console.log("Form data specialties:", formData.specialties)
+      console.log("Form data services:", formData.services)
+      console.log("Form data valueRanges:", formData.valueRanges)
 
       // Create the property
       const newProperty = await propertyApi.createProperty(propertyData)
@@ -398,6 +434,35 @@ export function AddPropertyForm() {
                   className="min-h-[80px]"
                 />
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="rating">Property Rating (1-5)</Label>
+                  <Input
+                    id="rating"
+                    name="rating"
+                    type="number"
+                    min="1"
+                    max="5"
+                    step="0.1"
+                    placeholder="e.g. 4.5"
+                    value={formData.rating}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="reviewCount">Number of Reviews</Label>
+                  <Input
+                    id="reviewCount"
+                    name="reviewCount"
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 25"
+                    value={formData.reviewCount}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -491,6 +556,65 @@ export function AddPropertyForm() {
                     </Label>
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Property Categories</CardTitle>
+              <CardDescription>Define specialties, services, and value ranges</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="specialties">Specialties</Label>
+                <Input
+                  id="specialties"
+                  name="specialtiesInput"
+                  placeholder="e.g. Luxury, Pet-friendly, Student housing (comma-separated)"
+                  value={formData.specialtiesInput}
+                  onChange={handleChange}
+                  onBlur={(e) => {
+                    console.log('Specialties input blurred:', e.target.value);
+                    handleArrayFieldBlur('specialties', e.target.value);
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">Enter specialties separated by commas</p>
+                
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="services">Services</Label>
+                <Input
+                  id="services"
+                  name="servicesInput"
+                  placeholder="e.g. 24/7 maintenance, Concierge, Housekeeping (comma-separated)"
+                  value={formData.servicesInput}
+                  onChange={handleChange}
+                  onBlur={(e) => {
+                    console.log('Services input blurred:', e.target.value);
+                    handleArrayFieldBlur('services', e.target.value);
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">Enter services separated by commas</p>
+                
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="valueRanges">Value Ranges</Label>
+                <Input
+                  id="valueRanges"
+                  name="valueRangesInput"
+                  placeholder="e.g. $1000-2000, $2000-3000, Premium (comma-separated)"
+                  value={formData.valueRangesInput}
+                  onChange={handleChange}
+                  onBlur={(e) => {
+                    console.log('Value ranges input blurred:', e.target.value);
+                    handleArrayFieldBlur('valueRanges', e.target.value);
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">Enter value ranges separated by commas</p>
+              
               </div>
             </CardContent>
           </Card>

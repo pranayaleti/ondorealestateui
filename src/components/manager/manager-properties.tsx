@@ -19,6 +19,8 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { propertyApi, type Property } from "@/lib/api"
 import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
+import { ModernPropertyCard } from "@/components/owner/modern-property-card"
+import { PropertyDetailModal } from "@/components/property-detail-modal"
 
 // Helper function to convert amenity keys to readable labels
 const getAmenityLabel = (key: string): string => {
@@ -50,6 +52,8 @@ const getAmenityLabel = (key: string): string => {
 export default function ManagerProperties() {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [showPropertyDetail, setShowPropertyDetail] = useState(false)
   const [search, setSearch] = useState("")
   const [cityFilter, setCityFilter] = useState("all")
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
@@ -178,81 +182,14 @@ export default function ManagerProperties() {
         </CardContent>
       </Card>
 
-      {/* Properties Grid */}
+      {/* Properties Grid - Modern Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {properties.map((property) => (
-          <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden">
-            {/* Property Image Carousel */}
-            <div className="relative">
-              <PropertyImageCarousel
-                photos={property.photos}
-                propertyTitle={property.title}
-                aspectRatio="video"
-                showControls={true}
-                showIndicators={true}
-                className="h-48"
-              />
-              {/* Status Badge Overlay */}
-              <div className="absolute top-2 right-2">
-                <Badge variant="secondary">Pending Review</Badge>
-              </div>
-            </div>
-            
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">{property.title}</CardTitle>
-                  <CardDescription className="flex items-center mt-1">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    {property.addressLine1}, {property.city}
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Type:</span>
-                  <span className="capitalize">{property.type}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Submitted:</span>
-                  <span>{new Date(property.createdAt).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Photos:</span>
-                  <span>{property.photos?.length || 0} {property.photos?.length === 0 && "(Using placeholders)"}</span>
-                </div>
-                {property.amenities && property.amenities.length > 0 && (
-                  <div className="text-sm text-gray-600">
-                    <strong>Amenities:</strong> {property.amenities.map(key => getAmenityLabel(key)).join(", ")}
-                  </div>
-                )}
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openReviewDialog(property, "approve")}
-                  >
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Approve
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openReviewDialog(property, "reject")}
-                  >
-                    <XCircle className="h-4 w-4 mr-1" />
-                    Reject
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4 mr-1" />
-                    View Details
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <ModernPropertyCard
+            key={property.id}
+            property={property}
+            onViewDetails={(prop) => { setSelectedProperty(prop); setShowPropertyDetail(true) }}
+          />
         ))}
       </div>
 
@@ -263,6 +200,14 @@ export default function ManagerProperties() {
           <p className="text-gray-600">All pending properties have been reviewed.</p>
         </div>
       )}
+
+      {/* Property Detail Modal */}
+      <PropertyDetailModal
+        property={selectedProperty}
+        open={showPropertyDetail}
+        onOpenChange={setShowPropertyDetail}
+        showActions={false}
+      />
 
       {/* Review Dialog */}
       <Dialog open={reviewDialog !== null} onOpenChange={() => setReviewDialog(null)}>

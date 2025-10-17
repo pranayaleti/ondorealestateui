@@ -16,6 +16,7 @@ import {
 import { useAuth } from "@/lib/auth-context"
 import { propertyApi, type Property } from "@/lib/api"
 import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
+import { ModernPropertyCard } from "./modern-property-card"
 import { PropertyDetailModal } from "@/components/property-detail-modal"
 
 export default function OwnerProperties() {
@@ -162,61 +163,11 @@ export default function OwnerProperties() {
       {/* Properties Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {properties.map((property) => (
-          <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden">
-            {/* Property Image Carousel */}
-            <div className="relative">
-              <PropertyImageCarousel
-                photos={property.photos}
-                propertyTitle={property.title}
-                aspectRatio="video"
-                showControls={true}
-                showIndicators={true}
-                className="h-48"
-              />
-              {/* Status Badge Overlay */}
-              <div className="absolute top-2 right-2">
-                {getStatusBadge(property.status)}
-              </div>
-            </div>
-            
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">{property.title}</CardTitle>
-                  <CardDescription className="flex items-center mt-1">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    {property.addressLine1}, {property.city}
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Type:</span>
-                  <span className="capitalize">{property.type}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Added:</span>
-                  <span>{new Date(property.createdAt).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Photos:</span>
-                  <span>{property.photos?.length || 0} {property.photos?.length === 0 && "(Using placeholders)"}</span>
-                </div>
-                <div className="flex gap-2 pt-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => handleViewProperty(property)}
-                  >
-                    <Eye className="h-4 w-4 mr-1" />
-                    View Details
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <ModernPropertyCard
+            key={property.id}
+            property={property}
+            onViewDetails={handleViewProperty}
+          />
         ))}
       </div>
 
