@@ -64,12 +64,14 @@ export default function UserMenu() {
               <span>My Profile</span>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link to={`${dashboardPath}/settings`} className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </Link>
-          </DropdownMenuItem>
+          {user.role === "admin" && (
+            <DropdownMenuItem asChild>
+              <Link to={`${dashboardPath}/settings`} className="cursor-pointer">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </Link>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={logout} className="cursor-pointer">

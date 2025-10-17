@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
-import { authApi, ApiError, type ManagerPortfolioStats } from "@/lib/api"
+import { authApi, ApiError, type ManagerPortfolioStats, type InvitedUser } from "@/lib/api"
 
 export default function ManagerProfile() {
   const { user, refreshUser } = useAuth()
@@ -34,6 +34,8 @@ export default function ManagerProfile() {
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [portfolioStats, setPortfolioStats] = useState<ManagerPortfolioStats | null>(null)
   const [isLoadingStats, setIsLoadingStats] = useState(true)
+  const [invitedUsers, setInvitedUsers] = useState<InvitedUser[]>([])
+  const [isLoadingInvited, setIsLoadingInvited] = useState(false)
   
 
   // Update form data when user data changes
@@ -77,6 +79,24 @@ export default function ManagerProfile() {
     }
 
     fetchPortfolioStats()
+  }, [user])
+
+  // Fetch invited users to compute active owners count
+  useEffect(() => {
+    const fetchInvited = async () => {
+      if (!user || user.role !== "manager") return
+      try {
+        setIsLoadingInvited(true)
+        const users = await authApi.getInvitedUsers()
+        setInvitedUsers(users)
+      } catch (error) {
+        console.error("Error fetching invited users:", error)
+        setInvitedUsers([])
+      } finally {
+        setIsLoadingInvited(false)
+      }
+    }
+    fetchInvited()
   }, [user])
 
   const handleInputChange = (field: string, value: string) => {
@@ -242,15 +262,15 @@ export default function ManagerProfile() {
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Total Units:</span>
+                    <span className="text-gray-500">Active Owners:</span>
                     <span className="font-medium">
-                      {isLoadingStats ? "..." : portfolioStats?.totalUnits || 0}
+                      {(isLoadingInvited || isLoadingStats) ? "..." : invitedUsers.filter(u => u.role === "owner" && u.isActive).length}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Active Tenants:</span>
                     <span className="font-medium">
-                      {isLoadingStats ? "..." : portfolioStats?.activeTenants || 0}
+                      {(isLoadingInvited || isLoadingStats) ? "..." : invitedUsers.filter(u => u.role === "tenant" && u.isActive).length}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -400,7 +420,7 @@ export default function ManagerProfile() {
                     </div>
                   </div>
 
-                  <div className="border-t pt-6">
+                  {/* <div className="border-t pt-6">
                     <h4 className="font-medium mb-4">Account Security</h4>
                     <div className="space-y-4">
                       <Button variant="outline">
@@ -408,7 +428,7 @@ export default function ManagerProfile() {
                         Enable Two-Factor Authentication
                       </Button>
                     </div>
-                  </div>
+                  </div> */}
                 </CardContent>
               </Card>
             </TabsContent>

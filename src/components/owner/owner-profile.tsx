@@ -51,8 +51,13 @@ export default function OwnerProfile() {
 
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [isSavingProfile, setIsSavingProfile] = useState(false)
-  const [portfolioStats, setPortfolioStats] = useState<PortfolioStats | null>(null)
-  const [isLoadingStats, setIsLoadingStats] = useState(true)
+  const [portfolioStats, setPortfolioStats] = useState<PortfolioStats | null>({
+    propertiesOwned: 0,
+    totalUnits: 0,
+    portfolioValue: 0,
+    formattedPortfolioValue: "$0.0M"
+  })
+  const [isLoadingStats, setIsLoadingStats] = useState(false)
 
   // Update profile data when user data changes
   useEffect(() => {
@@ -261,12 +266,14 @@ export default function OwnerProfile() {
                       {isLoadingStats ? "..." : portfolioStats?.propertiesOwned || 0}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Total Units:</span>
-                    <span className="font-medium">
-                      {isLoadingStats ? "..." : portfolioStats?.totalUnits || 0}
-                    </span>
-                  </div>
+                  {typeof portfolioStats?.activeTenants !== 'undefined' && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Active Tenants:</span>
+                      <span className="font-medium">
+                        {isLoadingStats ? "..." : portfolioStats?.activeTenants || 0}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Portfolio Value:</span>
                     <span className="font-medium">
@@ -479,7 +486,7 @@ export default function OwnerProfile() {
                     </div>
                   </div>
 
-                  <div className="border-t pt-6">
+                  {/* <div className="border-t pt-6">
                     <h4 className="font-medium mb-4">Account Security</h4>
                     <div className="space-y-4">
                       <Button variant="outline">
@@ -487,7 +494,7 @@ export default function OwnerProfile() {
                         Enable Two-Factor Authentication
                       </Button>
                     </div>
-                  </div>
+                  </div> */}
                 </CardContent>
               </Card>
             </TabsContent>

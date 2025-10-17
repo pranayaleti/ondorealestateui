@@ -231,7 +231,7 @@ export default function OwnerDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         <Link to="/owner/property-management/add">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
@@ -256,17 +256,7 @@ export default function OwnerDashboard() {
           </Card>
         </Link>
 
-        <Link to="/owner/property-management">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="flex items-center p-4">
-              <Settings className="h-8 w-8 text-purple-500 mr-3" />
-              <div>
-                <p className="text-sm font-medium">Manage</p>
-                <p className="text-xs text-gray-500">Property Mgmt</p>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
+      
 
         <Link to="/owner/finances">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">

@@ -87,6 +87,8 @@ export interface PortfolioStats {
   totalUnits: number;
   portfolioValue: number;
   formattedPortfolioValue: string;
+  // Optional, may be provided by API in future
+  activeTenants?: number;
 }
 
 export interface ManagerPortfolioStats {
