@@ -10,7 +10,7 @@ import {
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { useState, useEffect } from "react"
-import { authApi, ApiError, type PortfolioStats } from "@/lib/api"
+import { authApi, propertyApi, ApiError, type PortfolioStats } from "@/lib/api"
 
 const getInitialProfileData = (user: any) => ({
   personalInfo: {
@@ -53,9 +53,9 @@ export default function OwnerProfile() {
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [portfolioStats, setPortfolioStats] = useState<PortfolioStats | null>({
     propertiesOwned: 0,
-    totalUnits: 0,
+    activeTenants: 0,
     portfolioValue: 0,
-    formattedPortfolioValue: "$0.0M"
+    formattedPortfolioValue: "$0K"
   })
   const [isLoadingStats, setIsLoadingStats] = useState(false)
 
@@ -65,23 +65,51 @@ export default function OwnerProfile() {
     setProfileData(getInitialProfileData(user))
   }, [user])
 
-  // Fetch portfolio statistics
+  // Fetch portfolio statistics from properties API
   useEffect(() => {
     const fetchPortfolioStats = async () => {
       if (!user || user.role !== "owner") return
 
       try {
         setIsLoadingStats(true)
-        const stats = await authApi.getPortfolioStats()
+        console.log("Fetching portfolio stats for owner:", user.id)
+        
+        // Get properties data to calculate stats
+        const properties = await propertyApi.getProperties()
+        console.log("Properties received:", properties)
+        
+        // Calculate stats from properties data
+        const propertiesOwned = properties.length
+        const propertiesWithTenants = properties.filter(p => p.tenantId)
+        const activeTenants = propertiesWithTenants.length
+        
+        // Calculate total monthly rent (portfolio value)
+        const totalMonthlyRent = propertiesWithTenants.reduce((sum, property) => {
+          return sum + (property.price || 0)
+        }, 0)
+        
+        // Format portfolio value
+        const formattedPortfolioValue = totalMonthlyRent > 0 
+          ? `$${(totalMonthlyRent / 1000).toFixed(1)}K/month`
+          : "$0/month"
+        
+        const stats = {
+          propertiesOwned,
+          activeTenants,
+          portfolioValue: totalMonthlyRent,
+          formattedPortfolioValue
+        }
+        
+        console.log("Calculated portfolio stats:", stats)
         setPortfolioStats(stats)
       } catch (error) {
         console.error("Error fetching portfolio stats:", error)
         // Set default values if API fails
         setPortfolioStats({
           propertiesOwned: 0,
-          totalUnits: 0,
+          activeTenants: 0,
           portfolioValue: 0,
-          formattedPortfolioValue: "$0.0M"
+          formattedPortfolioValue: "$0/month"
         })
       } finally {
         setIsLoadingStats(false)
@@ -90,6 +118,7 @@ export default function OwnerProfile() {
 
     fetchPortfolioStats()
   }, [user])
+
 
   const handleInputChange = (section: string, field: string, value: string) => {
     setProfileData(prev => ({
@@ -266,18 +295,16 @@ export default function OwnerProfile() {
                       {isLoadingStats ? "..." : portfolioStats?.propertiesOwned || 0}
                     </span>
                   </div>
-                  {typeof portfolioStats?.activeTenants !== 'undefined' && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Active Tenants:</span>
-                      <span className="font-medium">
-                        {isLoadingStats ? "..." : portfolioStats?.activeTenants || 0}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Active Tenants:</span>
+                    <span className="font-medium">
+                      {isLoadingStats ? "..." : portfolioStats?.activeTenants || 0}
+                    </span>
+                  </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Portfolio Value:</span>
                     <span className="font-medium">
-                      {isLoadingStats ? "..." : portfolioStats?.formattedPortfolioValue || "$0.0M"}
+                      {isLoadingStats ? "..." : portfolioStats?.formattedPortfolioValue || "$0K"}
                     </span>
                   </div>
                 </div>

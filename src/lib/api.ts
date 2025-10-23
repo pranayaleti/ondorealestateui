@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'https://ondorealestateserver.onrender.com/api';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 // Types
 export interface User {
@@ -84,11 +84,9 @@ export interface UpdateProfileResponse {
 
 export interface PortfolioStats {
   propertiesOwned: number;
-  totalUnits: number;
+  activeTenants: number;
   portfolioValue: number;
   formattedPortfolioValue: string;
-  // Optional, may be provided by API in future
-  activeTenants?: number;
 }
 
 export interface ManagerPortfolioStats {
@@ -126,6 +124,52 @@ export interface PropertyManager {
   lastName: string;
   email: string;
   phone?: string;
+}
+
+export interface PropertyTenant {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  createdAt: string;
+}
+
+// Maintenance Request interfaces
+export interface MaintenanceRequest {
+  id: string;
+  title: string;
+  description: string;
+  category: "plumbing" | "electrical" | "hvac" | "appliance" | "structural" | "pest_control" | "cleaning" | "other";
+  priority: "low" | "medium" | "high" | "emergency";
+  status: "pending" | "in_progress" | "completed" | "cancelled";
+  propertyId: string;
+  tenantId: string;
+  managerNotes?: string; // Manager's response/notes
+  assignedTo?: string; // Technician name
+  createdAt: string;
+  updatedAt: string;
+  // Enhanced fields for manager view
+  propertyTitle?: string;
+  propertyAddress?: string;
+  propertyCity?: string;
+  tenantFirstName?: string;
+  tenantLastName?: string;
+  tenantEmail?: string;
+  tenantPhone?: string;
+}
+
+export interface CreateMaintenanceRequestRequest {
+  title: string;
+  description: string;
+  category: "plumbing" | "electrical" | "hvac" | "appliance" | "structural" | "pest_control" | "cleaning" | "other";
+  priority?: "low" | "medium" | "high" | "emergency";
+}
+
+export interface UpdateMaintenanceRequestRequest {
+  status?: "pending" | "in_progress" | "completed" | "cancelled";
+  assignedTo?: string;
+  managerNotes?: string;
 }
 
 export interface PublicPropertyOwner {
@@ -229,6 +273,7 @@ export interface Property {
   photos?: PropertyPhoto[];
   owner?: PropertyOwner; // Only available for managers
   manager?: PropertyManager; // Property manager contact details
+  tenant?: PropertyTenant; // Tenant information if property has a tenant
 }
 
 export interface PropertyPhoto {
@@ -283,6 +328,41 @@ export interface PublicProperty {
   status: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// Tenant Types
+export interface Tenant {
+  id: string;
+  name: string;
+  property: string;
+  unit: string;
+  rent: number;
+  leaseStart: string;
+  leaseEnd: string;
+  paymentStatus: 'current' | 'overdue' | 'pending';
+  // Additional details
+  email: string;
+  phone?: string;
+  propertyType: string;
+  propertyAddress: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  sqft?: number;
+  propertyStatus: string;
+  tenantCreatedAt: string;
+  propertyCreatedAt: string;
+}
+
+export interface OwnerTenantsSummary {
+  totalTenants: number;
+  occupiedUnits: string;
+  occupancyRate: string;
+  avgRent: string;
+}
+
+export interface OwnerTenantsResponse {
+  summary: OwnerTenantsSummary;
+  tenants: Tenant[];
 }
 
 export interface PropertyAmenity {
@@ -515,6 +595,11 @@ export const propertyApi = {
     return apiRequest<Property>(`/properties/${id}`);
   },
 
+  // Get tenant's assigned property
+  async getTenantProperty(): Promise<Property> {
+    return apiRequest<Property>('/properties/tenant-property');
+  },
+
   // Create new property
   async createProperty(propertyData: CreatePropertyRequest): Promise<Property> {
     return apiRequest<Property>('/properties', {
@@ -578,6 +663,65 @@ export const propertyApi = {
       body: JSON.stringify({ status, comment }),
     });
   },
+
+  // Owner functions - get tenants from properties data
+  async getOwnerTenants(): Promise<OwnerTenantsResponse> {
+    // Get all properties for the owner, then filter and map tenant data
+    const properties = await apiRequest<Property[]>('/properties');
+    
+    // Filter properties that have tenants
+    const propertiesWithTenants = properties.filter(property => property.tenantId);
+    
+    // Map properties to tenant format
+    const tenants: Tenant[] = propertiesWithTenants.map(property => {
+      // Calculate lease end date (one month after move-in date)
+      const moveInDate = new Date(property.createdAt);
+      const leaseEndDate = new Date(moveInDate);
+      leaseEndDate.setMonth(leaseEndDate.getMonth() + 1);
+
+      return {
+        id: property.tenantId!,
+        name: property.tenant ? `${property.tenant.firstName} ${property.tenant.lastName}` : `Tenant ${property.tenantId!.slice(-4)}`,
+        property: property.title,
+        unit: `${property.type} - Unit ${property.id.slice(-4)}`,
+        rent: property.price || 0,
+        leaseStart: moveInDate.toISOString().split('T')[0],
+        leaseEnd: leaseEndDate.toISOString().split('T')[0],
+        paymentStatus: 'current' as const,
+        email: property.tenant?.email || `tenant-${property.tenantId!.slice(-4)}@example.com`,
+        phone: property.tenant?.phone,
+        propertyType: property.type,
+        propertyAddress: `${property.addressLine1}, ${property.city}`,
+        bedrooms: property.bedrooms,
+        bathrooms: property.bathrooms,
+        sqft: property.sqft,
+        propertyStatus: property.status,
+        tenantCreatedAt: property.tenant?.createdAt || property.createdAt,
+        propertyCreatedAt: property.createdAt
+      };
+    });
+
+    // Calculate summary statistics
+    const totalTenants = tenants.length;
+    const totalRent = tenants.reduce((sum, tenant) => sum + (tenant.rent || 0), 0);
+    const avgRent = totalTenants > 0 ? Math.round(totalRent / totalTenants) : 0;
+
+    const occupiedUnits = totalTenants;
+    const totalUnits = Math.max(occupiedUnits, 1);
+    const occupancyRate = Math.round((occupiedUnits / totalUnits) * 100);
+
+    const summary: OwnerTenantsSummary = {
+      totalTenants,
+      occupiedUnits: `${occupiedUnits}/${totalUnits}`,
+      occupancyRate: `${occupancyRate}%`,
+      avgRent: `$${avgRent.toLocaleString()}`
+    };
+
+    return {
+      summary,
+      tenants
+    };
+  },
 };
 
 // Lead API functions
@@ -610,6 +754,40 @@ export const leadApi = {
     return apiRequest<{ message: string; lead: Lead }>(`/leads/${leadId}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
+    });
+  },
+};
+
+// Maintenance API functions
+export const maintenanceApi = {
+  // Create maintenance request (tenant only)
+  async createMaintenanceRequest(data: CreateMaintenanceRequestRequest): Promise<MaintenanceRequest> {
+    return apiRequest<MaintenanceRequest>('/maintenance', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Get maintenance requests for tenant
+  async getTenantMaintenanceRequests(): Promise<MaintenanceRequest[]> {
+    return apiRequest<MaintenanceRequest[]>('/maintenance/tenant');
+  },
+
+  // Get maintenance requests for manager
+  async getManagerMaintenanceRequests(): Promise<MaintenanceRequest[]> {
+    return apiRequest<MaintenanceRequest[]>('/maintenance/manager/all');
+  },
+
+  // Get maintenance request by ID
+  async getMaintenanceRequestById(id: string): Promise<MaintenanceRequest> {
+    return apiRequest<MaintenanceRequest>(`/maintenance/${id}`);
+  },
+
+  // Update maintenance request (manager only)
+  async updateMaintenanceRequest(id: string, data: UpdateMaintenanceRequestRequest): Promise<MaintenanceRequest> {
+    return apiRequest<MaintenanceRequest>(`/maintenance/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
     });
   },
 };

@@ -30,6 +30,7 @@ import { propertyApi, authApi, leadApi, ApiError, type Property, type InvitedUse
 import { useToast } from "@/hooks/use-toast"
 import { PropertyDetailModal } from "@/components/property-detail-modal"
 import { ModernPropertyCard } from "@/components/owner/modern-property-card"
+import ManagerMaintenance from "./manager-maintenance"
 
 export default function ManagerDashboard() {
   const { user } = useAuth()
@@ -316,6 +317,7 @@ export default function ManagerDashboard() {
           <TabsTrigger value="properties">Properties</TabsTrigger>
           <TabsTrigger value="owner-properties">Owner Properties</TabsTrigger>
           <TabsTrigger value="leads">Leads</TabsTrigger>
+          <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
           <TabsTrigger value="my-users">My Users</TabsTrigger>
           <TabsTrigger value="user-management">User Management</TabsTrigger>
         </TabsList>
@@ -1005,6 +1007,10 @@ export default function ManagerDashboard() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="maintenance" className="space-y-4">
+          <ManagerMaintenance />
         </TabsContent>
       </Tabs>
 

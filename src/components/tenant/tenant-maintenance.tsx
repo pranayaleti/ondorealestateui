@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Routes, Route, Link, useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { 
   Plus, 
   Search, 
@@ -19,66 +20,53 @@ import {
   Calendar,
   MessageSquare,
   Upload,
-  X
+  X,
+  Loader2
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { maintenanceApi, type MaintenanceRequest } from "@/lib/api"
 
-// Mock maintenance requests data
-const mockMaintenanceRequests = [
-  {
-    id: 1,
-    title: "Leaky Kitchen Faucet",
-    description: "The kitchen faucet has been dripping constantly for the past week. It's getting worse and wasting water.",
-    category: "plumbing",
-    priority: "medium",
-    status: "in_progress",
-    dateSubmitted: "2024-01-15",
-    dateScheduled: "2024-01-22",
-    assignedTo: "Mike Johnson - Plumber",
-    photos: ["faucet1.jpg", "faucet2.jpg"],
-    updates: [
-      { date: "2024-01-20", message: "Parts ordered, will be installed on scheduled date", author: "Mike Johnson" },
-      { date: "2024-01-16", message: "Request received and reviewed", author: "Property Manager" }
-    ]
-  },
-  {
-    id: 2,
-    title: "Heating Not Working",
-    description: "The heating system stopped working yesterday. Apartment is getting very cold.",
-    category: "hvac",
-    priority: "high",
-    status: "completed",
-    dateSubmitted: "2024-01-10",
-    dateCompleted: "2024-01-12",
-    assignedTo: "Sarah Davis - HVAC Tech",
-    photos: ["heater1.jpg"],
-    updates: [
-      { date: "2024-01-12", message: "Heating system repaired. Thermostat was faulty and has been replaced.", author: "Sarah Davis" },
-      { date: "2024-01-10", message: "Emergency request received. Technician dispatched.", author: "Property Manager" }
-    ]
-  },
-  {
-    id: 3,
-    title: "Bathroom Light Bulb Out",
-    description: "The light bulb in the main bathroom burned out and needs replacement.",
-    category: "electrical",
-    priority: "low",
-    status: "pending",
-    dateSubmitted: "2024-01-12",
-    assignedTo: null,
-    photos: [],
-    updates: [
-      { date: "2024-01-12", message: "Request submitted and pending review", author: "System" }
-    ]
-  }
-]
+// Real API integration - no more static data
 
 function MaintenanceList() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [priorityFilter, setPriorityFilter] = useState("all")
+  const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedRequest, setSelectedRequest] = useState<MaintenanceRequest | null>(null)
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+  const { toast } = useToast()
 
-  const filteredRequests = mockMaintenanceRequests.filter(request => {
+  // Fetch maintenance requests from API
+  useEffect(() => {
+    fetchMaintenanceRequests()
+  }, [])
+
+  const fetchMaintenanceRequests = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      console.log("🔍 Fetching maintenance requests...")
+      const requests = await maintenanceApi.getTenantMaintenanceRequests()
+      console.log("📊 Received maintenance requests:", requests)
+      setMaintenanceRequests(requests)
+    } catch (err: any) {
+      console.error("❌ Error fetching maintenance requests:", err)
+      console.error("❌ Error details:", err.message)
+      setError("Failed to load maintenance requests")
+      toast({
+        title: "Error",
+        description: "Failed to load maintenance requests. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filteredRequests = maintenanceRequests.filter(request => {
     const matchesSearch = request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          request.description.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === "all" || request.status === statusFilter
@@ -180,7 +168,34 @@ function MaintenanceList() {
 
       {/* Requests List */}
       <div className="space-y-4">
-        {filteredRequests.map((request) => (
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="ml-2">Loading maintenance requests...</span>
+          </div>
+        ) : error ? (
+          <div className="text-center py-8">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Requests</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <Button onClick={fetchMaintenanceRequests}>
+              Try Again
+            </Button>
+          </div>
+        ) : filteredRequests.length === 0 ? (
+          <div className="text-center py-8">
+            <Wrench className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Maintenance Requests</h3>
+            <p className="text-gray-600 mb-4">You haven't submitted any maintenance requests yet.</p>
+            <Link to="/tenant/maintenance/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Submit Your First Request
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          filteredRequests.map((request) => (
           <Card key={request.id} className="hover:shadow-md transition-shadow">
             <CardContent className="pt-6">
               <div className="flex justify-between items-start mb-4">
@@ -204,18 +219,18 @@ function MaintenanceList() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="text-gray-500">Submitted:</span>
-                  <p className="font-medium">{request.dateSubmitted}</p>
+                  <p className="font-medium">{new Date(request.createdAt).toLocaleDateString()}</p>
                 </div>
                 {request.dateScheduled && (
                   <div>
                     <span className="text-gray-500">Scheduled:</span>
-                    <p className="font-medium">{request.dateScheduled}</p>
+                    <p className="font-medium">{new Date(request.dateScheduled).toLocaleDateString()}</p>
                   </div>
                 )}
                 {request.dateCompleted && (
                   <div>
                     <span className="text-gray-500">Completed:</span>
-                    <p className="font-medium">{request.dateCompleted}</p>
+                    <p className="font-medium">{new Date(request.dateCompleted).toLocaleDateString()}</p>
                   </div>
                 )}
                 {request.assignedTo && (
@@ -226,13 +241,13 @@ function MaintenanceList() {
                 )}
               </div>
 
-              {request.updates.length > 0 && (
+              {request.managerNotes && (
                 <div className="mt-4 pt-4 border-t">
-                  <h4 className="font-medium mb-2">Latest Update:</h4>
+                  <h4 className="font-medium mb-2">Manager Response:</h4>
                   <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded">
-                    <p className="text-sm">{request.updates[0].message}</p>
+                    <p className="text-sm">{request.managerNotes}</p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {request.updates[0].date} - {request.updates[0].author}
+                      Updated: {new Date(request.updatedAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -240,49 +255,103 @@ function MaintenanceList() {
 
               <div className="flex justify-between items-center mt-4">
                 <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  {request.photos.length > 0 && (
+                  {request.photos && request.photos.length > 0 && (
                     <span className="flex items-center">
                       <Upload className="h-4 w-4 mr-1" />
                       {request.photos.length} photo(s)
                     </span>
                   )}
-                  <span className="flex items-center">
-                    <MessageSquare className="h-4 w-4 mr-1" />
-                    {request.updates.length} update(s)
-                  </span>
+                  {request.updates && request.updates.length > 0 && (
+                    <span className="flex items-center">
+                      <MessageSquare className="h-4 w-4 mr-1" />
+                      {request.updates.length} update(s)
+                    </span>
+                  )}
                 </div>
-                <Link to={`/tenant/maintenance/${request.id}`}>
-                  <Button variant="outline" size="sm">
-                    View Details
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSelectedRequest(request);
+                    setIsDetailsOpen(true);
+                  }}
+                >
+                  View Details
+                </Button>
               </div>
             </CardContent>
           </Card>
-        ))}
+          ))
+        )}
       </div>
 
-      {filteredRequests.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-8">
-            <Wrench className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              No maintenance requests found
-            </h3>
-            <p className="text-gray-500 mb-4">
-              {searchTerm || statusFilter !== "all" || priorityFilter !== "all" 
-                ? "Try adjusting your filters" 
-                : "You haven't submitted any maintenance requests yet"}
-            </p>
-            <Link to="/tenant/maintenance/new">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Submit New Request
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      )}
+      {/* Details Modal */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Maintenance Request Details</DialogTitle>
+            <DialogDescription>
+              Complete information about your maintenance request
+            </DialogDescription>
+          </DialogHeader>
+          {selectedRequest && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Title</Label>
+                  <p className="text-sm text-gray-600">{selectedRequest.title}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status</Label>
+                  <Badge className={getPriorityColor(selectedRequest.priority)}>
+                    {selectedRequest.status.replace('_', ' ')}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Priority</Label>
+                  <Badge variant="outline">
+                    {selectedRequest.priority} priority
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Category</Label>
+                  <p className="text-sm text-gray-600">{selectedRequest.category}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Submitted</Label>
+                  <p className="text-sm text-gray-600">{new Date(selectedRequest.createdAt).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Last Updated</Label>
+                  <p className="text-sm text-gray-600">{new Date(selectedRequest.updatedAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium">Description</Label>
+                <p className="text-sm text-gray-600 mt-1">{selectedRequest.description}</p>
+              </div>
+
+              {selectedRequest.assignedTo && (
+                <div>
+                  <Label className="text-sm font-medium">Assigned To</Label>
+                  <p className="text-sm text-gray-600">{selectedRequest.assignedTo}</p>
+                </div>
+              )}
+
+              {selectedRequest.managerNotes && (
+                <div>
+                  <Label className="text-sm font-medium">Manager Response</Label>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded mt-1">
+                    <p className="text-sm">{selectedRequest.managerNotes}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </div>
   )
 }
@@ -297,18 +366,46 @@ function NewMaintenanceRequest() {
     priority: "medium",
     photos: [] as File[]
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Simulate API call
-    setTimeout(() => {
+    if (!formData.title.trim() || !formData.description.trim() || !formData.category) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      
+      await maintenanceApi.createMaintenanceRequest({
+        title: formData.title,
+        description: formData.description,
+        category: formData.category as any,
+        priority: formData.priority as any,
+        photos: [] // TODO: Handle photo uploads
+      })
+
       toast({
         title: "Request Submitted",
         description: "Your maintenance request has been submitted successfully.",
       })
-      navigate("/tenant/maintenance")
-    }, 1000)
+      navigate("/tenant/maintenance/")
+    } catch (error: any) {
+      console.error("Error submitting maintenance request:", error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit maintenance request. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -440,13 +537,20 @@ function NewMaintenanceRequest() {
             </div>
 
             <div className="flex justify-between">
-              <Link to="/tenant/maintenance">
+              <Link to="/tenant/maintenance/">
                 <Button type="button" variant="outline">
                   Cancel
                 </Button>
               </Link>
-              <Button type="submit">
-                Submit Request
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Request"
+                )}
               </Button>
             </div>
           </form>

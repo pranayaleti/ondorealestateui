@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { Link } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -16,39 +16,94 @@ import {
   DollarSign,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
+  MapPin,
+  Building
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
-
-// Mock data for tenant dashboard
-const mockTenantData = {
-  property: {
-    address: "123 Oak Street, Apt 2B",
-    city: "Salt Lake City, UT 84101",
-    rent: 1850,
-    leaseEnd: "2024-12-31",
-    bedrooms: 2,
-    bathrooms: 1
-  },
-  recentPayments: [
-    { id: 1, date: "2024-01-01", amount: 1850, status: "paid", type: "Rent" },
-    { id: 2, date: "2023-12-01", amount: 1850, status: "paid", type: "Rent" },
-    { id: 3, date: "2023-11-01", amount: 1850, status: "paid", type: "Rent" }
-  ],
-  maintenanceRequests: [
-    { id: 1, title: "Leaky Faucet", status: "in_progress", date: "2024-01-15", priority: "medium" },
-    { id: 2, title: "Heating Issue", status: "completed", date: "2024-01-10", priority: "high" },
-    { id: 3, title: "Light Bulb Replacement", status: "pending", date: "2024-01-12", priority: "low" }
-  ],
-  messages: [
-    { id: 1, from: "Property Manager", subject: "Lease Renewal Notice", date: "2024-01-20", unread: true },
-    { id: 2, from: "Maintenance Team", subject: "Scheduled Inspection", date: "2024-01-18", unread: false }
-  ]
-}
+import { propertyApi, maintenanceApi, type Property, type MaintenanceRequest } from "@/lib/api"
 
 export default function TenantDashboard() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("overview")
+  const [assignedProperty, setAssignedProperty] = useState<Property | null>(null)
+  const [loadingProperty, setLoadingProperty] = useState(true)
+  const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>([])
+  const [loadingMaintenance, setLoadingMaintenance] = useState(true)
+
+  useEffect(() => {
+    fetchAssignedProperty()
+    fetchMaintenanceRequests()
+  }, [])
+
+  const fetchAssignedProperty = async () => {
+    try {
+      setLoadingProperty(true)
+      const property = await propertyApi.getTenantProperty()
+      setAssignedProperty(property)
+    } catch (error) {
+      console.error("Error fetching assigned property:", error)
+      // Property might not be assigned yet
+      setAssignedProperty(null)
+    } finally {
+      setLoadingProperty(false)
+    }
+  }
+
+  const fetchMaintenanceRequests = async () => {
+    try {
+      setLoadingMaintenance(true)
+      const requests = await maintenanceApi.getTenantMaintenanceRequests()
+      setMaintenanceRequests(requests)
+    } catch (error) {
+      console.error("Error fetching maintenance requests:", error)
+      setMaintenanceRequests([])
+    } finally {
+      setLoadingMaintenance(false)
+    }
+  }
+
+  // Filter active requests (in_progress and pending with assignedTo)
+  const getActiveRequests = () => {
+    return maintenanceRequests.filter(request => 
+      (request.status === 'in_progress' || request.status === 'pending') && 
+      request.assignedTo
+    )
+  }
+
+  // Filter recent maintenance (unassigned and completed)
+  const getRecentMaintenance = () => {
+    return maintenanceRequests.filter(request => 
+      !request.assignedTo || request.status === 'completed'
+    )
+  }
+
+  // Calculate next rent due date (one month from move-in date, recurring monthly)
+  const getNextRentDueDate = () => {
+    if (!assignedProperty) return null
+    
+    const moveInDate = new Date(assignedProperty.createdAt)
+    const now = new Date()
+    
+    // Start from move-in date
+    let nextDueDate = new Date(moveInDate)
+    
+    // Keep adding months until we get a date in the future
+    while (nextDueDate <= now) {
+      nextDueDate.setMonth(nextDueDate.getMonth() + 1)
+    }
+    
+    return nextDueDate
+  }
+
+  // Format date for display
+  const formatRentDueDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      month: 'long', 
+      day: 'numeric' 
+    })
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -90,7 +145,7 @@ export default function TenantDashboard() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-        <Link to="/tenant/maintenance">
+        <Link to="/tenant/maintenance/">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
               <Wrench className="h-8 w-8 text-blue-500 mr-3" />
@@ -133,7 +188,7 @@ export default function TenantDashboard() {
               <div>
                 <p className="text-sm font-medium">Messages</p>
                 <p className="text-xs text-gray-500">
-                  {mockTenantData.messages.filter(m => m.unread).length} New
+                  0 New
                 </p>
               </div>
             </CardContent>
@@ -157,7 +212,7 @@ export default function TenantDashboard() {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="property">Property</TabsTrigger>
-          <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+          <TabsTrigger value="maintenance" onClick={() => navigate('/tenant/maintenance/')}>Maintenance</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
         </TabsList>
 
@@ -170,8 +225,12 @@ export default function TenantDashboard() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${mockTenantData.property.rent}</div>
-                <p className="text-xs text-muted-foreground">Due February 1st</p>
+                <div className="text-2xl font-bold">
+                  ${assignedProperty?.price?.toLocaleString() || '0'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Due {getNextRentDueDate() ? formatRentDueDate(getNextRentDueDate()!) : 'N/A'}
+                </p>
                 <Button className="w-full mt-3 bg-ondo-orange hover:bg-ondo-red transition-colors" size="sm">
                   Pay Now
                 </Button>
@@ -201,10 +260,25 @@ export default function TenantDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {mockTenantData.maintenanceRequests.filter(r => r.status !== "completed").length}
+                  {loadingMaintenance ? "..." : getActiveRequests().length}
                 </div>
-                <p className="text-xs text-muted-foreground">Maintenance requests</p>
-                <Link to="/tenant/maintenance">
+                <p className="text-xs text-muted-foreground">Assigned maintenance requests</p>
+                {getActiveRequests().length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {getActiveRequests().slice(0, 2).map((request) => (
+                      <div key={request.id} className="flex items-center justify-between text-xs">
+                        <span className="truncate">{request.title}</span>
+                        <Badge variant={request.status === 'in_progress' ? 'default' : 'secondary'}>
+                          {request.status.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                    ))}
+                    {getActiveRequests().length > 2 && (
+                      <p className="text-xs text-muted-foreground">+{getActiveRequests().length - 2} more</p>
+                    )}
+                  </div>
+                )}
+                <Link to="/tenant/maintenance/">
                   <Button variant="outline" className="w-full mt-3 border-ondo-orange text-ondo-orange hover:bg-ondo-orange hover:text-white" size="sm">
                     View All
                   </Button>
@@ -221,23 +295,52 @@ export default function TenantDashboard() {
                 <CardDescription>Your latest maintenance requests</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {mockTenantData.maintenanceRequests.slice(0, 3).map((request) => (
-                  <div key={request.id} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {getStatusIcon(request.status)}
-                      <div>
-                        <p className="text-sm font-medium">{request.title}</p>
-                        <p className="text-xs text-gray-500">{request.date}</p>
-                      </div>
-                    </div>
-                    <Badge className={getPriorityColor(request.priority)}>
-                      {request.priority}
-                    </Badge>
+                {loadingMaintenance ? (
+                  <div className="text-center py-4">
+                    <Clock className="h-8 w-8 text-gray-400 mx-auto mb-2 animate-spin" />
+                    <p className="text-sm text-gray-500">Loading...</p>
                   </div>
-                ))}
-                <Link to="/tenant/maintenance">
+                ) : getRecentMaintenance().length === 0 ? (
+                  <div className="text-center py-4">
+                    <Wrench className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">No maintenance requests yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {getRecentMaintenance().slice(0, 3).map((request) => (
+                      <div key={request.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{request.title}</p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(request.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            variant={
+                              request.status === 'completed' ? 'default' : 
+                              request.status === 'in_progress' ? 'secondary' : 
+                              'outline'
+                            }
+                          >
+                            {request.status.replace('_', ' ')}
+                          </Badge>
+                          {request.assignedTo && (
+                            <span className="text-xs text-gray-500">Assigned</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {getRecentMaintenance().length > 3 && (
+                      <p className="text-xs text-gray-500 text-center">
+                        +{getRecentMaintenance().length - 3} more requests
+                      </p>
+                    )}
+                  </div>
+                )}
+                <Link to="/tenant/maintenance/">
                   <Button variant="outline" className="w-full border-ondo-orange text-ondo-orange hover:bg-ondo-orange hover:text-white">
-                    View All Requests
+                    {getRecentMaintenance().length === 0 ? 'Submit New Request' : 'View All Requests'}
                   </Button>
                 </Link>
               </CardContent>
@@ -249,16 +352,10 @@ export default function TenantDashboard() {
                 <CardDescription>Latest communications</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {mockTenantData.messages.map((message) => (
-                  <div key={message.id} className="flex items-start space-x-3">
-                    <div className={`w-2 h-2 rounded-full mt-2 ${message.unread ? 'bg-blue-500' : 'bg-gray-300'}`} />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{message.subject}</p>
-                      <p className="text-xs text-gray-500">From: {message.from}</p>
-                      <p className="text-xs text-gray-500">{message.date}</p>
-                    </div>
-                  </div>
-                ))}
+                <div className="text-center py-4">
+                  <MessageSquare className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">No messages yet</p>
+                </div>
                 <Link to="/tenant/messages">
                   <Button variant="outline" className="w-full border-ondo-orange text-ondo-orange hover:bg-ondo-orange hover:text-white">
                     View All Messages
@@ -272,70 +369,118 @@ export default function TenantDashboard() {
         <TabsContent value="property" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Your Property</CardTitle>
-              <CardDescription>Property details and information</CardDescription>
+              <CardTitle>{assignedProperty?.title || 'Property Details'}</CardTitle>
+              <div className="flex items-center text-gray-600 mt-1">
+                <MapPin className="h-4 w-4 mr-1" />
+                <CardDescription>
+                  {assignedProperty?.addressLine1 && assignedProperty?.city 
+                    ? `${assignedProperty.addressLine1}, ${assignedProperty.city}`
+                    : loadingProperty ? 'Loading property details...' : 'No property assigned'
+                  }
+                </CardDescription>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Address</label>
-                  <p className="text-lg">{mockTenantData.property.address}</p>
-                  <p className="text-sm text-gray-500">{mockTenantData.property.city}</p>
+              {loadingProperty ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                  <p className="text-sm text-gray-500 mt-2">Loading property...</p>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Monthly Rent</label>
-                  <p className="text-lg font-semibold">${mockTenantData.property.rent}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Bedrooms</label>
-                  <p className="text-lg">{mockTenantData.property.bedrooms}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Bathrooms</label>
-                  <p className="text-lg">{mockTenantData.property.bathrooms}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Lease End Date</label>
-                  <p className="text-lg">{mockTenantData.property.leaseEnd}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              ) : assignedProperty ? (
+                <div className="space-y-6">
+                  {/* Property Status Badge */}
+                  <div className="flex justify-end">
+                    <Badge variant="default" className="bg-green-100 text-green-800">
+                      <Building className="h-3 w-3 mr-1" />
+                      Occupied
+                    </Badge>
+                  </div>
 
-        <TabsContent value="maintenance" className="space-y-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Maintenance Requests</CardTitle>
-                <CardDescription>Track your maintenance requests</CardDescription>
-              </div>
-              <Link to="/tenant/maintenance/new">
-                <Button>New Request</Button>
-              </Link>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockTenantData.maintenanceRequests.map((request) => (
-                  <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      {getStatusIcon(request.status)}
-                      <div>
-                        <p className="font-medium">{request.title}</p>
-                        <p className="text-sm text-gray-500">Submitted: {request.date}</p>
-                      </div>
+                  {/* Property Details Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Monthly Rent</label>
+                      <p className="text-lg font-semibold">${assignedProperty.price?.toLocaleString() || 'N/A'}</p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge className={getPriorityColor(request.priority)}>
-                        {request.priority}
-                      </Badge>
-                      <Badge variant="outline">
-                        {request.status.replace('_', ' ')}
-                      </Badge>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Property Type</label>
+                      <p className="text-lg capitalize">{assignedProperty?.type || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Bedrooms</label>
+                      <p className="text-lg">{assignedProperty?.bedrooms || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Bathrooms</label>
+                      <p className="text-lg">{assignedProperty?.bathrooms || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Square Footage</label>
+                      <p className="text-lg">{assignedProperty?.sqft?.toLocaleString() || 'N/A'} sq ft</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Status</label>
+                      <p className="text-lg capitalize">{assignedProperty?.status || 'N/A'}</p>
                     </div>
                   </div>
-                ))}
-              </div>
+
+                  {/* Property Description */}
+                  {assignedProperty?.description && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Description</label>
+                      <p className="text-gray-700 mt-1">{assignedProperty.description}</p>
+                    </div>
+                  )}
+
+                  {/* Amenities */}
+                  {assignedProperty?.amenities && assignedProperty.amenities.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Amenities</label>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {assignedProperty.amenities.map((amenity, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {amenity}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Owner Information
+                  {assignedProperty?.owner && (
+                    <div className="border-t pt-4">
+                      <h4 className="font-medium text-gray-900 mb-2">Property Owner</h4>
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <p className="font-medium">{assignedProperty.owner.firstName} {assignedProperty.owner.lastName}</p>
+                        <p className="text-sm text-gray-600">{assignedProperty.owner.email}</p>
+                      </div>
+                    </div>
+                  )} */}
+
+                  {/* Property Photos */}
+                  {assignedProperty?.photos && assignedProperty.photos.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Property Photos</label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                        {assignedProperty.photos.map((photo) => (
+                          <img
+                            key={photo.id}
+                            src={photo.url}
+                            alt={photo.caption || 'Property photo'}
+                            className="w-full h-24 object-cover rounded-lg"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Property Assigned</h3>
+                  <p className="text-gray-600">You haven't been assigned to a property yet. Contact your property manager for more information.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -348,20 +493,14 @@ export default function TenantDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockTenantData.recentPayments.map((payment) => (
-                  <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{payment.type}</p>
-                      <p className="text-sm text-gray-500">{payment.date}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">${payment.amount}</p>
-                      <Badge variant="outline" className="text-green-600">
-                        {payment.status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
+                <div className="text-center py-8">
+                  <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Payment History</h3>
+                  <p className="text-gray-600 mb-4">Your payment history will appear here once you make payments.</p>
+                  <Button className="bg-ondo-orange hover:bg-ondo-red text-white">
+                    Make Payment
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
