@@ -81,12 +81,16 @@ export default function OwnerDashboard() {
         property.ownerId === user.id
       )
       
-      // Transform properties to include dashboard data (in a real app, this would come from additional API calls)
+      // Transform properties for dashboard display
       const dashboardProperties: DashboardProperty[] = ownerProperties.map(property => {
-        const units = Math.floor(Math.random() * 20) + 5
-        const occupied = Math.floor(Math.random() * (units - 1)) + 1
-        const monthlyRevenue = Math.floor(Math.random() * 15000) + 8000
-        const monthlyExpenses = Math.floor(Math.random() * 5000) + 2000
+        // Each property counts as 1 unit
+        const units = 1
+        // Occupied if it has a tenant
+        const occupied = property.tenantId ? 1 : 0
+        // Monthly revenue is the property's price if occupied
+        const monthlyRevenue = property.tenantId ? (property.price || 0) : 0
+        // Estimate expenses as 20% of revenue (management fees, maintenance, etc.)
+        const monthlyExpenses = monthlyRevenue * 0.2
         
         return {
           ...property,
@@ -95,12 +99,10 @@ export default function OwnerDashboard() {
           monthlyRevenue,
           monthlyExpenses,
           netIncome: monthlyRevenue - monthlyExpenses,
-          managementCompany: "PropertyMatch Management",
-          currentValue: Math.floor(Math.random() * 2000000) + 1500000
         }
       })
       
-      // Calculate portfolio statistics
+      // Calculate portfolio statistics from real data
       const stats = dashboardProperties.reduce((acc, property) => {
         acc.totalProperties += 1
         acc.totalUnits += property.units || 0
@@ -119,7 +121,8 @@ export default function OwnerDashboard() {
         occupancyRate: 0
       })
       
-      stats.occupancyRate = stats.totalUnits > 0 ? (stats.occupiedUnits / stats.totalUnits) * 100 : 0
+      // Calculate occupancy rate based on actual occupancy
+      stats.occupancyRate = stats.totalProperties > 0 ? (stats.occupiedUnits / stats.totalProperties) * 100 : 0
       
       setProperties(dashboardProperties)
       setPortfolioStats(stats)
@@ -194,7 +197,7 @@ export default function OwnerDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{portfolioStats.totalProperties}</div>
             <p className="text-xs text-muted-foreground">
-              {portfolioStats.totalUnits} total units
+              Properties in portfolio
             </p>
           </CardContent>
         </Card>
@@ -207,7 +210,7 @@ export default function OwnerDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">${portfolioStats.monthlyRevenue.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              +8.2% from last month
+              From occupied properties
             </p>
           </CardContent>
         </Card>
@@ -233,7 +236,7 @@ export default function OwnerDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{portfolioStats.occupancyRate.toFixed(1)}%</div>
             <p className="text-xs text-muted-foreground">
-              {portfolioStats.occupiedUnits} of {portfolioStats.totalUnits} units
+              {portfolioStats.occupiedUnits} of {portfolioStats.totalProperties} properties
             </p>
           </CardContent>
         </Card>
@@ -373,8 +376,25 @@ export default function OwnerDashboard() {
                 <CardTitle className="text-lg">Annual ROI</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-green-600">12.8%</div>
-                <p className="text-sm text-gray-500 mt-2">Return on investment</p>
+                {(() => {
+                  // Calculate Annual ROI: (Annual Net Income / Portfolio Value) * 100
+                  // Portfolio Value = Total property values (estimated at price * 12 * 10 years)
+                  // Annual Net Income = Net Income * 12
+                  const annualNetIncome = portfolioStats.netIncome * 12
+                  const estimatedPortfolioValue = properties.reduce((sum, prop) => {
+                    return sum + (prop.price ? prop.price * 12 * 10 : 0) // 10 years of rent (monthly * 12 * 10)
+                  }, 0)
+                  const annualROI = estimatedPortfolioValue > 0 
+                    ? ((annualNetIncome / estimatedPortfolioValue) * 100).toFixed(1) 
+                    : 0
+                  
+                  return (
+                    <>
+                      <div className="text-3xl font-bold text-green-600">{annualROI}%</div>
+                      <p className="text-sm text-gray-500 mt-2">Return on investment</p>
+                    </>
+                  )
+                })()}
               </CardContent>
             </Card>
 
@@ -383,8 +403,26 @@ export default function OwnerDashboard() {
                 <CardTitle className="text-lg">Portfolio Value</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-blue-600">$8.5M</div>
-                <p className="text-sm text-gray-500 mt-2">Total estimated value</p>
+                {(() => {
+                  // Calculate total portfolio value as sum of property values
+                  // Estimate property value as 10 years of annual rent
+                  const totalValue = properties.reduce((sum, prop) => {
+                    return sum + (prop.price ? prop.price * 12 * 10 : 0) // Monthly rent * 12 months * 10 years
+                  }, 0)
+                  
+                  const formattedValue = totalValue >= 1000000
+                    ? `$${(totalValue / 1000000).toFixed(1)}M`
+                    : totalValue >= 1000
+                    ? `$${(totalValue / 1000).toFixed(0)}K`
+                    : `$${totalValue.toLocaleString()}`
+                  
+                  return (
+                    <>
+                      <div className="text-3xl font-bold text-blue-600">{formattedValue}</div>
+                      <p className="text-sm text-gray-500 mt-2">Total estimated value</p>
+                    </>
+                  )
+                })()}
               </CardContent>
             </Card>
 

@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ImageUploader } from "@/components/ui/image-uploader"
+import { ProfilePictureViewer } from "@/components/ui/profile-picture-viewer"
 import { 
   User, 
   Mail, 
@@ -19,7 +21,8 @@ import {
   Key,
   Bell,
   CreditCard,
-  Loader2
+  Loader2,
+  Upload
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
@@ -59,7 +62,7 @@ const getInitialProfileData = (user: any) => ({
 })
 
 export default function TenantProfile() {
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("personal")
   const [isEditing, setIsEditing] = useState(false)
@@ -136,6 +139,36 @@ export default function TenantProfile() {
     setIsEditing(false)
   }
 
+  const handleProfilePictureUpdate = async (profilePictureUrl: string) => {
+    try {
+      setIsSavingProfile(true)
+      
+      const response = await authApi.updateProfile({
+        firstName: profileData.personalInfo.firstName,
+        lastName: profileData.personalInfo.lastName,
+        phone: profileData.personalInfo.phone,
+        address: profileData.personalInfo.address,
+        profilePicture: profilePictureUrl,
+      })
+
+      await refreshUser()
+      
+      toast({
+        title: "Profile picture updated",
+        description: "Your profile picture has been updated successfully.",
+      })
+    } catch (error: any) {
+      console.error('Error updating profile picture:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile picture. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSavingProfile(false)
+    }
+  }
+
   const handlePasswordChange = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
@@ -203,19 +236,31 @@ export default function TenantProfile() {
             <CardContent className="pt-6">
               <div className="flex flex-col items-center text-center">
                 <div className="relative">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src="/placeholder-avatar.jpg" />
-                    <AvatarFallback className="text-lg">
-                      {profileData.personalInfo.firstName[0]}{profileData.personalInfo.lastName[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
-                  >
-                    <Camera className="h-4 w-4" />
-                  </Button>
+                  {user?.profilePicture ? (
+                    <ProfilePictureViewer
+                      imageSrc={user.profilePicture}
+                      userName={`${profileData.personalInfo.firstName} ${profileData.personalInfo.lastName}`}
+                    />
+                  ) : (
+                    <Avatar className="h-24 w-24">
+                      <AvatarImage src={user?.profilePicture} />
+                      <AvatarFallback className="text-lg">
+                        {profileData.personalInfo.firstName[0]}{profileData.personalInfo.lastName[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <ImageUploader 
+                    onCropComplete={handleProfilePictureUpdate}
+                    trigger={
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+                      >
+                        <Upload className="h-4 w-4" />
+                      </Button>
+                    }
+                  />
                 </div>
                 <h3 className="font-semibold text-lg mt-4">
                   {profileData.personalInfo.firstName} {profileData.personalInfo.lastName}

@@ -12,11 +12,8 @@ interface ModernPropertyCardProps {
 }
 
 export function ModernPropertyCard({ property, onViewDetails }: ModernPropertyCardProps) {
-  // Calculate property metrics from API data
+  // Calculate monthly income from API data
   const monthlyIncome = property.price ? property.price : 0
-  const propertyValue = property.price ? property.price * 12 * 10 : 0 // Rough estimate: 10 years of rent
-  const unitsOccupied = property.tenantId ? 1 : 0
-  const totalUnits = 1 // Single property unit
   
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -76,35 +73,20 @@ export function ModernPropertyCard({ property, onViewDetails }: ModernPropertyCa
           <span>{property.addressLine1}, {property.city}</span>
         </div>
         
-        {/* Added Date and Manager */}
+        {/* Added Date */}
         <div className="text-xs text-gray-500 mb-4">
-          Added: {new Date(property.createdAt).toLocaleDateString()} • Managed by: PropertyMatch Management
+          Added: {new Date(property.createdAt).toLocaleDateString()}
         </div>
 
-        {/* Key Metrics - Three Column Layout */}
-        <div className="grid grid-cols-3 gap-4 border-t border-gray-200 pt-4">
-          {/* Monthly Income */}
-          <div className="text-center">
-            <div className="text-lg font-bold text-green-600">
-              {formatCurrency(monthlyIncome)}
+        {/* Key Metrics - Single Column Layout */}
+        <div className="border-t border-gray-200 pt-4">
+          <div className="flex items-center justify-center gap-2">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {formatCurrency(monthlyIncome)}
+              </div>
+              <div className="text-sm text-gray-600">Monthly Income</div>
             </div>
-            <div className="text-xs text-gray-600">Monthly Income</div>
-          </div>
-          
-          {/* Units Occupied */}
-          <div className="text-center">
-            <div className="text-lg font-bold text-green-600">
-              {unitsOccupied}/{totalUnits}
-            </div>
-            <div className="text-xs text-gray-600">Units Occupied</div>
-          </div>
-          
-          {/* Property Value */}
-          <div className="text-center">
-            <div className="text-lg font-bold text-green-600">
-              {formatCurrency(propertyValue)}
-            </div>
-            <div className="text-xs text-gray-600">Property Value</div>
           </div>
         </div>
 

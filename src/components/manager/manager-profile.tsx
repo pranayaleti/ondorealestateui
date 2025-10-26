@@ -5,8 +5,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ImageUploader } from "@/components/ui/image-uploader"
+import { ProfilePictureViewer } from "@/components/ui/profile-picture-viewer"
 import { 
-  Shield
+  Shield,
+  Upload
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
@@ -172,6 +175,36 @@ export default function ManagerProfile() {
     setIsEditing(false)
   }
 
+  const handleProfilePictureUpdate = async (profilePictureUrl: string) => {
+    try {
+      setIsSavingProfile(true)
+      
+      const response = await authApi.updateProfile({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        address: formData.address,
+        profilePicture: profilePictureUrl,
+      })
+
+      await refreshUser()
+      
+      toast({
+        title: "Profile picture updated",
+        description: "Your profile picture has been updated successfully.",
+      })
+    } catch (error: any) {
+      console.error('Error updating profile picture:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile picture. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSavingProfile(false)
+    }
+  }
+
   const handlePasswordInputChange = (field: string, value: string) => {
     setPasswordData(prev => ({ ...prev, [field]: value }))
   }
@@ -242,12 +275,33 @@ export default function ManagerProfile() {
           <Card>
             <CardContent className="pt-6">
               <div className="flex flex-col items-center text-center">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src={user?.avatar} />
-                  <AvatarFallback className="text-lg">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  {user?.profilePicture ? (
+                    <ProfilePictureViewer
+                      imageSrc={user.profilePicture}
+                      userName={`${user.firstName} ${user.lastName}`}
+                    />
+                  ) : (
+                    <Avatar className="h-24 w-24">
+                      <AvatarImage src={user?.profilePicture} />
+                      <AvatarFallback className="text-lg">
+                        {user?.firstName?.[0]}{user?.lastName?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <ImageUploader 
+                    onCropComplete={handleProfilePictureUpdate}
+                    trigger={
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="absolute bottom-0 right-0 rounded-full h-8 w-8 p-0"
+                      >
+                        <Upload className="h-4 w-4" />
+                      </Button>
+                    }
+                  />
+                </div>
                 <h3 className="font-semibold text-lg mt-4">
                   {user?.firstName} {user?.lastName}
                 </h3>

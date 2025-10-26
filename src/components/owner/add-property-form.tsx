@@ -15,11 +15,13 @@ import { Upload, X } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { propertyApi } from "@/lib/api"
+import { useS3Upload } from "@/hooks/useS3Upload"
 
 export function AddPropertyForm() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const { user } = useAuth()
+  const { uploadMultiplePhotos, isUploading } = useS3Upload()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
 
@@ -150,6 +152,10 @@ export function AddPropertyForm() {
         sqft: formData.sqft ? parseInt(formData.sqft) : undefined,
         rating: formData.rating ? parseFloat(formData.rating) : undefined,
         reviewCount: formData.reviewCount ? parseInt(formData.reviewCount) : undefined,
+        // Include array fields (JSON stringified)
+        specialties: formData.specialties.length > 0 ? JSON.stringify(formData.specialties) : undefined,
+        services: formData.services.length > 0 ? JSON.stringify(formData.services) : undefined,
+        valueRanges: formData.valueRanges.length > 0 ? JSON.stringify(formData.valueRanges) : undefined,
         // Remove empty strings
         website: formData.website || undefined,
         phone: formData.phone || undefined,
@@ -167,16 +173,21 @@ export function AddPropertyForm() {
       const newProperty = await propertyApi.createProperty(propertyData)
       console.log("Property created:", newProperty)
 
-      // Upload photos if any
+      // Upload photos if any using S3
       if (uploadedFiles.length > 0) {
-        for (let i = 0; i < uploadedFiles.length; i++) {
-          const file = uploadedFiles[i]
-          try {
-            await propertyApi.uploadPhoto(newProperty.id, file, undefined, i)
-          } catch (photoError) {
-            console.error("Failed to upload photo:", photoError)
-            // Continue with other photos even if one fails
+        try {
+          const uploadResults = await uploadMultiplePhotos(uploadedFiles, {
+            propertyId: newProperty.id,
+            orderIndex: 0,
+          });
+          
+          const failedUploads = uploadResults.filter(result => !result.success);
+          if (failedUploads.length > 0) {
+            console.warn(`${failedUploads.length} photos failed to upload`);
           }
+        } catch (photoError) {
+          console.error("Failed to upload photos:", photoError);
+          // Continue even if photo upload fails
         }
       }
 
@@ -625,8 +636,8 @@ export function AddPropertyForm() {
         <Button type="button" variant="outline" onClick={() => navigate("/owner/properties")}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Adding Property..." : "Add Property"}
+        <Button type="submit" disabled={isSubmitting || isUploading}>
+          {isSubmitting ? "Adding Property..." : isUploading ? "Uploading Photos..." : "Add Property"}
         </Button>
       </div>
     </form>

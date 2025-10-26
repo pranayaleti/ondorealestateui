@@ -502,6 +502,22 @@ export const authApi = {
     });
   },
 
+  // Generate presigned URL for profile picture upload
+  async generateProfilePictureUploadUrl(fileName: string, contentType: string): Promise<{
+    presignedUrl: string;
+    key: string;
+    publicUrl: string;
+    expiresIn: number;
+  }> {
+    return apiRequest('/auth/profile-picture/upload-url', {
+      method: 'POST',
+      body: JSON.stringify({
+        fileName,
+        contentType,
+      }),
+    });
+  },
+
   // Get portfolio statistics for owners
   async getPortfolioStats(): Promise<PortfolioStats> {
     return apiRequest<PortfolioStats>('/auth/portfolio-stats');
@@ -648,6 +664,59 @@ export const propertyApi = {
     }
 
     return data;
+  },
+
+  // Generate presigned URL for S3 upload
+  async generatePresignedUploadUrl(propertyId: string, fileName: string, contentType: string): Promise<{
+    presignedUrl: string;
+    key: string;
+    publicUrl: string;
+    expiresIn: number;
+  }> {
+    return apiRequest('/properties/photos/presigned-url', {
+      method: 'POST',
+      body: JSON.stringify({
+        propertyId,
+        fileName,
+        contentType,
+      }),
+    });
+  },
+
+  // Upload file directly to S3 using presigned URL
+  async uploadToS3(presignedUrl: string, file: File): Promise<void> {
+    const response = await fetch(presignedUrl, {
+      method: 'PUT',
+      body: file,
+      headers: {
+        'Content-Type': file.type,
+      },
+    });
+
+    if (!response.ok) {
+      throw new ApiError('Failed to upload to S3', response.status);
+    }
+  },
+
+  // Confirm photo upload and save to database
+  async confirmPhotoUpload(propertyId: string, url: string, s3Key: string, caption?: string, orderIndex: number = 0): Promise<PropertyPhoto> {
+    return apiRequest('/properties/photos/confirm', {
+      method: 'POST',
+      body: JSON.stringify({
+        propertyId,
+        url,
+        s3Key,
+        caption,
+        orderIndex: orderIndex.toString(), // Convert to string for backend validation
+      }),
+    });
+  },
+
+  // Delete property photo
+  async deletePhoto(photoId: string): Promise<{ message: string }> {
+    return apiRequest(`/properties/photos/${photoId}`, {
+      method: 'DELETE',
+    });
   },
 
   // Get all amenities
