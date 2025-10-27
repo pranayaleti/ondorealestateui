@@ -42,9 +42,9 @@ const mockStaticData = {
     { id: 4, type: "financial", message: "Monthly reports available", time: "3 days ago", property: "All Properties" }
   ],
   alerts: [
-    { id: 1, type: "financial", message: "Property insurance renewal due", priority: "high", dueDate: "Next week" },
-    { id: 2, type: "maintenance", message: "Property maintenance scheduled", priority: "medium", dueDate: "Review needed" },
-    { id: 3, type: "legal", message: "Document review required", priority: "medium", dueDate: "This month" }
+    { id: 1, type: "financial", message: "Property insurance renewal due", priority: "high", dueDate: "Coming Soon..." },
+    { id: 2, type: "maintenance", message: "Property maintenance scheduled", priority: "medium", dueDate: "Coming Soon..." },
+    { id: 3, type: "legal", message: "Document review required", priority: "medium", dueDate: "Coming Soon..." }
   ]
 }
 
@@ -256,31 +256,34 @@ export default function OwnerDashboard() {
           </Card>
         </Link>
 
-        <Link to="/owner/messages">
+        {/* <Link to="/owner/messages"> */}
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
               <MessageSquare className="h-8 w-8 text-blue-500 mr-3" />
               <div>
                 <p className="text-sm font-medium">Messages</p>
-                <p className="text-xs text-gray-500">Chat with Tenants</p>
+                {/* <p className="text-xs text-gray-500">Chat with Tenants</p> */}
+                <p className="text-xs text-gray-500">Coming Soon...</p>
+
               </div>
             </CardContent>
           </Card>
-        </Link>
+        {/* </Link> */}
 
       
 
-        <Link to="/owner/finances">
+        {/* <Link to="/owner/finances"> */}
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
               <DollarSign className="h-8 w-8 text-green-500 mr-3" />
               <div>
                 <p className="text-sm font-medium">Finances</p>
-                <p className="text-xs text-gray-500">Income & ROI</p>
+                {/* <p className="text-xs text-gray-500">Income & ROI</p> */}
+                <p className="text-xs text-gray-500">Coming Soon...</p>
               </div>
             </CardContent>
           </Card>
-        </Link>
+        {/* </Link> */}
 
         <Link to="/owner/tenants">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
@@ -294,17 +297,18 @@ export default function OwnerDashboard() {
           </Card>
         </Link>
 
-        <Link to="/owner/reports">
+        {/* <Link to="/owner/reports"> */}
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
               <BarChart3 className="h-8 w-8 text-indigo-500 mr-3" />
               <div>
                 <p className="text-sm font-medium">Reports</p>
-                <p className="text-xs text-gray-500">Analytics</p>
+                {/* <p className="text-xs text-gray-500">Analytics</p> */}
+                <p className="text-xs text-gray-500">Coming Soon...</p>
               </div>
             </CardContent>
           </Card>
-        </Link>
+        {/* </Link> */}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -348,7 +352,8 @@ export default function OwnerDashboard() {
                   <AlertTriangle className="h-5 w-5 mr-2 text-orange-500" />
                   Important Alerts
                 </CardTitle>
-                <CardDescription>Items requiring your attention</CardDescription>
+                {/* <CardDescription>Items requiring your attention</CardDescription> */}
+                <CardDescription>Coming Soon...</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {mockStaticData.alerts.map((alert) => (
@@ -363,7 +368,7 @@ export default function OwnerDashboard() {
                   </div>
                 ))}
                 <Button variant="outline" className="w-full border-ondo-orange text-ondo-orange hover:bg-ondo-orange hover:text-white">
-                  View All Alerts
+                  Coming Soon...{/* View All Alerts */}
                 </Button>
               </CardContent>
             </Card>
@@ -502,7 +507,7 @@ export default function OwnerDashboard() {
                           <Badge className={getPriorityColor(alert.priority)}>
                             {alert.priority} priority
                           </Badge>
-                          <Button size="sm" className="bg-ondo-orange hover:bg-ondo-red transition-colors">Take Action</Button>
+                          <Button size="sm" className="bg-ondo-orange hover:bg-ondo-red transition-colors">Coming Soon...</Button>
                         </div>
                       </div>
                     </CardContent>

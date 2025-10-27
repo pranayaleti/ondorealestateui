@@ -488,14 +488,11 @@ export default function TenantProfile() {
                       <Button variant="outline">
                         <Calendar className="h-4 w-4 mr-2" />
                         Request Lease Renewal
+                        coming soon...
                       </Button>
                       <Button variant="outline">
                         <User className="h-4 w-4 mr-2" />
-                        Add Occupant
-                      </Button>
-                      <Button variant="outline">
-                        <Key className="h-4 w-4 mr-2" />
-                        Request Additional Keys
+                        Add Occupant coming soon...
                       </Button>
                     </div>
                   </div>

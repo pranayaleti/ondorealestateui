@@ -144,7 +144,7 @@ export default function TenantDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <Link to="/tenant/maintenance/">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
@@ -157,45 +157,48 @@ export default function TenantDashboard() {
           </Card>
         </Link>
 
-        <Link to="/tenant/payments">
+        {/* <Link to="/tenant/payments"> */}
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
               <CreditCard className="h-8 w-8 text-green-500 mr-3" />
               <div>
                 <p className="text-sm font-medium">Payments</p>
-                <p className="text-xs text-gray-500">View History</p>
+                {/* <p className="text-xs text-gray-500">View History</p> */}
+                <p className="text-xs text-gray-500">Coming Soon...</p>
               </div>
             </CardContent>
           </Card>
-        </Link>
+        {/* </Link> */}
 
-        <Link to="/tenant/documents">
+        {/* <Link to="/tenant/documents"> */}
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
               <FileText className="h-8 w-8 text-purple-500 mr-3" />
               <div>
                 <p className="text-sm font-medium">Documents</p>
-                <p className="text-xs text-gray-500">Lease & More</p>
+                {/* <p className="text-xs text-gray-500">Lease & More</p> */}
+                <p className="text-xs text-gray-500">Coming Soon...</p>
               </div>
             </CardContent>
           </Card>
-        </Link>
+        {/* </Link> */}
 
-        <Link to="/tenant/messages">
+        {/* <Link to="/tenant/messages"> */}
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
               <MessageSquare className="h-8 w-8 text-orange-500 mr-3" />
               <div>
                 <p className="text-sm font-medium">Messages</p>
-                <p className="text-xs text-gray-500">
+                {/* <p className="text-xs text-gray-500">
                   0 New
-                </p>
+                </p> */}
+                <p className="text-xs text-gray-500">Coming Soon...</p>
               </div>
             </CardContent>
           </Card>
-        </Link>
+        {/* </Link> */}
 
-        <Link to="/tenant/settings">
+        {/* <Link to="/tenant/settings">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
               <Settings className="h-8 w-8 text-gray-500 mr-3" />
@@ -205,7 +208,7 @@ export default function TenantDashboard() {
               </div>
             </CardContent>
           </Card>
-        </Link>
+        </Link> */}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -244,10 +247,10 @@ export default function TenantDashboard() {
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">Dec 31</div>
-                <p className="text-xs text-muted-foreground">2024</p>
+                <div className="text-2xl font-bold">Dec x</div>
+                <p className="text-xs text-muted-foreground">Year</p>
                 <Badge variant="outline" className="mt-3">
-                  11 months left
+                  x months left
                 </Badge>
               </CardContent>
             </Card>
@@ -498,7 +501,7 @@ export default function TenantDashboard() {
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No Payment History</h3>
                   <p className="text-gray-600 mb-4">Your payment history will appear here once you make payments.</p>
                   <Button className="bg-ondo-orange hover:bg-ondo-red text-white">
-                    Make Payment
+                    Coming Soon... {/* Make Payment */}
                   </Button>
                 </div>
               </div>
