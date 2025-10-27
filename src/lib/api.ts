@@ -149,6 +149,11 @@ export interface MaintenanceRequest {
   assignedTo?: string; // Technician name
   createdAt: string;
   updatedAt: string;
+  // Optional fields that may exist in some views
+  dateScheduled?: string;
+  dateCompleted?: string;
+  photos?: string[];
+  updates?: string[];
   // Enhanced fields for manager view
   propertyTitle?: string;
   propertyAddress?: string;
@@ -164,6 +169,7 @@ export interface CreateMaintenanceRequestRequest {
   description: string;
   category: "plumbing" | "electrical" | "hvac" | "appliance" | "structural" | "pest_control" | "cleaning" | "other";
   priority?: "low" | "medium" | "high" | "emergency";
+  photos?: string[];
 }
 
 export interface UpdateMaintenanceRequestRequest {

@@ -56,7 +56,6 @@ export default function ManagerProperties() {
   const [showPropertyDetail, setShowPropertyDetail] = useState(false)
   const [search, setSearch] = useState("")
   const [cityFilter, setCityFilter] = useState("all")
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [reviewDialog, setReviewDialog] = useState<"approve" | "reject" | null>(null)
   const [reviewComment, setReviewComment] = useState("")
   const [submitting, setSubmitting] = useState(false)
