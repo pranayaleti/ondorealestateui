@@ -15,15 +15,9 @@ export function ModernPropertyCard({ property, onViewDetails }: ModernPropertyCa
   // Calculate monthly income from API data
   const monthlyIncome = property.price ? property.price : 0
   
-  // Format currency
+  // Format currency (show exact amount, no rounding/abbreviation)
   const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `$${(amount / 1000000).toFixed(1)}M`
-    } else if (amount >= 1000) {
-      return `$${(amount / 1000).toFixed(0)}K`
-    } else {
-      return `$${amount.toLocaleString()}`
-    }
+    return `$${amount.toLocaleString()}`
   }
 
   // Get status badge
