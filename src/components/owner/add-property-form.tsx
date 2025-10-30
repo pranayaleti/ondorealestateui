@@ -153,9 +153,9 @@ export function AddPropertyForm() {
         rating: formData.rating ? parseFloat(formData.rating) : undefined,
         reviewCount: formData.reviewCount ? parseInt(formData.reviewCount) : undefined,
         // Include array fields (JSON stringified)
-        specialties: formData.specialties.length > 0 ? JSON.stringify(formData.specialties) : undefined,
-        services: formData.services.length > 0 ? JSON.stringify(formData.services) : undefined,
-        valueRanges: formData.valueRanges.length > 0 ? JSON.stringify(formData.valueRanges) : undefined,
+        specialties: formData.specialties.length > 0 ? formData.specialties : undefined,
+        services: formData.services.length > 0 ? formData.services : undefined,
+        valueRanges: formData.valueRanges.length > 0 ? formData.valueRanges : undefined,
         // Remove empty strings
         website: formData.website || undefined,
         phone: formData.phone || undefined,
