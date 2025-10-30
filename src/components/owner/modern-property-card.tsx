@@ -26,9 +26,11 @@ export function ModernPropertyCard({ property, onViewDetails }: ModernPropertyCa
       approved: { label: "Approved", className: "bg-green-500 text-white" },
       pending: { label: "Pending", className: "bg-yellow-500 text-white" },
       rejected: { label: "Rejected", className: "bg-red-500 text-white" },
-    }
+      occupied: { label: "Occupied", className: "bg-blue-500 text-white" },
+    } as const
     
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
+    const normalized = (status || "").toLowerCase() as keyof typeof statusConfig
+    const config = statusConfig[normalized] || statusConfig.pending
     
     return (
       <Badge className={`${config.className} flex items-center gap-1 px-2 py-1`}>
