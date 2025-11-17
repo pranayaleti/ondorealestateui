@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { EyeIcon, EyeOffIcon, Loader2, ArrowRight } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
+import { getLogoPath } from "@/lib/logo"
 
 export default function LoginPage() {
   const { login } = useAuth()
