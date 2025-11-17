@@ -16,11 +16,12 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    // Only update files that actually changed
-    emptyOutDir: true,
+    // Preserve unchanged files for faster incremental builds
+    emptyOutDir: false,
     rollupOptions: {
       output: {
         // Deterministic chunk names for better caching
+        // Hash only changes when content changes, so unchanged files are preserved
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',

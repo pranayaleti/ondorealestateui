@@ -7,6 +7,8 @@ import { ArrowRight, EyeIcon, EyeOffIcon, CheckCircle, AlertCircle } from "lucid
 import { useToast } from "@/hooks/use-toast"
 import { getLogoPath } from "@/lib/logo"
 
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:3000/api';
+
 export default function ResetPassword() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -31,8 +33,25 @@ export default function ResetPassword() {
     // Verify the token with the backend
     const verifyToken = async () => {
       try {
-        const response = await fetch(`https://ondorealestateserver.onrender.com/api/password/verify-reset-token/${token}`)
-        const data = await response.json()
+        const response = await fetch(`${API_BASE_URL}/password/verify-reset-token/${token}`)
+        
+        const contentType = response.headers.get('content-type');
+        const isJson = contentType && contentType.includes('application/json');
+        
+        let data: any;
+        if (isJson) {
+          try {
+            const text = await response.text();
+            data = text ? JSON.parse(text) : {};
+          } catch (parseError) {
+            setTokenValid(false)
+            setTokenError("Invalid response from server")
+            return
+          }
+        } else {
+          const text = await response.text();
+          data = { valid: false, message: text || "Invalid or expired reset token" };
+        }
 
         if (response.ok && data.valid) {
           setTokenValid(true)
@@ -41,7 +60,6 @@ export default function ResetPassword() {
           setTokenError(data.message || "Invalid or expired reset token")
         }
       } catch (error) {
-        console.error("Token verification error:", error)
         setTokenValid(false)
         setTokenError("Failed to verify reset token")
       }
@@ -92,7 +110,7 @@ export default function ResetPassword() {
     setIsLoading(true)
 
     try {
-      const response = await fetch("https://ondorealestateserver.onrender.com/api/password/reset-password", {
+      const response = await fetch(`${API_BASE_URL}/password/reset-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -100,7 +118,21 @@ export default function ResetPassword() {
         body: JSON.stringify({ token, password }),
       })
 
-      const data = await response.json()
+      const contentType = response.headers.get('content-type');
+      const isJson = contentType && contentType.includes('application/json');
+      
+      let data: any;
+      if (isJson) {
+        try {
+          const text = await response.text();
+          data = text ? JSON.parse(text) : {};
+        } catch (parseError) {
+          throw new Error('Invalid response from server');
+        }
+      } else {
+        const text = await response.text();
+        data = { message: text || 'Failed to reset password.' };
+      }
 
       if (response.ok) {
         setIsSuccess(true)
@@ -116,10 +148,9 @@ export default function ResetPassword() {
         })
       }
     } catch (error) {
-      console.error("Reset password error:", error)
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        description: error instanceof Error ? error.message : "An unexpected error occurred. Please try again.",
         variant: "destructive",
       })
     } finally {

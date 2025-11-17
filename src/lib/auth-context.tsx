@@ -48,18 +48,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkSession = async () => {
       const token = tokenManager.getToken()
-      console.log("Auth context checkSession:", { token: token ? "present" : "missing" })
       if (token && !tokenManager.isTokenExpired(token)) {
         try {
           const apiUser = await authApi.me()
-          console.log("Auth context me() response:", apiUser)
           setUser(convertUser(apiUser))
         } catch (error) {
-          console.error("Failed to verify session", error)
+          // Session invalid or expired, clear token
           tokenManager.removeToken()
         }
-      } else {
-        console.log("No valid token found")
       }
       setIsLoading(false)
     }
@@ -69,15 +65,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     setIsLoading(true)
-    console.log("Auth context login - starting")
 
     try {
       const response = await authApi.login({ email, password })
-      console.log("Auth context login - API response:", { hasToken: !!response.token, user: response.user })
       
       tokenManager.setToken(response.token)
       const userData = convertUser(response.user)
-      console.log("Auth context login - setting user:", userData)
       
       setUser(userData)
       
@@ -85,13 +78,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const redirectPath = userData.role === "tenant" ? "/tenant" : 
                           userData.role === "owner" ? "/owner" : 
                           userData.role === "manager" ? "/dashboard" : "/"
-      console.log("Auth context login - redirecting to:", redirectPath)
       navigate(redirectPath)
       
       setIsLoading(false)
       return { success: true }
     } catch (error) {
-      console.error("Login failed", error)
       setIsLoading(false)
       
       // Extract error message from ApiError
@@ -111,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const apiUser = await authApi.me()
       setUser(convertUser(apiUser))
     } catch (error) {
-      console.error("Failed to refresh user", error)
+      // User session invalid, logout
       logout()
     }
   }

@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL as string | undefined) || 'http://localhost:3000/api';
 
 // Types
 export interface User {
@@ -438,7 +438,24 @@ async function apiRequest<T>(
 
   try {
     const response = await fetch(url, config);
-    const data = await response.json();
+    
+    // Check if response has content and is JSON
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType && contentType.includes('application/json');
+    
+    let data: any;
+    if (isJson) {
+      try {
+        const text = await response.text();
+        data = text ? JSON.parse(text) : {};
+      } catch (parseError) {
+        throw new ApiError('Invalid JSON response', response.status);
+      }
+    } else {
+      // For non-JSON responses, create a data object
+      const text = await response.text();
+      data = { message: text || 'An error occurred' };
+    }
 
     if (!response.ok) {
       throw new ApiError(
@@ -452,6 +469,9 @@ async function apiRequest<T>(
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
+    }
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new ApiError('Network error: Unable to reach server', 0);
     }
     throw new ApiError('Network error', 0);
   }
@@ -532,7 +552,8 @@ export const authApi = {
 
   // Get users invited by the current manager
   async getInvitedUsers(): Promise<InvitedUser[]> {
-    return apiRequest<InvitedUser[]>('/auth/invited-users');
+    const result = await apiRequest<InvitedUser[]>('/auth/invited-users');
+    return Array.isArray(result) ? result : [];
   },
 
   // Update user status (enable/disable)
@@ -549,43 +570,34 @@ export const tokenManager = {
   getToken(): string | null {
     // Check sessionStorage first (new method)
     let token = sessionStorage.getItem('ondoToken');
-    console.log("tokenManager.getToken - sessionStorage:", token ? "found" : "not found");
     if (token) return token;
     
     // Fallback to localStorage (old method)
     token = localStorage.getItem('ondoToken');
-    console.log("tokenManager.getToken - localStorage ondoToken:", token ? "found" : "not found");
     if (token) {
       // Migrate to sessionStorage
       sessionStorage.setItem('ondoToken', token);
       localStorage.removeItem('ondoToken');
-      console.log("tokenManager.getToken - migrated from localStorage ondoToken");
       return token;
     }
     
     // Check for old token key
     token = localStorage.getItem('token');
-    console.log("tokenManager.getToken - localStorage token:", token ? "found" : "not found");
     if (token) {
       // Migrate to sessionStorage with new key
       sessionStorage.setItem('ondoToken', token);
       localStorage.removeItem('token');
-      console.log("tokenManager.getToken - migrated from localStorage token");
       return token;
     }
     
-    console.log("tokenManager.getToken - no token found");
     return null;
   },
 
   setToken(token: string): void {
-    console.log("tokenManager.setToken - storing token");
     sessionStorage.setItem('ondoToken', token);
-    console.log("tokenManager.setToken - stored, verifying:", sessionStorage.getItem('ondoToken') ? "success" : "failed");
   },
 
   removeToken(): void {
-    console.log("tokenManager.removeToken");
     sessionStorage.removeItem('ondoToken');
     localStorage.removeItem('ondoToken');
     localStorage.removeItem('token');
@@ -593,10 +605,17 @@ export const tokenManager = {
 
   isTokenExpired(token: string): boolean {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        return true; // Invalid JWT format
+      }
+      const payload = JSON.parse(atob(parts[1]));
+      if (!payload || typeof payload.exp !== 'number') {
+        return true; // Invalid payload or missing expiration
+      }
       return payload.exp * 1000 < Date.now();
     } catch {
-      return true;
+      return true; // Any parsing error means token is invalid
     }
   },
 };
@@ -605,12 +624,14 @@ export const tokenManager = {
 export const propertyApi = {
   // Get all properties
   async getProperties(): Promise<Property[]> {
-    return apiRequest<Property[]>('/properties');
+    const result = await apiRequest<Property[]>('/properties');
+    return Array.isArray(result) ? result : [];
   },
 
   // Get public properties (no auth required)
   async getPublicProperties(): Promise<PublicProperty[]> {
-    return apiRequest<PublicProperty[]>('/properties/public');
+    const result = await apiRequest<PublicProperty[]>('/properties/public');
+    return Array.isArray(result) ? result : [];
   },
 
   // Get property by ID
@@ -665,7 +686,22 @@ export const propertyApi = {
       body: formData,
     });
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType && contentType.includes('application/json');
+    
+    let data: any;
+    if (isJson) {
+      try {
+        const text = await response.text();
+        data = text ? JSON.parse(text) : {};
+      } catch (parseError) {
+        throw new ApiError('Invalid JSON response', response.status);
+      }
+    } else {
+      const text = await response.text();
+      data = { message: text || 'Upload failed' };
+    }
+    
     if (!response.ok) {
       throw new ApiError(data.message || 'Upload failed', response.status, data.errors);
     }
@@ -728,7 +764,8 @@ export const propertyApi = {
 
   // Get all amenities
   async getAmenities(): Promise<Amenity[]> {
-    return apiRequest<Amenity[]>('/properties/amenities/list');
+    const result = await apiRequest<Amenity[]>('/properties/amenities/list');
+    return Array.isArray(result) ? result : [];
   },
 
   // Manager functions
@@ -743,7 +780,8 @@ export const propertyApi = {
   // Owner functions - get tenants from properties data
   async getOwnerTenants(): Promise<OwnerTenantsResponse> {
     // Get all properties for the owner, then filter and map tenant data
-    const properties = await apiRequest<Property[]>('/properties');
+    const propertiesResult = await apiRequest<Property[]>('/properties');
+    const properties = Array.isArray(propertiesResult) ? propertiesResult : [];
     
     // Filter properties that have tenants
     const propertiesWithTenants = properties.filter(property => property.tenantId);
@@ -812,7 +850,22 @@ export const leadApi = {
       body: JSON.stringify(leadData),
     });
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType && contentType.includes('application/json');
+    
+    let data: any;
+    if (isJson) {
+      try {
+        const text = await response.text();
+        data = text ? JSON.parse(text) : {};
+      } catch (parseError) {
+        throw new ApiError('Invalid JSON response', response.status);
+      }
+    } else {
+      const text = await response.text();
+      data = { message: text || 'Lead submission failed' };
+    }
+    
     if (!response.ok) {
       throw new ApiError(data.message || 'Lead submission failed', response.status, data.errors);
     }
@@ -822,7 +875,8 @@ export const leadApi = {
 
   // Get manager leads (authenticated)
   async getManagerLeads(): Promise<Lead[]> {
-    return apiRequest<Lead[]>('/leads');
+    const result = await apiRequest<Lead[]>('/leads');
+    return Array.isArray(result) ? result : [];
   },
 
   // Update lead status (authenticated)
@@ -846,12 +900,14 @@ export const maintenanceApi = {
 
   // Get maintenance requests for tenant
   async getTenantMaintenanceRequests(): Promise<MaintenanceRequest[]> {
-    return apiRequest<MaintenanceRequest[]>('/maintenance/tenant');
+    const result = await apiRequest<MaintenanceRequest[]>('/maintenance/tenant');
+    return Array.isArray(result) ? result : [];
   },
 
   // Get maintenance requests for manager
   async getManagerMaintenanceRequests(): Promise<MaintenanceRequest[]> {
-    return apiRequest<MaintenanceRequest[]>('/maintenance/manager/all');
+    const result = await apiRequest<MaintenanceRequest[]>('/maintenance/manager/all');
+    return Array.isArray(result) ? result : [];
   },
 
   // Get maintenance request by ID

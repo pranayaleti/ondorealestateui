@@ -19,12 +19,29 @@ export default function useApiRequest() {
         body: body ? JSON.stringify(body) : undefined,
         credentials: "include",
       });
-      const text = await res.text();
-      const json = text ? JSON.parse(text) : {};
-      if (!res.ok) throw new Error((json as any)?.message || (json as any)?.error || "Request failed");
+      
+      const contentType = res.headers.get('content-type');
+      const isJson = contentType && contentType.includes('application/json');
+      
+      let json: any = {};
+      if (isJson) {
+        try {
+          const text = await res.text();
+          json = text ? JSON.parse(text) : {};
+        } catch (parseError) {
+          throw new Error('Invalid JSON response from server');
+        }
+      } else {
+        const text = await res.text();
+        json = { message: text || 'Request failed' };
+      }
+      
+      if (!res.ok) {
+        throw new Error(json?.message || json?.error || "Request failed");
+      }
       return json as T;
     } catch (e) {
-      console.error(e);
+      // Error is handled by caller, just return null
       return null;
     } finally {
       setLoading(false);
