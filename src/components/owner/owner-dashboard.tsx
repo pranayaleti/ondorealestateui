@@ -176,19 +176,19 @@ export default function OwnerDashboard() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-4 md:py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
           Welcome back, {user?.firstName} {user?.lastName}!
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
+        <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1 md:mt-2">
           Here's your investment portfolio overview.
         </p>
       </div>
 
       {/* Portfolio Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Properties</CardTitle>
@@ -243,7 +243,7 @@ export default function OwnerDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4 mb-6 md:mb-8">
         <Link to="/owner/property-management/add">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
@@ -311,16 +311,16 @@ export default function OwnerDashboard() {
         {/* </Link> */}
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="properties">Properties</TabsTrigger>
-          <TabsTrigger value="alerts">Alerts</TabsTrigger>
-          <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto">
+          <TabsTrigger value="overview" className="text-xs md:text-sm py-2 md:py-1.5">Overview</TabsTrigger>
+          <TabsTrigger value="properties" className="text-xs md:text-sm py-2 md:py-1.5">Properties</TabsTrigger>
+          <TabsTrigger value="alerts" className="text-xs md:text-sm py-2 md:py-1.5">Alerts</TabsTrigger>
+          <TabsTrigger value="activity" className="text-xs md:text-sm py-2 md:py-1.5">Recent Activity</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="overview" className="space-y-4 md:space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             {/* Portfolio Performance */}
             <Card>
               <CardHeader>
@@ -375,7 +375,7 @@ export default function OwnerDashboard() {
           </div>
 
           {/* Investment Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Annual ROI</CardTitle>
@@ -443,19 +443,19 @@ export default function OwnerDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="properties" className="space-y-6">
+        <TabsContent value="properties" className="space-y-4 md:space-y-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
-                <CardTitle>Property Portfolio</CardTitle>
-                <CardDescription>Your real estate investments</CardDescription>
+                <CardTitle className="text-lg md:text-xl">Property Portfolio</CardTitle>
+                <CardDescription className="text-sm">Your real estate investments</CardDescription>
               </div>
               <Link to="/owner/properties">
-                <Button className="bg-ondo-orange hover:bg-ondo-red transition-colors">View All Properties</Button>
+                <Button className="bg-ondo-orange hover:bg-ondo-red transition-colors w-full sm:w-auto text-sm">View All Properties</Button>
               </Link>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {properties.length > 0 ? (
                   properties.map((property) => (
                     <ModernPropertyCard

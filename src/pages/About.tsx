@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { PageBanner } from "@/components/page-banner"
-import { Footer } from "@/components/footer"
 
 export default function AboutPage() {
   return (
@@ -83,8 +82,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </main>
   )
 }

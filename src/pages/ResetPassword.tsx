@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, EyeIcon, EyeOffIcon, CheckCircle, AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { getLogoPath } from "@/lib/logo"
+import { Logo } from "@/components/logo"
 
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
@@ -161,19 +161,12 @@ export default function ResetPassword() {
   // Show error if token is invalid
   if (tokenValid === false) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
         <div className="w-full max-w-md">
           {/* Ondo Real Estate Logo and Branding */}
           <div className="flex flex-col items-center mb-8">
-            <div className="flex items-center mb-6">
-              <img 
-                src={getLogoPath()} 
-                alt="Ondo Real Estate logo" 
-                className="h-16 w-auto mr-3"
-              />
-              <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-                Ondo Real Estate
-              </span>
+            <div className="mb-6">
+              <Logo size="xl" variant="centered" showText={true} linkTo="/" />
             </div>
           </div>
 
@@ -210,19 +203,12 @@ export default function ResetPassword() {
   // Show loading while verifying token
   if (tokenValid === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
         <div className="w-full max-w-md">
           {/* Ondo Real Estate Logo and Branding */}
           <div className="flex flex-col items-center mb-8">
-            <div className="flex items-center mb-6">
-              <img 
-                src={getLogoPath()} 
-                alt="Ondo Real Estate logo" 
-                className="h-16 w-auto mr-3"
-              />
-              <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-                Ondo Real Estate
-              </span>
+            <div className="mb-6">
+              <Logo size="xl" variant="centered" showText={true} linkTo="/" />
             </div>
           </div>
 
@@ -248,19 +234,12 @@ export default function ResetPassword() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
         <div className="w-full max-w-md">
           {/* Ondo Real Estate Logo and Branding */}
           <div className="flex flex-col items-center mb-8">
-            <div className="flex items-center mb-6">
-              <img 
-                src={getLogoPath()} 
-                alt="Ondo Real Estate logo" 
-                className="h-16 w-auto mr-3"
-              />
-              <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-                Ondo Real Estate
-              </span>
+            <div className="mb-6">
+              <Logo size="xl" variant="centered" showText={true} linkTo="/" />
             </div>
           </div>
 
@@ -295,19 +274,12 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md">
         {/* Ondo Real Estate Logo and Branding */}
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center mb-6">
-            <img 
-              src={getLogoPath()} 
-              alt="Ondo Real Estate logo" 
-              className="h-16 w-auto mr-3"
-            />
-            <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-              Ondo Real Estate
-            </span>
+          <div className="mb-6">
+            <Logo size="xl" variant="centered" showText={true} linkTo="/" />
           </div>
           <h1 className="text-2xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
             Reset Password

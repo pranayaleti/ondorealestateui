@@ -1,6 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { PageBanner } from "@/components/page-banner"
-import { Footer } from "@/components/footer"
 
 export default function FAQPage() {
   return (
@@ -111,8 +110,6 @@ export default function FAQPage() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   )
 }

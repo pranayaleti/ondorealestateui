@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { SearchForm } from "@/components/search-form"
 import { Home, Building, DollarSign, Shield, Star } from "lucide-react"
 import { PropertyDetailsModal } from "@/components/property-details-modal"
-import { Footer } from "@/components/footer"
 
 // Mock data for featured properties
 const featuredProperties = [
@@ -353,8 +352,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      <Footer />
 
       {/* Property Details Modal */}
       {selectedPropertyData && (

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
@@ -37,7 +37,8 @@ export default function ManagerDashboard() {
   const { user } = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState("overview")
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview")
   const [properties, setProperties] = useState<Property[]>([])
   const [pendingProperties, setPendingProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
@@ -70,6 +71,20 @@ export default function ManagerDashboard() {
     fetchInvitedUsers()
     fetchLeads()
   }, [])
+
+  // Update active tab when URL query parameter changes
+  useEffect(() => {
+    const tabFromUrl = searchParams.get("tab")
+    if (tabFromUrl) {
+      setActiveTab(tabFromUrl)
+    }
+  }, [searchParams])
+
+  // Update URL when tab changes
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab)
+    setSearchParams({ tab })
+  }
 
   const fetchDashboardData = async () => {
     try {
@@ -307,26 +322,17 @@ export default function ManagerDashboard() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Welcome back, {user?.firstName} {user?.lastName}!</h1>
-        <p className="text-gray-600 dark:text-gray-400">Here's your property management overview.</p>
+    <div className="container mx-auto px-4 py-4 md:py-8">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {user?.firstName} {user?.lastName}!</h1>
+        <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">Here's your property management overview.</p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="properties">Properties</TabsTrigger>
-          <TabsTrigger value="owner-properties">Owner Properties</TabsTrigger>
-          <TabsTrigger value="leads">Leads</TabsTrigger>
-          <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
-          <TabsTrigger value="my-users">My Users</TabsTrigger>
-          <TabsTrigger value="user-management">User Management</TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
 
         <TabsContent value="overview" className="space-y-4">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             <Card 
               className="cursor-pointer hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/50 transition-all hover:border-primary/50 dark:hover:border-primary/30 dark:hover:bg-card/80"
               onClick={() => {
@@ -400,20 +406,20 @@ export default function ManagerDashboard() {
                 {pendingProperties.slice(0, 5).map((property) => (
                   <div 
                     key={property.id} 
-                    className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-black/50 transition-all hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 md:p-4 border rounded-lg cursor-pointer hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-black/50 transition-all hover:bg-gray-50 dark:hover:bg-gray-800/50 gap-3"
                     onClick={() => handleViewProperty(property)}
                   >
-                    <div className="flex items-center space-x-4">
-                      <Building className="h-8 w-8 text-blue-500" />
-                      <div>
-                        <p className="font-medium dark:text-gray-100">{property.title}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{property.addressLine1}, {property.city}</p>
+                    <div className="flex items-center space-x-3 md:space-x-4 flex-1 min-w-0">
+                      <Building className="h-6 w-6 md:h-8 md:w-8 text-blue-500 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium dark:text-gray-100 text-sm md:text-base truncate">{property.title}</p>
+                        <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 truncate">{property.addressLine1}, {property.city}</p>
                         {property.owner && (
-                          <p className="text-xs text-gray-500 dark:text-gray-500">Owner: {property.owner.firstName} {property.owner.lastName}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-500 truncate">Owner: {property.owner.firstName} {property.owner.lastName}</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-1 md:gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
                       <Badge variant="secondary">
                         <Clock className="h-3 w-3 mr-1" />
                         Pending
@@ -422,25 +428,26 @@ export default function ManagerDashboard() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleViewProperty(property)}
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20 text-xs md:text-sm"
                       >
-                        View Details
+                        <span className="hidden sm:inline">View Details</span>
+                        <span className="sm:hidden">View</span>
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handlePropertyStatusUpdate(property.id, 'approved')}
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50 p-2"
                       >
-                        <Check className="h-4 w-4" />
+                        <Check className="h-3 w-3 md:h-4 md:w-4" />
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handlePropertyStatusUpdate(property.id, 'rejected')}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-3 w-3 md:h-4 md:w-4" />
                       </Button>
                     </div>
                   </div>
@@ -454,7 +461,7 @@ export default function ManagerDashboard() {
         </TabsContent>
 
         <TabsContent value="properties" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {properties.map((property) => (
               <ModernPropertyCard
                 key={property.id}
@@ -529,7 +536,7 @@ export default function ManagerDashboard() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                         {ownerProperties.map((property) => (
                           <Card 
                             key={property.id} 
@@ -726,7 +733,7 @@ export default function ManagerDashboard() {
         </TabsContent>
 
         <TabsContent value="user-management" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             {/* Invite Form */}
             <Card>
               <CardHeader>
@@ -790,25 +797,25 @@ export default function ManagerDashboard() {
                     <div className="text-sm text-gray-500">Loading users...</div>
                   </div>
                 ) : invitedUsers.length > 0 ? (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="space-y-3 md:space-y-4 max-h-96 overflow-y-auto">
                     {invitedUsers.map((user) => {
                       console.log(`User ${user.firstName} ${user.lastName} - isActive:`, user.isActive) // Debug log
                       return (
-                      <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                      <div key={user.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border rounded-lg gap-3">
+                        <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                          <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                             user.role === 'owner' ? 'bg-blue-100' : 'bg-purple-100'
                           }`}>
                             <Users className={`h-4 w-4 ${
                               user.role === 'owner' ? 'text-blue-600' : 'text-purple-600'
                             }`} />
                           </div>
-                          <div>
-                            <p className="font-medium text-sm">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-xs md:text-sm truncate">
                               {user.firstName} {user.lastName}
                             </p>
-                            <p className="text-xs text-gray-500">{user.email}</p>
-                            <div className="flex items-center gap-2 mt-1">
+                            <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
                               <Badge variant={user.role === 'owner' ? 'default' : 'secondary'} className="text-xs">
                                 {user.role}
                               </Badge>
@@ -821,7 +828,7 @@ export default function ManagerDashboard() {
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           <div className="flex items-center gap-1">
                             <label className="flex items-center gap-1 cursor-pointer">
                               <input
@@ -831,8 +838,8 @@ export default function ManagerDashboard() {
                                 onChange={() => handleUserStatusUpdate(user.id, true)}
                                 className="text-green-600"
                               />
-                              <Shield className="h-4 w-4 text-green-600" />
-                              <span className="text-xs text-green-600">Enable</span>
+                              <Shield className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
+                              <span className="text-xs text-green-600 hidden sm:inline">Enable</span>
                             </label>
                           </div>
                           <div className="flex items-center gap-1">
@@ -844,8 +851,8 @@ export default function ManagerDashboard() {
                                 onChange={() => handleUserStatusUpdate(user.id, false)}
                                 className="text-red-600"
                               />
-                              <ShieldOff className="h-4 w-4 text-red-600" />
-                              <span className="text-xs text-red-600">Disable</span>
+                              <ShieldOff className="h-3 w-3 md:h-4 md:w-4 text-red-600" />
+                              <span className="text-xs text-red-600 hidden sm:inline">Disable</span>
                             </label>
                           </div>
                         </div>
@@ -911,12 +918,12 @@ export default function ManagerDashboard() {
               ) : leads.length > 0 ? (
                 <div className="space-y-4">
                   {leads.map((lead) => (
-                    <div key={lead.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                    <div key={lead.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 md:p-4 shadow-sm hover:shadow-md transition-shadow">
                       {/* Header - Compact */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{lead.tenantName}</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{lead.tenantEmail} • {lead.tenantPhone}</p>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-base md:text-lg text-gray-900 dark:text-gray-100 truncate">{lead.tenantName}</h4>
+                          <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 truncate">{lead.tenantEmail} • {lead.tenantPhone}</p>
                         </div>
                         <Badge variant={
                           lead.status === "new" ? "secondary" :
@@ -924,7 +931,7 @@ export default function ManagerDashboard() {
                           lead.status === "qualified" ? "default" :
                           lead.status === "converted" ? "default" :
                           "outline"
-                        } className="text-xs">
+                        } className="text-xs flex-shrink-0">
                           {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
                         </Badge>
                       </div>
@@ -947,8 +954,8 @@ export default function ManagerDashboard() {
                       {/* Rental Details - Compact Grid */}
                       {(lead.moveInDate || lead.monthlyBudget || lead.occupants !== undefined || lead.hasPets !== undefined) && (
                         <div className="bg-green-50 dark:bg-green-900/20 rounded-md p-3 mb-3">
-                          <h5 className="font-medium text-green-900 dark:text-green-100 mb-2 text-sm">Rental Preferences</h5>
-                          <div className="grid grid-cols-4 gap-3">
+                          <h5 className="font-medium text-green-900 dark:text-green-100 mb-2 text-xs md:text-sm">Rental Preferences</h5>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
                             {lead.moveInDate && (
                               <div className="text-center">
                                 <Calendar className="h-4 w-4 text-green-600 mx-auto mb-1" />
@@ -990,18 +997,19 @@ export default function ManagerDashboard() {
                       )}
                       
                       {/* Footer and Actions - Single Row */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-xs text-gray-500 dark:text-gray-400">
                           <span>Submitted: {new Date(lead.createdAt).toLocaleDateString()}</span>
+                          <span className="hidden sm:inline">•</span>
                           <span>Source: {lead.source}</span>
                         </div>
                         
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 w-full sm:w-auto">
                           <Select
                             value={lead.status}
                             onValueChange={(newStatus) => handleLeadStatusUpdate(lead.id, newStatus as Lead['status'])}
                           >
-                            <SelectTrigger className="w-32 h-8">
+                            <SelectTrigger className="w-full sm:w-32 h-8 text-xs">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -1016,10 +1024,11 @@ export default function ManagerDashboard() {
                           <Button
                             size="sm"
                             onClick={() => handleInviteFromLead(lead)}
-                            className="bg-orange-500 hover:bg-orange-600 text-white h-8 px-3"
+                            className="bg-orange-500 hover:bg-orange-600 text-white h-8 px-2 sm:px-3 text-xs flex-1 sm:flex-initial"
                           >
                             <UserPlus className="h-3 w-3 mr-1" />
-                            Invite
+                            <span className="hidden sm:inline">Invite</span>
+                            <span className="sm:hidden">Invite</span>
                           </Button>
                         </div>
                       </div>

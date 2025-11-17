@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { EyeIcon, EyeOffIcon, Loader2, ArrowRight } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
-import { getLogoPath } from "@/lib/logo"
+import { Logo } from "@/components/logo"
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -63,15 +63,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Ondo Real Estate Logo and Branding */}
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center mb-6">
-            <img 
-              src={getLogoPath()}
-              alt="Ondo Real Estate logo" 
-              className="h-16 w-auto mr-3"
-            />
-            <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-              Ondo Real Estate
-            </span>
+          <div className="mb-6">
+            <Logo size="xl" variant="centered" showText={true} linkTo="/" />
           </div>
           <h1 className="text-2xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
             Sign in

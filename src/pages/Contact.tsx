@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Building, Mail, MapPin, Phone } from "lucide-react"
 import { PageBanner } from "@/components/page-banner"
-import { Footer } from "@/components/footer"
 
 export default function ContactPage() {
   return (
@@ -114,8 +113,6 @@ export default function ContactPage() {
           </div>
         </section>
       </main>
-
-      <Footer />
     </div>
   )
 }

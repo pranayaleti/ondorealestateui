@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/lib/auth-context'
 import Header from '@/components/header'
+import Footer from '@/components/footer'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import Loading from '@/components/loading'
 
@@ -26,6 +27,7 @@ const PageNotFound = lazy(() => import('@/pages/PageNotFound'))
 function App() {
   const location = useLocation()
   const hideHeaderRoutes = ['/', '/login', '/signup', '/forgot-password', '/reset-password', '/verify'] // Hide header on all auth pages
+  const hideFooterRoutes = ['/', '/login', '/signup', '/forgot-password', '/reset-password', '/verify'] // Hide footer on all auth pages
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
@@ -80,6 +82,7 @@ function App() {
               </Routes>
             </Suspense>
           </main>
+          {!hideFooterRoutes.includes(location.pathname) && <Footer />}
         </div>
         <Toaster />
       </AuthProvider>

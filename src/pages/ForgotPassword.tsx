@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, CheckCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { getLogoPath } from "@/lib/logo"
+import { Logo } from "@/components/logo"
 
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
@@ -80,19 +80,12 @@ export default function ForgotPassword() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
         <div className="w-full max-w-md">
           {/* Ondo Real Estate Logo and Branding */}
           <div className="flex flex-col items-center mb-8">
-            <div className="flex items-center mb-6">
-              <img 
-                src={getLogoPath()} 
-                alt="Ondo Real Estate logo" 
-                className="h-16 w-auto mr-3"
-              />
-              <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-                Ondo Real Estate
-              </span>
+            <div className="mb-6">
+              <Logo size="xl" variant="centered" showText={true} linkTo="/" />
             </div>
           </div>
 
@@ -108,7 +101,7 @@ export default function ForgotPassword() {
                 Check Your Email
               </h1>
               
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 We've sent password reset instructions to <strong>{email}</strong>
               </p>
               
@@ -120,7 +113,7 @@ export default function ForgotPassword() {
                   </button>
                 </Link>
                 
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Didn't receive an email? Check your spam folder or{" "}
                   <button 
                     onClick={() => setIsSubmitted(false)}
@@ -138,19 +131,12 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md">
         {/* Ondo Real Estate Logo and Branding */}
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center mb-6">
-            <img 
-              src={getLogoPath()} 
-              alt="Ondo Real Estate logo" 
-              className="h-16 w-auto mr-3"
-            />
-            <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-              Ondo Real Estate
-            </span>
+          <div className="mb-6">
+            <Logo size="xl" variant="centered" showText={true} linkTo="/" />
           </div>
           <h1 className="text-2xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
             Forgot Password
@@ -159,20 +145,20 @@ export default function ForgotPassword() {
 
         <Card className="border-none shadow-lg">
           <CardContent className="pt-6">
-            <p className="text-gray-600 text-center mb-6">
+            <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
               Enter your email address and we'll send you a link to reset your password.
             </p>
             
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-700">Company Email</Label>
+                <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Company Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="your.email@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                  className="rounded-xl border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500"
                   required
                 />
               </div>
@@ -199,9 +185,9 @@ export default function ForgotPassword() {
         </Card>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Remember your password?{" "}
-            <Link to="/login" className="text-orange-600 hover:underline font-medium">
+            <Link to="/login" className="text-orange-600 dark:text-orange-400 hover:underline font-medium">
               Sign in here
             </Link>
           </p>

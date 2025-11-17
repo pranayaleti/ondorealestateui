@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast"
 import { authApi } from "@/lib/api"
 import { useApi } from "@/hooks/useApi"
 import Loading from "@/components/loading"
-import { getLogoPath } from "@/lib/logo"
+import { Logo } from "@/components/logo"
 
 export default function Signup() {
   const { token } = useParams<{ token: string }>()
@@ -107,19 +107,12 @@ export default function Signup() {
 
   if (invitationError || !invitation) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
         <div className="w-full max-w-md">
           {/* Ondo Real Estate Logo and Branding */}
           <div className="flex flex-col items-center mb-8">
-            <div className="flex items-center mb-6">
-              <img 
-                src={getLogoPath()} 
-                alt="Ondo Real Estate logo" 
-                className="h-16 w-auto mr-3"
-              />
-              <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-                Ondo Real Estate
-              </span>
+            <div className="mb-6">
+              <Logo size="xl" variant="centered" showText={true} linkTo="/" />
             </div>
           </div>
 
@@ -135,7 +128,7 @@ export default function Signup() {
                 Invalid Invitation
               </h1>
               
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 This invitation link is invalid or has expired. Please contact your administrator for a new invitation.
               </p>
               
@@ -154,19 +147,12 @@ export default function Signup() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
         <div className="w-full max-w-md">
           {/* Ondo Real Estate Logo and Branding */}
           <div className="flex flex-col items-center mb-8">
-            <div className="flex items-center mb-6">
-              <img 
-                src={getLogoPath()} 
-                alt="Ondo Real Estate logo" 
-                className="h-16 w-auto mr-3"
-              />
-              <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-                Ondo Real Estate
-              </span>
+            <div className="mb-6">
+              <Logo size="xl" variant="centered" showText={true} linkTo="/" />
             </div>
           </div>
 
@@ -182,7 +168,7 @@ export default function Signup() {
                 Welcome to Ondo Real Estate!
               </h1>
               
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Your account has been created successfully. You're being redirected to your dashboard...
               </p>
               
@@ -195,19 +181,12 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md">
         {/* Ondo Real Estate Logo and Branding */}
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center mb-6">
-            <img 
-              src={getLogoPath()} 
-              alt="Ondo Real Estate logo" 
-              className="h-16 w-auto mr-3"
-            />
-            <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-              Ondo Real Estate
-            </span>
+          <div className="mb-6">
+            <Logo size="xl" variant="centered" showText={true} linkTo="/" />
           </div>
           <h1 className="text-2xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
             Complete Your Registration
@@ -216,11 +195,11 @@ export default function Signup() {
 
         <Card className="border-none shadow-lg">
           <CardContent className="pt-6">
-            <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-300">
                 <strong>Email:</strong> {invitation.email}
               </p>
-              <p className="text-sm text-blue-800">
+              <p className="text-sm text-blue-800 dark:text-blue-300">
                 <strong>Role:</strong> {invitation.role.charAt(0).toUpperCase() + invitation.role.slice(1)}
               </p>
             </div>
@@ -228,34 +207,34 @@ export default function Signup() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-gray-700">First Name *</Label>
+                  <Label htmlFor="firstName" className="text-gray-700 dark:text-gray-300">First Name *</Label>
                   <Input
                     id="firstName"
                     type="text"
                     placeholder="John"
                     value={formData.firstName}
                     onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                    className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                    className="rounded-xl border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500"
                     required
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-gray-700">Last Name *</Label>
+                  <Label htmlFor="lastName" className="text-gray-700 dark:text-gray-300">Last Name *</Label>
                   <Input
                     id="lastName"
                     type="text"
                     placeholder="Doe"
                     value={formData.lastName}
                     onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                    className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                    className="rounded-xl border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="mobile" className="text-gray-700">Mobile Number (Optional)</Label>
+                <Label htmlFor="mobile" className="text-gray-700 dark:text-gray-300">Mobile Number (Optional)</Label>
                 <Input
                   id="mobile"
                   type="tel"
@@ -267,7 +246,7 @@ export default function Signup() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="address" className="text-gray-700">Address (Optional)</Label>
+                <Label htmlFor="address" className="text-gray-700 dark:text-gray-300">Address (Optional)</Label>
                 <Input
                   id="address"
                   type="text"
@@ -279,7 +258,7 @@ export default function Signup() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="profilePicture" className="text-gray-700">Profile Picture URL (Optional)</Label>
+                <Label htmlFor="profilePicture" className="text-gray-700 dark:text-gray-300">Profile Picture URL (Optional)</Label>
                 <Input
                   id="profilePicture"
                   type="url"
@@ -291,7 +270,7 @@ export default function Signup() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-700">Password *</Label>
+                <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password *</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -304,17 +283,17 @@ export default function Signup() {
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500">Must be at least 8 characters long</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Must be at least 8 characters long</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-gray-700">Confirm Password *</Label>
+                <Label htmlFor="confirmPassword" className="text-gray-700 dark:text-gray-300">Confirm Password *</Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -327,7 +306,7 @@ export default function Signup() {
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     {showConfirmPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
@@ -357,9 +336,9 @@ export default function Signup() {
         </Card>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Already have an account?{" "}
-            <Link to="/login" className="text-orange-600 hover:underline font-medium">
+            <Link to="/login" className="text-orange-600 dark:text-orange-400 hover:underline font-medium">
               Sign in here
             </Link>
           </p>

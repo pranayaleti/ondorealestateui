@@ -127,8 +127,8 @@ export function Footer() {
   return (
     <footer className="w-full bg-card text-foreground">
       {/* Main Footer Content */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
+      <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 md:gap-8">
           
           {/* For Tenants */}
           <div>
@@ -232,8 +232,8 @@ export function Footer() {
         </div>
 
         {/* Contact Information */}
-        <div className="mt-12 pt-8 border-t border-border">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
             <div className="flex items-center gap-3">
               <Phone className="h-5 w-5 text-primary" />
               <div>
@@ -281,8 +281,8 @@ export function Footer() {
         </div>
 
         {/* Social Media and Legal */}
-        <div className="mt-8 pt-8 border-t border-border">
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+        <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-border">
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-4 md:gap-6">
             {/* Social Media */}
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">Follow us:</span>

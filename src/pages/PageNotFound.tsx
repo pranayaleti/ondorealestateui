@@ -1,23 +1,16 @@
 import { Link } from "react-router-dom"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, Home, AlertTriangle } from "lucide-react"
-import { getLogoPath } from "@/lib/logo"
+import { Logo } from "@/components/logo"
 
 export default function PageNotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md">
         {/* Ondo Real Estate Logo and Branding */}
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center mb-6">
-            <img 
-              src={getLogoPath()} 
-              alt="Ondo Real Estate logo" 
-              className="h-16 w-auto mr-3"
-            />
-            <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-              Ondo Real Estate
-            </span>
+          <div className="mb-6">
+            <Logo size="xl" variant="centered" showText={true} linkTo="/" />
           </div>
         </div>
 
@@ -33,7 +26,7 @@ export default function PageNotFound() {
               Page Not Found
             </h1>
             
-            <p className="text-gray-600 mb-8 max-w-sm mx-auto">
+            <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-sm mx-auto">
               The page you're looking for doesn't exist or has been moved. Let's get you back on track.
             </p>
             
@@ -53,10 +46,10 @@ export default function PageNotFound() {
               </Link>
             </div>
             
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-500">
+            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Need assistance?{" "}
-                <Link to="/contact" className="text-orange-600 hover:underline font-medium">
+                <Link to="/contact" className="text-orange-600 dark:text-orange-400 hover:underline font-medium">
                   Contact Support
                 </Link>
               </p>
