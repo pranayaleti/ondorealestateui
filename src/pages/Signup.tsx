@@ -9,21 +9,88 @@ import { authApi } from "@/lib/api"
 import { useApi } from "@/hooks/useApi"
 import Loading from "@/components/loading"
 import { Logo } from "@/components/logo"
+import { useValidatedForm } from "@/hooks/useValidatedForm"
+import type { FormValidationSchema } from "@/utils/validation.utils"
+import { formatters, sanitize, validators } from "@/utils/validation.utils"
+import { ERROR_MESSAGES, REGEX_PATTERNS, validationPresets } from "@/constants"
 
 export default function Signup() {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
   const { toast } = useToast()
-  
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    phone: "",
-    address: "",
-    profilePicture: "",
-    password: "",
-    confirmPassword: ""
+
+  const schema: FormValidationSchema<{
+    firstName: string
+    lastName: string
+    phone: string
+    address: string
+    profilePicture: string
+    password: string
+    confirmPassword: string
+  }> = {
+    firstName: validationPresets.firstName,
+    lastName: validationPresets.lastName,
+    phone: {
+      formatter: formatters.phone,
+      rules: [
+        {
+          validator: (value) => !value || validators.phone(value),
+          message: ERROR_MESSAGES.PHONE,
+        },
+      ],
+      maxLength: 14,
+    },
+    address: {
+      formatter: sanitize.trim,
+      rules: [
+        {
+          regex: REGEX_PATTERNS.STREET_ADDRESS,
+          message: ERROR_MESSAGES.INVALID_FORMAT,
+        },
+      ],
+      maxLength: 120,
+    },
+    profilePicture: {
+      formatter: sanitize.trim,
+      rules: [
+        {
+          validator: (value) => !value || REGEX_PATTERNS.URL_STRICT.test(value),
+          message: ERROR_MESSAGES.INVALID_FORMAT,
+        },
+      ],
+      maxLength: 2048,
+    },
+    password: validationPresets.passwordStrong,
+    confirmPassword: {
+      required: true,
+      formatter: sanitize.trim,
+      rules: [
+        {
+          regex: REGEX_PATTERNS.PASSWORD_STRONG,
+          message: ERROR_MESSAGES.PASSWORD_STRONG,
+        },
+        {
+          validator: (value, values) => value === values?.password,
+          message: "Passwords must match",
+        },
+      ],
+      maxLength: 128,
+    },
+  }
+
+  const { values, errors, touched, handleChange, handleBlur, validateForm } = useValidatedForm({
+    initialValues: {
+      firstName: "",
+      lastName: "",
+      phone: "",
+      address: "",
+      profilePicture: "",
+      password: "",
+      confirmPassword: "",
+    },
+    schema,
   })
+
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -50,33 +117,27 @@ export default function Signup() {
       return
     }
 
-    if (formData.password.length < 8) {
+    const isValid = validateForm()
+    if (!isValid) {
       toast({
-        title: "Password too short",
-        description: "Password must be at least 8 characters long.",
+        title: "Check the highlighted fields",
+        description: "Please resolve the validation errors before continuing.",
         variant: "destructive",
       })
       return
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Passwords don't match",
-        description: "Please make sure both passwords are identical.",
-        variant: "destructive",
-      })
-      return
-    }
+    const normalizedPhone = values.phone ? values.phone.replace(/\D/g, "") : undefined
 
     try {
       const response = await signup({
         token,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phone: formData.phone || undefined,
-        address: formData.address || undefined,
-        profilePicture: formData.profilePicture || undefined,
-        password: formData.password,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        phone: normalizedPhone || undefined,
+        address: values.address || undefined,
+        profilePicture: values.profilePicture || undefined,
+        password: values.password,
       })
 
       setIsSuccess(true)
@@ -212,11 +273,17 @@ export default function Signup() {
                     id="firstName"
                     type="text"
                     placeholder="John"
-                    value={formData.firstName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                    className="rounded-xl border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500"
+                    value={values.firstName}
+                    maxLength={50}
+                    onChange={handleChange("firstName")}
+                    onBlur={handleBlur("firstName")}
+                    aria-invalid={touched.firstName && !!errors.firstName}
+                    className={`rounded-xl border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500 ${
+                      touched.firstName && errors.firstName ? "border-red-500 focus:ring-red-500" : ""
+                    }`}
                     required
                   />
+                  {touched.firstName && errors.firstName && <p className="text-sm text-red-600">{errors.firstName}</p>}
                 </div>
                 
                 <div className="space-y-2">
@@ -225,11 +292,17 @@ export default function Signup() {
                     id="lastName"
                     type="text"
                     placeholder="Doe"
-                    value={formData.lastName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                    className="rounded-xl border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500"
+                    value={values.lastName}
+                    maxLength={50}
+                    onChange={handleChange("lastName")}
+                    onBlur={handleBlur("lastName")}
+                    aria-invalid={touched.lastName && !!errors.lastName}
+                    className={`rounded-xl border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500 ${
+                      touched.lastName && errors.lastName ? "border-red-500 focus:ring-red-500" : ""
+                    }`}
                     required
                   />
+                  {touched.lastName && errors.lastName && <p className="text-sm text-red-600">{errors.lastName}</p>}
                 </div>
               </div>
 
@@ -239,10 +312,16 @@ export default function Signup() {
                   id="mobile"
                   type="tel"
                   placeholder="+1 (555) 123-4567"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                  value={values.phone}
+                  maxLength={14}
+                  onChange={handleChange("phone")}
+                  onBlur={handleBlur("phone")}
+                  aria-invalid={touched.phone && !!errors.phone}
+                  className={`rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500 ${
+                    touched.phone && errors.phone ? "border-red-500 focus:ring-red-500" : ""
+                  }`}
                 />
+                {touched.phone && errors.phone && <p className="text-sm text-red-600">{errors.phone}</p>}
               </div>
 
               <div className="space-y-2">
@@ -251,10 +330,16 @@ export default function Signup() {
                   id="address"
                   type="text"
                   placeholder="123 Main St, City, State 12345"
-                  value={formData.address}
-                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                  className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                  value={values.address}
+                  maxLength={120}
+                  onChange={handleChange("address")}
+                  onBlur={handleBlur("address")}
+                  aria-invalid={touched.address && !!errors.address}
+                  className={`rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500 ${
+                    touched.address && errors.address ? "border-red-500 focus:ring-red-500" : ""
+                  }`}
                 />
+                {touched.address && errors.address && <p className="text-sm text-red-600">{errors.address}</p>}
               </div>
 
               <div className="space-y-2">
@@ -263,10 +348,16 @@ export default function Signup() {
                   id="profilePicture"
                   type="url"
                   placeholder="https://example.com/profile.jpg"
-                  value={formData.profilePicture}
-                  onChange={(e) => setFormData(prev => ({ ...prev, profilePicture: e.target.value }))}
-                  className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                  value={values.profilePicture}
+                  maxLength={2048}
+                  onChange={handleChange("profilePicture")}
+                  onBlur={handleBlur("profilePicture")}
+                  aria-invalid={touched.profilePicture && !!errors.profilePicture}
+                  className={`rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500 ${
+                    touched.profilePicture && errors.profilePicture ? "border-red-500 focus:ring-red-500" : ""
+                  }`}
                 />
+                {touched.profilePicture && errors.profilePicture && <p className="text-sm text-red-600">{errors.profilePicture}</p>}
               </div>
 
               <div className="space-y-2">
@@ -276,9 +367,14 @@ export default function Signup() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Create a strong password"
-                    value={formData.password}
-                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500 pr-10"
+                    value={values.password}
+                    maxLength={128}
+                    onChange={handleChange("password")}
+                    onBlur={handleBlur("password")}
+                    aria-invalid={touched.password && !!errors.password}
+                    className={`rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500 pr-10 ${
+                      touched.password && errors.password ? "border-red-500 focus:ring-red-500" : ""
+                    }`}
                     required
                   />
                   <button
@@ -289,7 +385,8 @@ export default function Signup() {
                     {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Must be at least 8 characters long</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Must include uppercase, lowercase, number, and special character.</p>
+                {touched.password && errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
               </div>
 
               <div className="space-y-2">
@@ -299,9 +396,14 @@ export default function Signup() {
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm your password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500 pr-10"
+                    value={values.confirmPassword}
+                    maxLength={128}
+                    onChange={handleChange("confirmPassword")}
+                    onBlur={handleBlur("confirmPassword")}
+                    aria-invalid={touched.confirmPassword && !!errors.confirmPassword}
+                    className={`rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500 pr-10 ${
+                      touched.confirmPassword && errors.confirmPassword ? "border-red-500 focus:ring-red-500" : ""
+                    }`}
                     required
                   />
                   <button
@@ -312,6 +414,7 @@ export default function Signup() {
                     {showConfirmPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
                   </button>
                 </div>
+                {touched.confirmPassword && errors.confirmPassword && <p className="text-sm text-red-600">{errors.confirmPassword}</p>}
               </div>
 
               <button

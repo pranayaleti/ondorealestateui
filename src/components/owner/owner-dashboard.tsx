@@ -4,21 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  Building, 
-  DollarSign, 
-  TrendingUp,
-  Users,
-  FileText,
-  BarChart3,
-  AlertTriangle,
-  Plus,
-  MessageSquare,
-  Settings
-} from "lucide-react"
+import { Building, DollarSign, TrendingUp, Users, FileText, BarChart3, AlertTriangle, Plus, MessageSquare } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { propertyApi, type Property } from "@/lib/api"
-import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
 import { ModernPropertyCard } from "./modern-property-card"
 import { PropertyDetailModal } from "@/components/property-detail-modal"
 

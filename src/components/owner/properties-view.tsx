@@ -10,7 +10,6 @@ import { Link } from "react-router-dom"
 import { PropertyCard } from "@/components/owner/property-card"
 import { PropertyListItem } from "@/components/owner/property-list-item"
 import { PropertyFilters } from "@/components/owner/property-filters"
-import { useToast } from "@/hooks/use-toast"
 
 // Mock property data
 const PROPERTIES = [
@@ -106,7 +105,6 @@ export function OwnerPropertiesView() {
   const [searchTerm, setSearchTerm] = useState("")
   const [showFilters, setShowFilters] = useState(false)
   const [activeTab, setActiveTab] = useState("all")
-  const { toast } = useToast()
 
   // Filter properties based on search term and active tab
   const filteredProperties = PROPERTIES.filter((property) => {

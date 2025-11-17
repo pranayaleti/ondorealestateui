@@ -1,20 +1,10 @@
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  FileText, 
-  Download, 
-  Search, 
-  Upload,
-  Eye,
-  Calendar,
-  User,
-  Building,
-  Shield
-} from "lucide-react"
+import { FileText, Download, Search, Upload, Eye, Calendar, Building, Shield } from "lucide-react"
 
 // Mock documents data
 const mockDocuments = {

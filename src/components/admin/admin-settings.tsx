@@ -3,14 +3,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  Settings, 
-  User, 
-  Bell,
-  Shield,
-  Building,
-  Mail
-} from "lucide-react"
 import { companyInfo } from "@/constants"
 import { useUserTimezone } from "@/hooks/use-user-timezone"
 

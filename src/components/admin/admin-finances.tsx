@@ -4,16 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  DollarSign, 
-  TrendingUp, 
-  TrendingDown,
-  Calendar,
-  Receipt,
-  AlertTriangle,
-  CheckCircle,
-  Download
-} from "lucide-react"
+import { DollarSign, TrendingUp, TrendingDown, Receipt, AlertTriangle, CheckCircle, Download } from "lucide-react"
 
 // Mock financial data
 const mockFinancialData = {

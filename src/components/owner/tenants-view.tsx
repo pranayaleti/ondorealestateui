@@ -169,7 +169,7 @@ export function TenantsView() {
             <Filter className="h-4 w-4 mr-2" />
             Filter
           </Button>
-          <AddTenantDialog onAddTenant={handleAddTenant} />
+          <AddTenantDialog />
         </div>
       </div>
 
@@ -189,7 +189,7 @@ export function TenantsView() {
                 <p className="text-muted-foreground text-center mb-6">
                   {searchTerm ? "Try adjusting your search or filters" : "Add your first tenant to get started"}
                 </p>
-                <AddTenantDialog onAddTenant={handleAddTenant} />
+                <AddTenantDialog />
               </CardContent>
             </Card>
           ) : (

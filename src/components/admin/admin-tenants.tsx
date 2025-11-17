@@ -8,21 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { 
-  Users, 
-  Plus, 
-  Search, 
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  DollarSign,
-  AlertTriangle,
-  Send,
-  UserPlus,
-  Eye,
-  Edit
-} from "lucide-react"
+import { Users, Plus, Search, Mail, Phone, MapPin, Calendar, DollarSign, AlertTriangle, UserPlus } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 // Mock tenants data

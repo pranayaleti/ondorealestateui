@@ -7,45 +7,12 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { saveUserInfo } from "@/lib/session-utils"
 
-// Session storage key
-const ZIP_CODE_SESSION_KEY = "property-match-zipcode"
-const USER_SESSION_KEY = "property-match-user"
-
 export function SearchForm() {
   const [zipCode, setZipCode] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const navigate = useNavigate()
   const { toast } = useToast()
-
-  // Function to get city from zip code (mock implementation)
-  const getCityFromZipCode = async (zip: string): Promise<string> => {
-    try {
-      // Mock city lookup - in production, use a real geocoding API
-      const cityMap: Record<string, string> = {
-        "84101": "Salt-Lake-City",
-        "84108": "Salt-Lake-City",
-        "84044": "Magna",
-        "84047": "Midvale",
-        "84117": "Holladay",
-        "98101": "seattle",
-        "98004": "bellevue",
-        "98052": "redmond",
-        // Add more zip codes as needed
-      }
-
-      const city = cityMap[zip]
-      if (!city) {
-        const city = cityMap[zipCode] || "nearby"
-        return city
-        //throw new Error("City not found for zip code")
-      }
-      return city
-    } catch (error) {
-      console.error("Error getting city from zip code:", error)
-      throw new Error("Unable to find city for this ZIP code")
-    }
-  }
 
   const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Only allow digits and limit to 5 characters

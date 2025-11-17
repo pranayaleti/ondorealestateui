@@ -84,14 +84,11 @@ export function ImageUploader({ onCropComplete, trigger }: ImageUploaderProps) {
         const container = imageRef.current?.parentElement
         if (!container) return
 
-        const containerRect = container.getBoundingClientRect()
         const size = 256 // Profile picture size
         
         canvas.width = size
         canvas.height = size
 
-        const sx = (containerRect.width / 2 - size / 2) * zoom
-        const sy = (containerRect.height / 2 - size / 2) * zoom
         const sw = size * zoom
         const sh = size * zoom
 

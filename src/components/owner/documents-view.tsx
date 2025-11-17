@@ -452,7 +452,7 @@ export function DocumentsView() {
             {activeTab === "folders" ? (
               <CreateFolderDialog onCreateFolder={handleCreateFolder} />
             ) : (
-              <AddDocumentDialog onAddDocument={handleAddDocument} folders={folders} />
+              <AddDocumentDialog />
             )}
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
@@ -472,7 +472,7 @@ export function DocumentsView() {
                     ? "Try adjusting your search or filters"
                     : "Upload your first document to get started"}
                 </p>
-                <AddDocumentDialog onAddDocument={handleAddDocument} folders={folders} />
+                <AddDocumentDialog />
               </CardContent>
             </Card>
           ) : viewMode === "grid" ? (
@@ -646,7 +646,7 @@ export function DocumentsView() {
                     ? "Try adjusting your search or filters"
                     : "Upload a document to get started"}
                 </p>
-                <AddDocumentDialog onAddDocument={handleAddDocument} folders={folders} />
+                <AddDocumentDialog />
               </CardContent>
             </Card>
           ) : (

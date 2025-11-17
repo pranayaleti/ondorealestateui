@@ -1,16 +1,21 @@
 import { useState } from "react";
 
-type Opts = {
+type RequestOptions<TBody> = {
   url: string;
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  body?: any;
+  body?: TBody;
   headers?: Record<string, string>;
 };
 
 export default function useApiRequest() {
   const [loading, setLoading] = useState(false);
 
-  async function request<T = any>({ url, method = "GET", body, headers = {} }: Opts): Promise<T | null> {
+  async function request<TResponse = unknown, TBody = unknown>({
+    url,
+    method = "GET",
+    body,
+    headers = {},
+  }: RequestOptions<TBody>): Promise<TResponse | null> {
     setLoading(true);
     try {
       const res = await fetch(url, {
@@ -23,7 +28,7 @@ export default function useApiRequest() {
       const contentType = res.headers.get('content-type');
       const isJson = contentType && contentType.includes('application/json');
       
-      let json: any = {};
+      let json: unknown = {};
       if (isJson) {
         try {
           const text = await res.text();
@@ -37,9 +42,12 @@ export default function useApiRequest() {
       }
       
       if (!res.ok) {
-        throw new Error(json?.message || json?.error || "Request failed");
+        const errorPayload =
+          typeof json === "object" && json !== null ? (json as { message?: string; error?: string }) : undefined;
+        const errorMessage = errorPayload?.message ?? errorPayload?.error ?? "Request failed";
+        throw new Error(errorMessage);
       }
-      return json as T;
+      return json as TResponse;
     } catch (e) {
       // Error is handled by caller, just return null
       return null;

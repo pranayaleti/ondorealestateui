@@ -1,21 +1,11 @@
 import { useState } from "react"
 import { Routes, Route, Link } from "react-router-dom"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { 
-  Building, 
-  Plus, 
-  Search, 
-  Filter,
-  MapPin,
-  Users,
-  DollarSign,
-  Settings,
-  Eye
-} from "lucide-react"
+import { Building, Plus, Search, MapPin, Users, DollarSign, Settings, Eye } from "lucide-react"
 
 // Mock properties data
 const mockProperties = [

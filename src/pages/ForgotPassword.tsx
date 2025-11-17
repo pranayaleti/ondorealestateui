@@ -6,22 +6,44 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, CheckCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Logo } from "@/components/logo"
+import { useValidatedForm } from "@/hooks/useValidatedForm"
+import type { FormValidationSchema } from "@/utils/validation.utils"
+import { sanitize, validators } from "@/utils/validation.utils"
+import { ERROR_MESSAGES } from "@/constants/regex.constants"
 
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 export default function ForgotPassword() {
-  const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const { toast } = useToast()
 
+  const schema: FormValidationSchema<{ email: string }> = {
+    email: {
+      required: true,
+      formatter: (value: string) => sanitize.trim(value).toLowerCase(),
+      rules: [
+        {
+          validator: validators.email,
+          message: ERROR_MESSAGES.EMAIL,
+        },
+      ],
+      maxLength: 120,
+    },
+  }
+
+  const { values, errors, touched, handleChange, handleBlur, validateForm } = useValidatedForm({
+    initialValues: { email: "" },
+    schema,
+  })
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!email) {
+    const isValid = validateForm()
+    if (!isValid) {
       toast({
-        title: "Email required",
-        description: "Please enter your email address.",
+        title: "Check your entry",
+        description: "Please enter a valid email address.",
         variant: "destructive",
       })
       return
@@ -35,7 +57,7 @@ export default function ForgotPassword() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: values.email }),
       })
 
       const contentType = response.headers.get('content-type');
@@ -102,7 +124,7 @@ export default function ForgotPassword() {
               </h1>
               
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                We've sent password reset instructions to <strong>{email}</strong>
+                We've sent password reset instructions to <strong>{values.email}</strong>
               </p>
               
               <div className="space-y-3">
@@ -156,11 +178,16 @@ export default function ForgotPassword() {
                   id="email"
                   type="email"
                   placeholder="your.email@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="rounded-xl border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500"
-                  required
+                  value={values.email}
+                  maxLength={120}
+                  onChange={handleChange("email")}
+                  onBlur={handleBlur("email")}
+                  aria-invalid={touched.email && !!errors.email}
+                  className={`rounded-xl border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500 ${
+                    touched.email && errors.email ? "border-red-500 focus:ring-red-500" : ""
+                  }`}
                 />
+                {touched.email && errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
               </div>
 
               <button

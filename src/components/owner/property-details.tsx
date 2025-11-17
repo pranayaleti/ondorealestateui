@@ -244,7 +244,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
         </TabsContent>
 
         <TabsContent value="documents">
-          <PropertyDocuments property={property} />
+          <PropertyDocuments />
         </TabsContent>
       </Tabs>
     </div>

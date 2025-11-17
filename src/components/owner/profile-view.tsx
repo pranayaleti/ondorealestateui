@@ -148,15 +148,6 @@ export function ProfileView() {
     }, 1000)
   }
 
-  const handleLogout = () => {
-    // In a real app, this would call an API to log the user out
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    })
-    navigate("/auth")
-  }
-
   const handleDeleteAccount = () => {
     // In a real app, this would call an API to delete the user's account
     toast({

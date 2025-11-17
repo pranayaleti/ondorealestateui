@@ -117,17 +117,6 @@ export function AddPropertyForm() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleArrayFieldChange = (fieldName: string, value: string) => {
-    console.log('handleArrayFieldChange called:', fieldName, value);
-    // Split by commas and clean up
-    const arrayValue = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
-    console.log('Processed array:', arrayValue);
-    setFormData((prev) => ({
-      ...prev,
-      [fieldName]: arrayValue
-    }))
-  }
-
   const handleArrayFieldBlur = (fieldName: string, value: string) => {
     console.log('handleArrayFieldBlur called:', fieldName, value);
     // Process on blur to allow typing commas without interference

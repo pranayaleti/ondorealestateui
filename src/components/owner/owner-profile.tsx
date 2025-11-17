@@ -6,10 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ImageUploader } from "@/components/ui/image-uploader"
 import { ProfilePictureViewer } from "@/components/ui/profile-picture-viewer"
-import { 
-  Shield,
-  Upload
-} from "lucide-react"
+import { Upload } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { useState, useEffect } from "react"
@@ -156,7 +153,7 @@ export default function OwnerProfile() {
 
     setIsSavingProfile(true)
     try {
-      const response = await authApi.updateProfile({
+      await authApi.updateProfile({
         firstName: profileData.personalInfo.firstName.trim(),
         lastName: profileData.personalInfo.lastName.trim(),
         phone: profileData.personalInfo.phone.trim() || undefined,
@@ -168,27 +165,7 @@ export default function OwnerProfile() {
         description: "Your profile information has been saved successfully.",
       })
       
-      // Refresh user data in context
-      console.log("About to call refreshUser...")
       await refreshUser()
-      console.log("refreshUser completed")
-      
-      // Also update the profile data immediately with the response
-      if (response.user) {
-        console.log("Updating profile data with response:", response.user)
-        setProfileData(prev => ({
-          ...prev,
-          personalInfo: {
-            ...prev.personalInfo,
-            firstName: response.user.firstName,
-            lastName: response.user.lastName,
-            email: response.user.email,
-            phone: response.user.phone || "",
-            address: response.user.address || "",
-          }
-        }))
-      }
-      
       setIsEditing(false)
     } catch (error) {
       const errorMessage = error instanceof ApiError 
@@ -215,7 +192,7 @@ export default function OwnerProfile() {
       setIsSavingProfile(true)
       
       // Update profile picture in the backend
-      const response = await authApi.updateProfile({
+      await authApi.updateProfile({
         firstName: profileData.personalInfo.firstName,
         lastName: profileData.personalInfo.lastName,
         phone: profileData.personalInfo.phone,

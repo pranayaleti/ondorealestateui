@@ -75,7 +75,7 @@ const MOCK_REQUEST = {
   ],
 }
 
-export function OwnerMaintenanceDetail({ requestId = "req-001" }: { requestId?: string }) {
+export function OwnerMaintenanceDetail() {
   const { toast } = useToast()
   const [request, setRequest] = useState(MOCK_REQUEST)
   const [newMessage, setNewMessage] = useState("")

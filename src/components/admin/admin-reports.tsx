@@ -1,14 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { 
-  BarChart3, 
-  Download, 
-  Calendar,
-  TrendingUp,
-  Users,
-  Building,
-  DollarSign
-} from "lucide-react"
+import { Download, Users, Building, DollarSign } from "lucide-react"
 
 export default function AdminReports() {
   return (

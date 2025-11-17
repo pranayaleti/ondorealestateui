@@ -180,7 +180,7 @@ export default function ManagerProfile() {
 
     setIsSavingProfile(true)
     try {
-      const response = await authApi.updateProfile({
+      await authApi.updateProfile({
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         phone: formData.phone.trim() || undefined,
@@ -198,29 +198,7 @@ export default function ManagerProfile() {
         description: "Your profile information has been saved successfully.",
       })
       
-      // Refresh user data in context
-      console.log("About to call refreshUser...")
       await refreshUser()
-      console.log("refreshUser completed")
-      
-      // Also update the form data immediately with the response
-      if (response.user) {
-        console.log("Updating form data with response:", response.user)
-        const parsedAddress = parseAddressString(response.user.address)
-        setFormData(prev => ({
-          ...prev,
-          firstName: response.user.firstName,
-          lastName: response.user.lastName,
-          email: response.user.email,
-          phone: response.user.phone || "",
-          addressLine1: parsedAddress.line1,
-          addressLine2: parsedAddress.line2,
-          city: parsedAddress.city,
-          state: parsedAddress.state,
-          postalCode: parsedAddress.postalCode,
-        }))
-      }
-      
       setIsEditing(false)
     } catch (error) {
       const errorMessage = error instanceof ApiError 
@@ -257,7 +235,7 @@ export default function ManagerProfile() {
     try {
       setIsSavingProfile(true)
       
-      const response = await authApi.updateProfile({
+      await authApi.updateProfile({
         firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone,

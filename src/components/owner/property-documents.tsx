@@ -42,10 +42,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
 
-interface PropertyDocumentsProps {
-  property: any
-}
-
 // Mock documents data
 const DOCUMENTS = [
   {
@@ -104,7 +100,7 @@ const DOCUMENTS = [
   },
 ]
 
-export function PropertyDocuments({ property }: PropertyDocumentsProps) {
+export function PropertyDocuments() {
   const [documents, setDocuments] = useState(DOCUMENTS)
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")

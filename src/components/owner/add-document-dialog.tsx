@@ -19,12 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FileUp, AlertTriangle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-interface AddDocumentDialogProps {
-  onAddDocument?: (data: any) => void;
-  folders?: Array<{ id: string; name: string; description: string; documentCount: number; lastUpdated: string; }>;
-}
-
-export function AddDocumentDialog({ onAddDocument, folders }: AddDocumentDialogProps) {
+export function AddDocumentDialog() {
   const [isOpen, setIsOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const { toast } = useToast()

@@ -5,9 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PropertyDetailsModal } from "@/components/property-details-modal"
 
-type PropertyType = "single-family" | "multi-family" | "association" | "commercial" | "vacation"
-type PropertyValue = "under-300k" | "300k-500k" | "500k-750k" | "750k-1m" | "over-1m"
-
 interface Property {
   id: number
   title: string

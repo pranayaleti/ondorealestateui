@@ -9,11 +9,19 @@ import { ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useApiRequest from "../hooks/useApiRequest";
 import { getLogoPath } from "@/lib/logo";
+import { ERROR_MESSAGES, REGEX_PATTERNS } from "@/constants";
+import { sanitize } from "@/utils/validation.utils";
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Please enter your name" }),
-  email: z.string().email({ message: "Please enter a valid email" }),
-  password: z.string().min(6, { message: "Min 6 characters" }),
+  name: z
+    .string()
+    .regex(REGEX_PATTERNS.FULL_NAME, { message: ERROR_MESSAGES.NAME }),
+  email: z
+    .string()
+    .regex(REGEX_PATTERNS.EMAIL, { message: ERROR_MESSAGES.EMAIL }),
+  password: z
+    .string()
+    .regex(REGEX_PATTERNS.PASSWORD_MEDIUM, { message: ERROR_MESSAGES.PASSWORD_MEDIUM }),
 });
 
 type FormType = z.infer<typeof formSchema>;
@@ -28,10 +36,15 @@ export default function Register() {
   const { request, loading } = useApiRequest();
 
   const onSubmit = async (body: FormType) => {
+    const payload: FormType = {
+      name: sanitize.trim(body.name),
+      email: sanitize.trim(body.email).toLowerCase(),
+      password: body.password,
+    };
     const data = await request<{ status?: string; message?: string }>({
       url: `/auth/signup`,
       method: "POST",
-      body,
+      body: payload,
     });
     if (data?.status === "success") {
       toast({
@@ -63,7 +76,9 @@ export default function Register() {
             {...register("name")}
             id="name"
             placeholder="Enter your full name"
-            className={errors.name ? "border-red-500" : ""}
+            maxLength={100}
+            aria-invalid={!!errors.name}
+            className={`${errors.name ? "border-red-500 focus:ring-red-500" : ""}`}
           />
           {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
         </div>
@@ -75,7 +90,9 @@ export default function Register() {
             id="email"
             type="email"
             placeholder="Enter your email"
-            className={errors.email ? "border-red-500" : ""}
+            maxLength={120}
+            aria-invalid={!!errors.email}
+            className={`${errors.email ? "border-red-500 focus:ring-red-500" : ""}`}
           />
           {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
         </div>
@@ -87,7 +104,9 @@ export default function Register() {
             id="password"
             type="password"
             placeholder="Enter your password"
-            className={errors.password ? "border-red-500" : ""}
+            maxLength={128}
+            aria-invalid={!!errors.password}
+            className={`${errors.password ? "border-red-500 focus:ring-red-500" : ""}`}
           />
           {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
         </div>

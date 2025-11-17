@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { Bell, Shield, Globe, Moon, Sun, Smartphone, CheckCircle } from "lucide-react"
+import { Shield, Globe, Moon, Sun, Smartphone, CheckCircle } from "lucide-react"
 import { US_TIMEZONES } from "@/constants"
 import { useUserTimezone } from "@/hooks/use-user-timezone"
 

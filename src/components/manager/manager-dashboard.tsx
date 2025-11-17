@@ -23,7 +23,6 @@ import {
   ShieldOff,
   Calendar,
   DollarSign,
-  Home,
   Heart
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"

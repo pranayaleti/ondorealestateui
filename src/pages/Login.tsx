@@ -8,6 +8,10 @@ import { EyeIcon, EyeOffIcon, Loader2, ArrowRight } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { Logo } from "@/components/logo"
+import { useValidatedForm } from "@/hooks/useValidatedForm"
+import type { FormValidationSchema } from "@/utils/validation.utils"
+import { sanitize, validators } from "@/utils/validation.utils"
+import { ERROR_MESSAGES, REGEX_PATTERNS } from "@/constants/regex.constants"
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -15,16 +19,55 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  // Login form state
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const validationSchema: FormValidationSchema<{ email: string; password: string }> = {
+    email: {
+      required: true,
+      formatter: sanitize.trim,
+      rules: [
+        {
+          validator: validators.email,
+          message: ERROR_MESSAGES.EMAIL,
+        },
+      ],
+      maxLength: 120,
+    },
+    password: {
+      required: true,
+      formatter: sanitize.trim,
+      rules: [
+        {
+          regex: REGEX_PATTERNS.PASSWORD_WEAK,
+          message: ERROR_MESSAGES.PASSWORD_WEAK,
+        },
+      ],
+      maxLength: 128,
+    },
+  }
+
+  const { values, errors, touched, handleChange, handleBlur, validateForm, setValues } = useValidatedForm({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    schema: validationSchema,
+  })
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    const isValid = validateForm()
+    if (!isValid) {
+      toast({
+        title: "Check the highlighted fields",
+        description: "Please resolve the validation errors before submitting.",
+        variant: "destructive",
+      })
+      return
+    }
     setIsLoading(true)
 
     try {
-      const result = await login(email, password)
+      const sanitizedEmail = sanitize.trim(values.email).toLowerCase()
+      const result = await login(sanitizedEmail, values.password)
 
       if (result.success) {
         // The auth context will handle redirection based on user role
@@ -54,8 +97,7 @@ export default function LoginPage() {
   }
 
   const handleFillCredentials = (testEmail: string, testPassword: string) => {
-    setEmail(testEmail)
-    setPassword(testPassword)
+    setValues({ email: testEmail, password: testPassword })
   }
 
   return (
@@ -120,11 +162,16 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   placeholder="your.email@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                  required
+                  value={values.email}
+                  maxLength={120}
+                  onChange={handleChange("email")}
+                  onBlur={handleBlur("email")}
+                  aria-invalid={touched.email && !!errors.email}
+                  className={`rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500 ${
+                    touched.email && errors.email ? "border-red-500 focus:ring-red-500" : ""
+                  }`}
                 />
+                {touched.email && errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
               </div>
               
               <div className="space-y-2">
@@ -134,10 +181,14 @@ export default function LoginPage() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                    required
+                    value={values.password}
+                    maxLength={128}
+                    onChange={handleChange("password")}
+                    onBlur={handleBlur("password")}
+                    aria-invalid={touched.password && !!errors.password}
+                    className={`rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500 ${
+                      touched.password && errors.password ? "border-red-500 focus:ring-red-500" : ""
+                    }`}
                   />
                   <button
                     type="button"
@@ -147,6 +198,7 @@ export default function LoginPage() {
                     {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
                   </button>
                 </div>
+                {touched.password && errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
               </div>
 
               <button

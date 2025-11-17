@@ -8,9 +8,9 @@ interface S3UploadOptions {
   orderIndex?: number;
 }
 
-interface S3UploadResult {
+interface S3UploadResult<TPhoto = unknown> {
   success: boolean;
-  photo?: any;
+  photo?: TPhoto;
   error?: string;
 }
 
@@ -19,10 +19,10 @@ export function useS3Upload() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
 
-  const uploadPhoto = async (
+  const uploadPhoto = async <TPhoto = unknown>(
     file: File, 
     options: S3UploadOptions
-  ): Promise<S3UploadResult> => {
+  ): Promise<S3UploadResult<TPhoto>> => {
     setIsUploading(true);
     setUploadProgress(0);
 
@@ -47,7 +47,7 @@ export function useS3Upload() {
         presignedData.key,
         options.caption,
         options.orderIndex || 0
-      );
+      ) as TPhoto;
 
       setUploadProgress(100);
       
@@ -57,31 +57,32 @@ export function useS3Upload() {
       });
 
       return { success: true, photo };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('S3 upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to upload photo. Please try again."
       
       toast({
         title: "Upload failed",
-        description: error.message || "Failed to upload photo. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
 
-      return { success: false, error: error.message };
+      return { success: false, error: errorMessage };
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
     }
   };
 
-  const uploadMultiplePhotos = async (
+  const uploadMultiplePhotos = async <TPhoto = unknown>(
     files: File[],
     options: S3UploadOptions
-  ): Promise<S3UploadResult[]> => {
-    const results: S3UploadResult[] = [];
+  ): Promise<S3UploadResult<TPhoto>[]> => {
+    const results: S3UploadResult<TPhoto>[] = [];
     
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const result = await uploadPhoto(file, {
+      const result = await uploadPhoto<TPhoto>(file, {
         ...options,
         orderIndex: (options.orderIndex || 0) + i,
       });
@@ -99,11 +100,12 @@ export function useS3Upload() {
         description: "Photo has been deleted successfully.",
       });
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Delete photo error:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete photo. Please try again."
       toast({
         title: "Delete failed",
-        description: error.message || "Failed to delete photo. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
       return false;

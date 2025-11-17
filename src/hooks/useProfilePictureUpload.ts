@@ -48,16 +48,17 @@ export function useProfilePictureUpload() {
       });
 
       return { success: true, url: presignedData.publicUrl };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Profile picture upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to upload profile picture. Please try again."
       
       toast({
         title: "Upload failed",
-        description: error.message || "Failed to upload profile picture. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
 
-      return { success: false, error: error.message };
+      return { success: false, error: errorMessage };
     } finally {
       setIsUploading(false);
       setUploadProgress(0);

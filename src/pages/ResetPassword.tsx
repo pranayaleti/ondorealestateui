@@ -6,12 +6,14 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, EyeIcon, EyeOffIcon, CheckCircle, AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Logo } from "@/components/logo"
+import { useValidatedForm } from "@/hooks/useValidatedForm"
+import type { FormValidationSchema } from "@/utils/validation.utils"
+import { sanitize } from "@/utils/validation.utils"
+import { ERROR_MESSAGES, REGEX_PATTERNS } from "@/constants/regex.constants"
 
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 export default function ResetPassword() {
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -22,6 +24,40 @@ export default function ResetPassword() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const token = searchParams.get("token")
+
+  const schema: FormValidationSchema<{ password: string; confirmPassword: string }> = {
+    password: {
+      required: true,
+      formatter: sanitize.trim,
+      rules: [
+        {
+          regex: REGEX_PATTERNS.PASSWORD_STRONG,
+          message: ERROR_MESSAGES.PASSWORD_STRONG,
+        },
+      ],
+      maxLength: 128,
+    },
+    confirmPassword: {
+      required: true,
+      formatter: sanitize.trim,
+      rules: [
+        {
+          regex: REGEX_PATTERNS.PASSWORD_STRONG,
+          message: ERROR_MESSAGES.PASSWORD_STRONG,
+        },
+        {
+          validator: (value, values) => value === values?.password,
+          message: "Passwords must match",
+        },
+      ],
+      maxLength: 128,
+    },
+  }
+
+  const { values, errors, touched, handleChange, handleBlur, validateForm } = useValidatedForm({
+    initialValues: { password: "", confirmPassword: "" },
+    schema,
+  })
 
   useEffect(() => {
     if (!token) {
@@ -71,28 +107,11 @@ export default function ResetPassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!password) {
+    const isValid = validateForm()
+    if (!isValid) {
       toast({
-        title: "Password required",
-        description: "Please enter a new password.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (password.length < 8) {
-      toast({
-        title: "Password too short",
-        description: "Password must be at least 8 characters long.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (password !== confirmPassword) {
-      toast({
-        title: "Passwords don't match",
-        description: "Please make sure both passwords are identical.",
+        title: "Check the highlighted fields",
+        description: "Please resolve the validation errors before continuing.",
         variant: "destructive",
       })
       return
@@ -115,7 +134,7 @@ export default function ResetPassword() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ token, password }),
+        body: JSON.stringify({ token, password: values.password }),
       })
 
       const contentType = response.headers.get('content-type');
@@ -300,10 +319,14 @@ export default function ResetPassword() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter new password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="rounded-xl border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500 pr-10"
-                    required
+                    value={values.password}
+                    maxLength={128}
+                    onChange={handleChange("password")}
+                    onBlur={handleBlur("password")}
+                    aria-invalid={touched.password && !!errors.password}
+                    className={`rounded-xl border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500 pr-10 ${
+                      touched.password && errors.password ? "border-red-500 focus:ring-red-500" : ""
+                    }`}
                   />
                   <button
                     type="button"
@@ -313,7 +336,8 @@ export default function ResetPassword() {
                     {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Must be at least 8 characters long</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Must include uppercase, lowercase, number, and special character.</p>
+                {touched.password && errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
               </div>
 
               <div className="space-y-2">
@@ -323,10 +347,14 @@ export default function ResetPassword() {
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm new password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="rounded-xl border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500 pr-10"
-                    required
+                    value={values.confirmPassword}
+                    maxLength={128}
+                    onChange={handleChange("confirmPassword")}
+                    onBlur={handleBlur("confirmPassword")}
+                    aria-invalid={touched.confirmPassword && !!errors.confirmPassword}
+                    className={`rounded-xl border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500 pr-10 ${
+                      touched.confirmPassword && errors.confirmPassword ? "border-red-500 focus:ring-red-500" : ""
+                    }`}
                   />
                   <button
                     type="button"
@@ -336,6 +364,7 @@ export default function ResetPassword() {
                     {showConfirmPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
                   </button>
                 </div>
+                {touched.confirmPassword && errors.confirmPassword && <p className="text-sm text-red-600">{errors.confirmPassword}</p>}
               </div>
 
               <button

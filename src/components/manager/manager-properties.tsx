@@ -1,53 +1,16 @@
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import {
-  Building,
-  Search,
-  Filter,
-  MapPin,
-  CheckCircle,
-  XCircle,
-  Eye
-} from "lucide-react"
+import { Building, Search, Filter } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { propertyApi, type Property } from "@/lib/api"
-import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
 import { ModernPropertyCard } from "@/components/owner/modern-property-card"
 import { PropertyDetailModal } from "@/components/property-detail-modal"
-
-// Helper function to convert amenity keys to readable labels
-const getAmenityLabel = (key: string): string => {
-  const amenityLabels: Record<string, string> = {
-    parking: "Parking",
-    gym: "Gym/Fitness Center", 
-    pool: "Swimming Pool",
-    laundry: "Laundry Facilities",
-    elevator: "Elevator",
-    balcony: "Balcony/Patio",
-    air_conditioning: "Air Conditioning",
-    heating: "Heating",
-    dishwasher: "Dishwasher",
-    refrigerator: "Refrigerator",
-    microwave: "Microwave",
-    washer_dryer: "Washer/Dryer",
-    pet_friendly: "Pet Friendly",
-    furnished: "Furnished",
-    hardwood_floors: "Hardwood Floors",
-    carpet: "Carpet",
-    tile: "Tile Flooring",
-    walk_in_closet: "Walk-in Closet",
-    fireplace: "Fireplace",
-    garden: "Garden/Yard"
-  }
-  return amenityLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-}
 
 export default function ManagerProperties() {
   const [properties, setProperties] = useState<Property[]>([])
@@ -130,12 +93,6 @@ export default function ManagerProperties() {
     } finally {
       setSubmitting(false)
     }
-  }
-
-  const openReviewDialog = (property: Property, action: "approve" | "reject") => {
-    setSelectedProperty(property)
-    setReviewDialog(action)
-    setReviewComment("")
   }
 
   if (loading) {

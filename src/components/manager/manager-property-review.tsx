@@ -6,14 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
   MapPin,
   Eye,
@@ -22,7 +15,6 @@ import {
   Clock,
   Filter
 } from "lucide-react"
-import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { propertyApi, type Property } from "@/lib/api"
 import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
@@ -37,9 +29,6 @@ export default function ManagerPropertyReview() {
   const [reviewComment, setReviewComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [ownerFilter, setOwnerFilter] = useState<string>("all")
-  const [owners, setOwners] = useState<{id: string, name: string}[]>([])
-  const { } = useAuth()
   const { toast } = useToast()
 
   const handleCardClick = (property: Property) => {
@@ -77,7 +66,7 @@ export default function ManagerPropertyReview() {
 
   useEffect(() => {
     fetchProperties()
-  }, [statusFilter, ownerFilter])
+  }, [statusFilter])
 
   const fetchProperties = async () => {
     setLoading(true)
@@ -100,26 +89,6 @@ export default function ManagerPropertyReview() {
         console.log(`Showing ${statusFilter} properties:`, data.length)
       }
 
-      // Apply owner filter
-      if (ownerFilter !== "all") {
-        data = data.filter(p => p.ownerId === ownerFilter)
-        console.log(`Filtered by owner ${ownerFilter}:`, data.length)
-      }
-
-      // Extract unique owners for the filter dropdown
-      const uniqueOwners = allProperties
-        .filter(p => p.owner) // Only properties with owner info
-        .reduce((acc, p) => {
-          if (p.owner && !acc.find(o => o.id === p.owner!.id)) {
-            acc.push({
-              id: p.owner.id,
-              name: `${p.owner.firstName} ${p.owner.lastName}`
-            })
-          }
-          return acc
-        }, [] as {id: string, name: string}[])
-      
-      setOwners(uniqueOwners)
       setProperties(data)
     } catch (error) {
       console.error("Error fetching properties:", error)
@@ -206,8 +175,7 @@ export default function ManagerPropertyReview() {
           {properties.map((property) => (
             <Card 
               key={property.id} 
-              className="hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/50 transition-all cursor-pointer overflow-hidden"
-              onClick={() => handleCardClick(property)}
+              className="hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/50 transition-all overflow-hidden"
             >
               {/* Property Image Carousel */}
               <div className="relative">
@@ -267,11 +235,11 @@ export default function ManagerPropertyReview() {
                   )}
                   
                   <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleCardClick(property)}
-                    >
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleCardClick(property)}
+                  >
                       <Eye className="h-4 w-4 mr-1" />
                       Review
                     </Button>

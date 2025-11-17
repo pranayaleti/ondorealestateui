@@ -8,22 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ImageUploader } from "@/components/ui/image-uploader"
 import { ProfilePictureViewer } from "@/components/ui/profile-picture-viewer"
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  Shield,
-  Edit,
-  Save,
-  Camera,
-  Key,
-  Bell,
-  CreditCard,
-  Loader2,
-  Upload
-} from "lucide-react"
+import { User, Calendar, Edit, Save, Loader2, Upload } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { propertyApi, authApi, type Property } from "@/lib/api"
@@ -143,7 +128,7 @@ export default function TenantProfile() {
     try {
       setIsSavingProfile(true)
       
-      const response = await authApi.updateProfile({
+      await authApi.updateProfile({
         firstName: profileData.personalInfo.firstName,
         lastName: profileData.personalInfo.lastName,
         phone: profileData.personalInfo.phone,

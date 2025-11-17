@@ -2,17 +2,10 @@ import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/hooks/use-toast"
 import {
-  MapPin,
   ChevronLeft,
   ChevronRight,
-  Calendar,
   Home,
-  User,
   Check,
   X,
   Building,
@@ -25,11 +18,9 @@ import {
   Clock,
   Tag,
   UserCheck,
-  Heart,
-  Send
 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { type Property, leadApi } from "@/lib/api"
+import { type Property } from "@/lib/api"
 import { formatUSDate, formatUSD, formatUSPhone } from "@/lib/us-format"
 
 interface PropertyDetailModalProps {
@@ -41,24 +32,15 @@ interface PropertyDetailModalProps {
   showActions?: boolean
 }
 
-export function PropertyDetailModal({ 
-  property, 
-  open, 
-  onOpenChange, 
-  onApprove, 
-  onReject, 
-  showActions = false 
+export function PropertyDetailModal({
+  property,
+  open,
+  onOpenChange,
+  onApprove,
+  onReject,
+  showActions = false,
 }: PropertyDetailModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [showLeadForm, setShowLeadForm] = useState(false)
-  const [isSubmittingLead, setIsSubmittingLead] = useState(false)
-  const [leadFormData, setLeadFormData] = useState({
-    tenantName: '',
-    tenantEmail: '',
-    tenantPhone: '',
-    message: ''
-  })
-  const { toast } = useToast()
 
   if (!property) return null
 
@@ -71,53 +53,6 @@ export function PropertyDetailModal({
   const prevImage = () => {
     if (property.photos && property.photos.length > 0) {
       setCurrentImageIndex((prev) => (prev - 1 + property.photos!.length) % property.photos!.length)
-    }
-  }
-
-  const handleLeadSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!leadFormData.tenantName || !leadFormData.tenantEmail || !leadFormData.tenantPhone) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields (Name, Email, Phone).",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setIsSubmittingLead(true)
-    
-    try {
-      await leadApi.submitLead({
-        propertyId: property.id,
-        tenantName: leadFormData.tenantName,
-        tenantEmail: leadFormData.tenantEmail,
-        tenantPhone: leadFormData.tenantPhone,
-        message: leadFormData.message || undefined,
-      })
-
-      toast({
-        title: "Interest Submitted!",
-        description: "Thank you for your interest. The property manager will contact you soon.",
-      })
-
-      // Reset form and close
-      setLeadFormData({
-        tenantName: '',
-        tenantEmail: '',
-        tenantPhone: '',
-        message: ''
-      })
-      setShowLeadForm(false)
-    } catch (error: any) {
-      toast({
-        title: "Submission Failed",
-        description: error.message || "Failed to submit your interest. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSubmittingLead(false)
     }
   }
 

@@ -4,22 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  Home, 
-  Wrench, 
-  CreditCard, 
-  FileText, 
-  MessageSquare, 
-  User,
-  Settings,
-  Calendar,
-  DollarSign,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  MapPin,
-  Building
-} from "lucide-react"
+import { Wrench, CreditCard, FileText, MessageSquare, Calendar, DollarSign, Clock, MapPin, Building } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { propertyApi, maintenanceApi, type Property, type MaintenanceRequest } from "@/lib/api"
 
@@ -87,7 +72,7 @@ export default function TenantDashboard() {
     const now = new Date()
     
     // Start from move-in date
-    let nextDueDate = new Date(moveInDate)
+    const nextDueDate = new Date(moveInDate)
     
     // Keep adding months until we get a date in the future
     while (nextDueDate <= now) {
@@ -103,32 +88,6 @@ export default function TenantDashboard() {
       month: 'long', 
       day: 'numeric' 
     })
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case "in_progress":
-        return <Clock className="h-4 w-4 text-yellow-500" />
-      case "pending":
-        return <AlertCircle className="h-4 w-4 text-red-500" />
-      default:
-        return <Clock className="h-4 w-4 text-gray-500" />
-    }
-  }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-      case "medium":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-      case "low":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-    }
   }
 
   return (

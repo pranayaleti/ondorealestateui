@@ -4,20 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  Building, 
-  Users, 
-  Wrench, 
-  DollarSign, 
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Calendar,
-  FileText,
-  BarChart3,
-  Plus
-} from "lucide-react"
+import { Building, Users, Wrench, DollarSign, AlertTriangle, Clock, FileText, BarChart3, Plus } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 
 // Mock admin dashboard data

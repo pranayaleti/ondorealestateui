@@ -1,21 +1,12 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import {
-  Building,
-  Plus,
-  Search,
-  Filter,
-  MapPin,
-  Eye
-} from "lucide-react"
+import { Building, Plus, Search, Filter } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { propertyApi, type Property } from "@/lib/api"
-import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
 import { ModernPropertyCard } from "./modern-property-card"
 import { PropertyDetailModal } from "@/components/property-detail-modal"
 
@@ -92,19 +83,6 @@ export default function OwnerProperties() {
   const handleViewProperty = (property: Property) => {
     setSelectedProperty(property)
     setShowPropertyDetail(true)
-  }
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Badge variant="secondary">Pending Review</Badge>
-      case "approved":
-        return <Badge variant="default" className="bg-green-600">Approved</Badge>
-      case "rejected":
-        return <Badge variant="destructive">Rejected</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
   }
 
   if (loading) {
