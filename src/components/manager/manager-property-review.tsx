@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useSearchParams } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -27,9 +28,11 @@ import { propertyApi, type Property } from "@/lib/api"
 import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
 
 export default function ManagerPropertyReview() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [reviewComment, setReviewComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>("all")
@@ -37,6 +40,39 @@ export default function ManagerPropertyReview() {
   const [owners, setOwners] = useState<{id: string, name: string}[]>([])
   const { } = useAuth()
   const { toast } = useToast()
+
+  const handleCardClick = (property: Property) => {
+    setSelectedProperty(property)
+    setIsDialogOpen(true)
+  }
+
+  const handleDialogClose = (open: boolean) => {
+    setIsDialogOpen(open)
+    if (!open) {
+      setSelectedProperty(null)
+      setReviewComment("")
+    }
+  }
+
+  // Initialize and update status filter when URL query parameter changes
+  useEffect(() => {
+    const statusParam = searchParams.get("status")
+    if (statusParam && ["all", "pending", "approved", "rejected"].includes(statusParam)) {
+      setStatusFilter(statusParam)
+    } else if (!statusParam) {
+      setStatusFilter("all")
+    }
+  }, [searchParams])
+
+  // Update URL when status filter changes (but only if user manually changes it)
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value)
+    if (value === "all") {
+      setSearchParams({}, { replace: true })
+    } else {
+      setSearchParams({ status: value }, { replace: true })
+    }
+  }
 
   useEffect(() => {
     fetchProperties()
@@ -110,6 +146,7 @@ export default function ManagerPropertyReview() {
       setProperties(prev => prev.filter(p => p.id !== propertyId))
       setSelectedProperty(null)
       setReviewComment("")
+      setIsDialogOpen(false)
     } catch (error) {
       toast({
         title: "Error",
@@ -136,7 +173,7 @@ export default function ManagerPropertyReview() {
       <div className="mb-6">
         <div className="flex items-center gap-4">
           <Filter className="h-5 w-5 text-gray-500" />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -166,7 +203,11 @@ export default function ManagerPropertyReview() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {properties.map((property) => (
-            <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden">
+            <Card 
+              key={property.id} 
+              className="hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/50 transition-all cursor-pointer overflow-hidden"
+              onClick={() => handleCardClick(property)}
+            >
               {/* Property Image Carousel */}
               <div className="relative">
                 <PropertyImageCarousel
@@ -195,7 +236,7 @@ export default function ManagerPropertyReview() {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-lg">{property.title}</CardTitle>
+                    <CardTitle className="text-lg dark:text-card-foreground">{property.title}</CardTitle>
                     <CardDescription className="flex items-center mt-1">
                       <MapPin className="h-4 w-4 mr-1" />
                       {property.addressLine1}, {property.city}
@@ -206,43 +247,50 @@ export default function ManagerPropertyReview() {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Type:</span>
-                    <span className="capitalize">{property.type}</span>
+                    <span className="text-gray-600 dark:text-gray-400">Type:</span>
+                    <span className="capitalize dark:text-gray-300">{property.type}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Submitted:</span>
-                    <span>{new Date(property.createdAt).toLocaleDateString()}</span>
+                    <span className="text-gray-600 dark:text-gray-400">Submitted:</span>
+                    <span className="dark:text-gray-300">{new Date(property.createdAt).toLocaleDateString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Photos:</span>
-                    <span>{property.photos?.length || 0} {property.photos?.length === 0 && "(Using placeholders)"}</span>
+                    <span className="text-gray-600 dark:text-gray-400">Photos:</span>
+                    <span className="dark:text-gray-300">{property.photos?.length || 0} {property.photos?.length === 0 && "(Using placeholders)"}</span>
                   </div>
                   {property.description && (
                     <div className="text-sm">
-                      <span className="text-gray-600">Description:</span>
-                      <p className="mt-1 text-gray-800 line-clamp-2">{property.description}</p>
+                      <span className="text-gray-600 dark:text-gray-400">Description:</span>
+                      <p className="mt-1 text-gray-800 dark:text-gray-300 line-clamp-2">{property.description}</p>
                     </div>
                   )}
                   
-                  <div className="flex gap-2 pt-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => setSelectedProperty(property)}
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          Review
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
-                        <DialogHeader>
-                          <DialogTitle>Review Property: {property.title}</DialogTitle>
-                          <DialogDescription>
-                            Review the property details and approve or reject the submission.
-                          </DialogDescription>
-                        </DialogHeader>
+                  <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleCardClick(property)}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      Review
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Review Dialog - Controlled */}
+      <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Review Property: {selectedProperty?.title || ''}</DialogTitle>
+            <DialogDescription>
+              Review the property details and approve or reject the submission.
+            </DialogDescription>
+          </DialogHeader>
                         
                         {selectedProperty && (
                           <div className="space-y-4">
@@ -303,15 +351,8 @@ export default function ManagerPropertyReview() {
                             </div>
                           </div>
                         )}
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

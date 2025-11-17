@@ -81,7 +81,11 @@ export default function ResultsList({ properties }: ResultsListProps) {
     <div className="space-y-4">
       {properties.length > 0 ? (
         properties.map((property) => (
-          <Card key={property.id}>
+          <Card 
+            key={property.id}
+            className="cursor-pointer hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/50 transition-all"
+            onClick={() => setSelectedCompany(property.id)}
+          >
             <CardContent className="p-0">
               <div className="flex flex-col md:flex-row">
                 <div className="relative h-48 md:h-auto md:w-1/3">
@@ -95,30 +99,30 @@ export default function ResultsList({ properties }: ResultsListProps) {
                 <div className="p-4 md:p-6 flex-1">
                   <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                     <div>
-                      <h3 className="font-bold text-lg mb-1">{property.title}</h3>
-                      <p className="text-gray-600 text-sm mb-2">{property.address}</p>
+                      <h3 className="font-bold text-lg mb-1 dark:text-gray-100">{property.title}</h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">{property.address}</p>
 
                       <div className="flex flex-wrap gap-3 mb-3">
-                        <div className="flex items-center text-gray-700">
+                        <div className="flex items-center text-gray-700 dark:text-gray-300">
                           <BedDouble className="h-4 w-4 mr-1" />
                           <span>
                             {property.bedrooms}{" "}
                             {property.bedrooms === 0 ? "Studio" : property.bedrooms === 1 ? "Bed" : "Beds"}
                           </span>
                         </div>
-                        <div className="flex items-center text-gray-700">
+                        <div className="flex items-center text-gray-700 dark:text-gray-300">
                           <Bath className="h-4 w-4 mr-1" />
                           <span>
                             {property.bathrooms} {property.bathrooms === 1 ? "Bath" : "Baths"}
                           </span>
                         </div>
-                        <div className="flex items-center text-gray-700">
+                        <div className="flex items-center text-gray-700 dark:text-gray-300">
                           <SquareFoot className="h-4 w-4 mr-1" />
                           <span>{property.sqft} sqft</span>
                         </div>
                       </div>
 
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{property.description}</p>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">{property.description}</p>
 
                       <div className="flex flex-wrap gap-2">
                         {property.features.slice(0, 4).map((feature, index) => (
@@ -134,8 +138,8 @@ export default function ResultsList({ properties }: ResultsListProps) {
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end">
-                      <span className="text-xl font-bold mb-4">${property.price}/mo</span>
+                    <div className="flex flex-col items-end" onClick={(e) => e.stopPropagation()}>
+                      <span className="text-xl font-bold mb-4 dark:text-gray-100">${property.price}/mo</span>
                       <Button onClick={() => setSelectedCompany(property.id)}>View Details</Button>
                     </div>
                   </div>

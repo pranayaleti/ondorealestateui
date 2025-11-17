@@ -26,7 +26,7 @@ const mockMessages = [
     id: 1,
     subject: "Lease Renewal Notice",
     from: "Property Manager",
-    fromEmail: "manager@propertymatch.com",
+    fromEmail: "manager@ondorealestate.com",
     to: "tenant@email.com",
     date: "2024-01-20",
     time: "10:30 AM",
@@ -41,7 +41,7 @@ const mockMessages = [
     id: 2,
     subject: "Scheduled Maintenance - HVAC Inspection",
     from: "Maintenance Team",
-    fromEmail: "maintenance@propertymatch.com",
+    fromEmail: "maintenance@ondorealestate.com",
     to: "tenant@email.com",
     date: "2024-01-18",
     time: "2:15 PM",
@@ -56,7 +56,7 @@ const mockMessages = [
     id: 3,
     subject: "Welcome to Your New Home!",
     from: "Property Manager",
-    fromEmail: "manager@propertymatch.com",
+    fromEmail: "manager@ondorealestate.com",
     to: "tenant@email.com",
     date: "2023-09-15",
     time: "9:00 AM",
@@ -71,7 +71,7 @@ const mockMessages = [
     id: 4,
     subject: "Rent Payment Confirmation",
     from: "Billing Department",
-    fromEmail: "billing@propertymatch.com",
+    fromEmail: "billing@ondorealestate.com",
     to: "tenant@email.com",
     date: "2024-01-01",
     time: "11:45 AM",
@@ -91,7 +91,7 @@ export default function TenantMessages() {
   const [filterCategory, setFilterCategory] = useState("all")
   const [showCompose, setShowCompose] = useState(false)
   const [composeForm, setComposeForm] = useState({
-    to: "manager@propertymatch.com",
+    to: "manager@ondorealestate.com",
     subject: "",
     category: "general",
     priority: "medium",
@@ -113,7 +113,7 @@ export default function TenantMessages() {
     })
     setShowCompose(false)
     setComposeForm({
-      to: "manager@propertymatch.com",
+      to: "manager@ondorealestate.com",
       subject: "",
       category: "general",
       priority: "medium",
@@ -172,9 +172,9 @@ export default function TenantMessages() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="manager@propertymatch.com">Property Manager</SelectItem>
-                      <SelectItem value="maintenance@propertymatch.com">Maintenance Team</SelectItem>
-                      <SelectItem value="billing@propertymatch.com">Billing Department</SelectItem>
+                      <SelectItem value="manager@ondorealestate.com">Property Manager</SelectItem>
+                      <SelectItem value="maintenance@ondorealestate.com">Maintenance Team</SelectItem>
+                      <SelectItem value="billing@ondorealestate.com">Billing Department</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -221,7 +221,11 @@ export default function ResultsGrid({ properties }: ResultsGridProps) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {properties.length > 0 ? (
         properties.map((property) => (
-          <Card key={property.id} className="overflow-hidden">
+          <Card 
+            key={property.id} 
+            className="overflow-hidden cursor-pointer hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/50 transition-all"
+            onClick={() => setSelectedCompany(property.id)}
+          >
             <div className="relative h-48 w-full">
               <img
                 src={property.image || "/placeholder.svg?height=300&width=400"}
@@ -236,7 +240,7 @@ export default function ResultsGrid({ properties }: ResultsGridProps) {
 
             <CardContent className="p-4">
               <div className="flex justify-between items-center mb-4">
-                <span className="text-xl font-bold">${property.price}/mo</span>
+                <span className="text-xl font-bold dark:text-gray-100">${property.price}/mo</span>
                 <div className="flex space-x-2">
                   <Badge variant="outline">
                     {property.bedrooms} {property.bedrooms === 0 ? "Studio" : property.bedrooms === 1 ? "Bed" : "Beds"}
@@ -263,7 +267,7 @@ export default function ResultsGrid({ properties }: ResultsGridProps) {
               </div>
             </CardContent>
 
-            <CardFooter className="bg-gray-50 px-4 py-3">
+            <CardFooter className="bg-gray-50 dark:bg-gray-800 px-4 py-3" onClick={(e) => e.stopPropagation()}>
               <Button className="w-full" onClick={() => setSelectedCompany(property.id)}>
                 View Details
               </Button>

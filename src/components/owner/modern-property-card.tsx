@@ -41,7 +41,10 @@ export function ModernPropertyCard({ property, onViewDetails }: ModernPropertyCa
   }
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <Card 
+      className="overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+      onClick={() => onViewDetails?.(property)}
+    >
       {/* Property Image with Status Badge */}
       <div className="relative">
         <PropertyImageCarousel
@@ -61,27 +64,27 @@ export function ModernPropertyCard({ property, onViewDetails }: ModernPropertyCa
       {/* Property Details */}
       <CardContent className="p-4">
         {/* Property Title */}
-        <h3 className="font-bold text-xl text-gray-900 mb-1">{property.title}</h3>
+        <h3 className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-1">{property.title}</h3>
         
         {/* Address */}
-        <div className="flex items-center text-gray-600 text-sm mb-2">
+        <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm mb-2">
           <MapPin className="h-4 w-4 mr-1" />
           <span>{property.addressLine1}, {property.city}</span>
         </div>
         
         {/* Added Date */}
-        <div className="text-xs text-gray-500 mb-4">
+        <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">
           Added: {new Date(property.createdAt).toLocaleDateString()}
         </div>
 
         {/* Key Metrics - Single Column Layout */}
-        <div className="border-t border-gray-200 pt-4">
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
           <div className="flex items-center justify-center gap-2">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {formatCurrency(monthlyIncome)}
               </div>
-              <div className="text-sm text-gray-600">Monthly Income</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Monthly Income</div>
             </div>
           </div>
         </div>
@@ -92,7 +95,10 @@ export function ModernPropertyCard({ property, onViewDetails }: ModernPropertyCa
             variant="outline"
             size="sm"
             className="w-full"
-            onClick={() => onViewDetails?.(property)}
+            onClick={(e) => {
+              e.stopPropagation()
+              onViewDetails?.(property)
+            }}
           >
             <Eye className="h-4 w-4 mr-1" />
             View Details

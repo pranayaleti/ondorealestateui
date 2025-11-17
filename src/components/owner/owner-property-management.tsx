@@ -44,7 +44,7 @@ const mockPropertyManagement = [
     currentValue: 2800000,
     monthlyRent: 18500,
     monthlyExpenses: 5200,
-    managementCompany: "PropertyMatch Management",
+    managementCompany: "Ondo Real Estate",
     managementFee: 1850, // 10% of rent
     acquisitionDate: "2020-03-15",
     status: "active",
@@ -63,7 +63,7 @@ const mockPropertyManagement = [
     currentValue: 2200000,
     monthlyRent: 14200,
     monthlyExpenses: 4100,
-    managementCompany: "PropertyMatch Management",
+    managementCompany: "Ondo Real Estate",
     managementFee: 1420,
     acquisitionDate: "2019-08-22",
     status: "active",

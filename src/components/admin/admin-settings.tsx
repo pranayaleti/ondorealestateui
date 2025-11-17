@@ -103,7 +103,7 @@ export default function AdminSettings() {
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="company-name">Company Name</Label>
-                <Input id="company-name" value="PropertyMatch Management" />
+                <Input id="company-name" value="Ondo Real Estate" />
               </div>
               <div>
                 <Label htmlFor="company-address">Address</Label>

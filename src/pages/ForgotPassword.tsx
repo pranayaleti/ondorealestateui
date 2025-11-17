@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, CheckCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { getLogoPath } from "@/lib/logo"
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("")
@@ -66,14 +67,16 @@ export default function ForgotPassword() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white p-4">
         <div className="w-full max-w-md">
-          {/* OnDo Logo and Branding */}
+          {/* Ondo Real Estate Logo and Branding */}
           <div className="flex flex-col items-center mb-8">
             <div className="flex items-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-800 rounded-full flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-2xl">D</span>
-              </div>
+              <img 
+                src={getLogoPath()} 
+                alt="Ondo Real Estate logo" 
+                className="h-16 w-auto mr-3"
+              />
               <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-                OnDo
+                Ondo Real Estate
               </span>
             </div>
           </div>
@@ -122,14 +125,16 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-4">
       <div className="w-full max-w-md">
-        {/* OnDo Logo and Branding */}
+        {/* Ondo Real Estate Logo and Branding */}
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-800 rounded-full flex items-center justify-center mr-3">
-              <span className="text-white font-bold text-2xl">D</span>
-            </div>
+            <img 
+              src={getLogoPath()} 
+              alt="Ondo Real Estate logo" 
+              className="h-16 w-auto mr-3"
+            />
             <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-              OnDo
+              Ondo Real Estate
             </span>
           </div>
           <h1 className="text-2xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">

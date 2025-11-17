@@ -29,7 +29,7 @@ export default function LoginPage() {
         // The auth context will handle redirection based on user role
         toast({
           title: "Login successful",
-          description: "Welcome back to OnDo!",
+          description: "Welcome back to Ondo Real Estate!",
           duration: 1000, // 3 seconds for success messages
         })
       } else {
@@ -52,22 +52,68 @@ export default function LoginPage() {
     }
   }
 
+  const handleFillCredentials = (testEmail: string, testPassword: string) => {
+    setEmail(testEmail)
+    setPassword(testPassword)
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md">
-        {/* OnDo Logo and Branding */}
+        {/* Ondo Real Estate Logo and Branding */}
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-800 rounded-full flex items-center justify-center mr-3">
-              <span className="text-white font-bold text-2xl">D</span>
-            </div>
+            <img 
+              src={getLogoPath()}
+              alt="Ondo Real Estate logo" 
+              className="h-16 w-auto mr-3"
+            />
             <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-              OnDo
+              Ondo Real Estate
             </span>
           </div>
           <h1 className="text-2xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
             Sign in
           </h1>
+        </div>
+
+        {/* Test Credentials */}
+        <div className="mb-6 p-5 bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600 rounded-xl">
+          <h3 className="text-lg font-bold text-orange-500 dark:text-orange-400 mb-1">Test Credentials</h3>
+          <p className="text-gray-400 dark:text-gray-300 text-sm mb-4">Use these credentials to sign in for testing purposes</p>
+          
+          {/* Super Admin Account */}
+          <div className="mb-4 pb-4 border-b border-gray-700 dark:border-gray-600 last:border-b-0 last:mb-0 last:pb-0">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-base font-semibold text-gray-200 dark:text-gray-100">Super Admin Account</h4>
+              <button
+                type="button"
+                onClick={() => handleFillCredentials('pharikrishnaeee@gmail.com', 'hari1234')}
+                className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 text-sm font-medium transition-colors"
+              >
+                Fill
+              </button>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400 dark:text-gray-300">Email:</span>
+                <span className="text-gray-200 dark:text-gray-100 font-medium">pharikrishnaeee@gmail.com</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400 dark:text-gray-300">Password:</span>
+                <span className="text-gray-200 dark:text-gray-100 font-medium">hari1234</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400 dark:text-gray-300">Role:</span>
+                <span className="text-gray-200 dark:text-gray-100 font-medium">Super Administrator</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Note about other roles */}
+          <div className="text-xs text-gray-500 dark:text-gray-400 italic">
+            <p>Note: Manager, Owner, and Tenant accounts can be created through the invitation system.</p>
+          </div>
         </div>
 
         {/* Single Login Form */}

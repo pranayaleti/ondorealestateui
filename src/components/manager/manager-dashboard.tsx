@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -35,6 +36,7 @@ import ManagerMaintenance from "./manager-maintenance"
 export default function ManagerDashboard() {
   const { user } = useAuth()
   const { toast } = useToast()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("overview")
   const [properties, setProperties] = useState<Property[]>([])
   const [pendingProperties, setPendingProperties] = useState<Property[]>([])
@@ -325,7 +327,12 @@ export default function ManagerDashboard() {
         <TabsContent value="overview" className="space-y-4">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
+            <Card 
+              className="cursor-pointer hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/50 transition-all hover:border-primary/50 dark:hover:border-primary/30 dark:hover:bg-card/80"
+              onClick={() => {
+                setActiveTab("properties")
+              }}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Properties</CardTitle>
                 <Building className="h-4 w-4 text-muted-foreground" />
@@ -335,7 +342,12 @@ export default function ManagerDashboard() {
                 <p className="text-xs text-muted-foreground">All registered properties</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card 
+              className="cursor-pointer hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/50 transition-all hover:border-primary/50 dark:hover:border-primary/30 dark:hover:bg-card/80"
+              onClick={() => {
+                navigate("/dashboard/properties?status=pending")
+              }}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
@@ -345,7 +357,12 @@ export default function ManagerDashboard() {
                 <p className="text-xs text-muted-foreground">Awaiting approval</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card 
+              className="cursor-pointer hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/50 transition-all hover:border-primary/50 dark:hover:border-primary/30 dark:hover:bg-card/80"
+              onClick={() => {
+                navigate("/dashboard/properties?status=approved")
+              }}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Approved</CardTitle>
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
@@ -355,7 +372,12 @@ export default function ManagerDashboard() {
                 <p className="text-xs text-muted-foreground">Active properties</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card 
+              className="cursor-pointer hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/50 transition-all hover:border-primary/50 dark:hover:border-primary/30 dark:hover:bg-card/80"
+              onClick={() => {
+                navigate("/dashboard/properties?status=rejected")
+              }}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Rejected</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
@@ -376,18 +398,22 @@ export default function ManagerDashboard() {
             <CardContent>
               <div className="space-y-4">
                 {pendingProperties.slice(0, 5).map((property) => (
-                  <div key={property.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div 
+                    key={property.id} 
+                    className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-black/50 transition-all hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    onClick={() => handleViewProperty(property)}
+                  >
                     <div className="flex items-center space-x-4">
                       <Building className="h-8 w-8 text-blue-500" />
                       <div>
-                        <p className="font-medium">{property.title}</p>
-                        <p className="text-sm text-gray-600">{property.addressLine1}, {property.city}</p>
+                        <p className="font-medium dark:text-gray-100">{property.title}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{property.addressLine1}, {property.city}</p>
                         {property.owner && (
-                          <p className="text-xs text-gray-500">Owner: {property.owner.firstName} {property.owner.lastName}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-500">Owner: {property.owner.firstName} {property.owner.lastName}</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                       <Badge variant="secondary">
                         <Clock className="h-3 w-3 mr-1" />
                         Pending
@@ -396,7 +422,7 @@ export default function ManagerDashboard() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleViewProperty(property)}
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
                       >
                         View Details
                       </Button>
@@ -505,10 +531,14 @@ export default function ManagerDashboard() {
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {ownerProperties.map((property) => (
-                          <Card key={property.id} className="border-l-4 border-l-blue-500">
+                          <Card 
+                            key={property.id} 
+                            className="border-l-4 border-l-blue-500 cursor-pointer hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/50 transition-all"
+                            onClick={() => handleViewProperty(property)}
+                          >
                             <CardHeader className="pb-3">
                               <div className="flex items-center justify-between">
-                                <CardTitle className="text-sm font-medium">{property.title}</CardTitle>
+                                <CardTitle className="text-sm font-medium dark:text-card-foreground">{property.title}</CardTitle>
                                 <Badge variant={
                                   property.status === "approved" ? "default" : 
                                   property.status === "rejected" ? "destructive" : 
@@ -526,21 +556,21 @@ export default function ManagerDashboard() {
                             <CardContent className="pt-0">
                               <div className="space-y-2 text-sm">
                                 <div className="flex justify-between">
-                                  <span className="text-gray-600">Type:</span>
-                                  <span className="capitalize">{property.type}</span>
+                                  <span className="text-gray-600 dark:text-gray-400">Type:</span>
+                                  <span className="capitalize dark:text-gray-300">{property.type}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span className="text-gray-600">Submitted:</span>
-                                  <span>{new Date(property.createdAt).toLocaleDateString()}</span>
+                                  <span className="text-gray-600 dark:text-gray-400">Submitted:</span>
+                                  <span className="dark:text-gray-300">{new Date(property.createdAt).toLocaleDateString()}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span className="text-gray-600">Photos:</span>
-                                  <span>{property.photos?.length || 0}</span>
+                                  <span className="text-gray-600 dark:text-gray-400">Photos:</span>
+                                  <span className="dark:text-gray-300">{property.photos?.length || 0}</span>
                                 </div>
                               </div>
                               
                               {/* Action buttons */}
-                              <div className="flex gap-2 mt-3 pt-3 border-t">
+                              <div className="flex gap-2 mt-3 pt-3 border-t dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
                                 <Button
                                   size="sm"
                                   variant="outline"

@@ -1,19 +1,22 @@
 import { Link } from "react-router-dom"
 import { Card, CardContent } from "@/components/ui/card"
 import { CheckCircle, ArrowRight } from "lucide-react"
+import { getLogoPath } from "@/lib/logo"
 
 export default function Verify() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-4">
       <div className="w-full max-w-md">
-        {/* OnDo Logo and Branding */}
+        {/* Ondo Real Estate Logo and Branding */}
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-800 rounded-full flex items-center justify-center mr-3">
-              <span className="text-white font-bold text-2xl">D</span>
-            </div>
+            <img 
+              src={getLogoPath()} 
+              alt="Ondo Real Estate logo" 
+              className="h-16 w-auto mr-3"
+            />
             <span className="text-6xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-              OnDo
+              Ondo Real Estate
             </span>
           </div>
         </div>
@@ -31,12 +34,12 @@ export default function Verify() {
             </h1>
             
             <p className="text-gray-600 mb-8 max-w-sm mx-auto">
-              Your email has been successfully verified. You can now access your OnDo account and start managing your properties.
+              Your email has been successfully verified. You can now access your Ondo Real Estate account and start managing your properties.
             </p>
             
             <Link to="/login">
               <button className="w-full bg-gradient-to-r from-orange-500 to-red-800 hover:from-orange-600 hover:to-red-900 text-white font-medium py-4 rounded-2xl text-xl transition-all duration-200 flex items-center justify-center gap-2">
-                Access OnDo
+                Access Ondo Real Estate
                 <ArrowRight className="h-5 w-5" />
               </button>
             </Link>

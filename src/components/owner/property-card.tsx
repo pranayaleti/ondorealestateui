@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 // import Image from "next/image" // Replaced with img tag
 
 interface PropertyCardProps {
@@ -21,11 +21,16 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, getPropertyTypeIcon }: PropertyCardProps) {
+  const navigate = useNavigate()
+  
   return (
-    <Card className="overflow-hidden">
+    <Card 
+      className="overflow-hidden cursor-pointer hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/50 transition-all"
+      onClick={() => navigate(`/owner/properties/${property.id}`)}
+    >
       <div className="relative h-48">
         <img src={property.image || "/placeholder.svg"} alt={property.name} className="w-full h-full object-cover" />
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 right-2" onClick={(e) => e.stopPropagation()}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="h-8 w-8">
@@ -103,7 +108,7 @@ export function PropertyCard({ property, getPropertyTypeIcon }: PropertyCardProp
           </div>
         </div>
       </CardContent>
-      <CardFooter className="p-4 pt-0 flex justify-between">
+      <CardFooter className="p-4 pt-0 flex justify-between" onClick={(e) => e.stopPropagation()}>
         <Button variant="outline" asChild>
           <Link to={`/owner/properties/${property.id}`}>View Details</Link>
         </Button>

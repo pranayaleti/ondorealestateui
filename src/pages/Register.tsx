@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useApiRequest from "../hooks/useApiRequest";
+import { getLogoPath } from "@/lib/logo";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Please enter your name" }),
@@ -45,9 +46,9 @@ export default function Register() {
     <div className="h-screen w-full flex items-center justify-center bg-white">
       <div className="flex flex-col items-center gap-5">
         <div className="flex items-center">
-          <img className="w-20" src="/logo.png" alt="OnDo logo" />
+          <img className="w-20 h-auto" src={getLogoPath()} alt="Ondo Real Estate logo" />
           <p className="text-6xl font-medium font-kanit bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-            OnDo
+            Ondo Real Estate
           </p>
         </div>
 
