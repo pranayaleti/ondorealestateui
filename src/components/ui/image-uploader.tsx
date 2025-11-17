@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Upload, X, ZoomIn, ZoomOut, RotateCw } from 'lucide-react'
 import { useProfilePictureUpload } from '@/hooks/useProfilePictureUpload'
 import { useAuth } from '@/lib/auth-context'
@@ -170,6 +170,7 @@ export function ImageUploader({ onCropComplete, trigger }: ImageUploaderProps) {
         <DialogContent className="max-w-lg p-0 flex flex-col max-h-[90vh]">
           <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0">
             <DialogTitle>Crop Profile Picture</DialogTitle>
+            <DialogDescription>Adjust and crop your profile picture before uploading</DialogDescription>
           </DialogHeader>
           
           <div className="relative w-full flex-1 min-h-[300px] bg-gray-900 overflow-hidden">

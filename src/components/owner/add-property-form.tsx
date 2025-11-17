@@ -16,6 +16,8 @@ import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { propertyApi } from "@/lib/api"
 import { useS3Upload } from "@/hooks/useS3Upload"
+import { US_STATES, DEFAULT_US_COUNTRY, DEFAULT_US_COUNTRY_CODE } from "@/constants"
+import { normalizeUSPhone, validateUSPhone, validateUSZip } from "@/lib/us-format"
 
 export function AddPropertyForm() {
   const navigate = useNavigate()
@@ -56,7 +58,7 @@ export function AddPropertyForm() {
     addressLine2: "",
     city: "",
     state: "",
-    country: "",
+    country: DEFAULT_US_COUNTRY,
     zipcode: "",
     description: "",
     
@@ -91,9 +93,24 @@ export function AddPropertyForm() {
     reviewCount: "",
   })
 
+  const formatPhoneInput = (rawValue: string) => {
+    const digits = rawValue.replace(/\D/g, "").slice(0, 10)
+    if (digits.length <= 3) return digits
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    let nextValue = value
+
+    if (name === "phone") {
+      nextValue = formatPhoneInput(value)
+    } else if (name === "zipcode") {
+      nextValue = value.replace(/[^\d-]/g, "").slice(0, 10)
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: nextValue }))
   }
 
   const handleSelectChange = (name: string, value: string) => {
@@ -139,12 +156,35 @@ export function AddPropertyForm() {
       return
     }
 
+    if (formData.phone && !validateUSPhone(formData.phone)) {
+      toast({
+        title: "Invalid phone number",
+        description: "Please enter a valid US phone number (e.g., (555) 123-4567).",
+        variant: "destructive",
+      })
+      setIsSubmitting(false)
+      return
+    }
+
+    if (formData.zipcode && !validateUSZip(formData.zipcode)) {
+      toast({
+        title: "Invalid ZIP code",
+        description: "ZIP codes must be 5 digits or ZIP+4 (e.g., 12345 or 12345-6789).",
+        variant: "destructive",
+      })
+      setIsSubmitting(false)
+      return
+    }
+
     console.log("Adding property with user:", { user })
 
     try {
       // Convert string values to appropriate types for API
+      const normalizedPhone = formData.phone ? normalizeUSPhone(formData.phone) : ""
       const propertyData = {
         ...formData,
+        state: formData.state || undefined,
+        country: DEFAULT_US_COUNTRY,
         // Convert numeric fields
         price: formData.price ? parseFloat(formData.price) : undefined,
         bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : undefined,
@@ -158,10 +198,11 @@ export function AddPropertyForm() {
         valueRanges: formData.valueRanges.length > 0 ? formData.valueRanges : undefined,
         // Remove empty strings
         website: formData.website || undefined,
-        phone: formData.phone || undefined,
+        phone: normalizedPhone ? `${DEFAULT_US_COUNTRY_CODE}${normalizedPhone}` : undefined,
         leaseTerms: formData.leaseTerms || undefined,
         fees: formData.fees || undefined,
         availability: formData.availability || undefined,
+        zipcode: formData.zipcode || undefined,
       }
 
       console.log("Creating property with data:", propertyData)
@@ -282,24 +323,22 @@ export function AddPropertyForm() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="state">State</Label>
-                  <Input
-                    id="state"
-                    name="state"
-                    placeholder="e.g. UT"
-                    value={formData.state}
-                    onChange={handleChange}
-                  />
+                  <Select value={formData.state} onValueChange={(value) => handleSelectChange("state", value)}>
+                    <SelectTrigger id="state">
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {US_STATES.map((stateOption) => (
+                        <SelectItem key={stateOption.value} value={stateOption.value}>
+                          {stateOption.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="country">Country</Label>
-                  <Input
-                    id="country"
-                    name="country"
-                    placeholder="e.g. USA"
-                    value={formData.country}
-                    onChange={handleChange}
-                    required
-                  />
+                  <Input id="country" name="country" value={DEFAULT_US_COUNTRY} readOnly aria-readonly />
                 </div>
               </div>
 
@@ -309,9 +348,11 @@ export function AddPropertyForm() {
                   <Input
                     id="zipcode"
                     name="zipcode"
-                    placeholder="e.g. 84101"
+                    placeholder="e.g. 84101 or 84101-1234"
                     value={formData.zipcode}
                     onChange={handleChange}
+                    inputMode="numeric"
+                    pattern="\\d{5}(-\\d{4})?"
                   />
                 </div>
               </div>
@@ -396,6 +437,7 @@ export function AddPropertyForm() {
                     placeholder="e.g. (801) 555-1234"
                     value={formData.phone}
                     onChange={handleChange}
+                    inputMode="tel"
                   />
                 </div>
                 <div className="grid gap-2">

@@ -52,7 +52,7 @@ export const companyInfo = {
   serviceAreaCenter: {
     latitude: "40.7608",
     longitude: "-111.8910",
-    radius: "50000", // 50km radius for Salt Lake City area
+    radius: "31069", // 50-mile radius for Salt Lake City area
   },
 
   // Social media handles
@@ -118,6 +118,20 @@ export const companyInfo = {
   },
 };
 
+export interface DetectedTimezone {
+  iana: string;
+  abbreviation: string;
+  display: string;
+  isFallback: boolean;
+}
+
+export const companyTimezone: DetectedTimezone = {
+  iana: companyInfo.timezoneIANA,
+  abbreviation: companyInfo.timezoneAbbr,
+  display: `${companyInfo.timezoneAbbr} (${companyInfo.timezoneIANA})`,
+  isFallback: true,
+};
+
 // Helper function to generate canonical URL
 export function getCanonicalUrl(path = '') {
   const baseUrl = companyInfo.urls.website;
@@ -167,36 +181,34 @@ export function getWeekdayHours() {
 }
 
 // Helper function to get user's timezone in a user-friendly format
-export function getUserTimezone() {
-  if (typeof window === 'undefined' || typeof Intl === 'undefined') {
-    return companyInfo.timezoneAbbr; // Fallback to company timezone
+export function getUserTimezone(): DetectedTimezone {
+  if (typeof window === "undefined" || typeof Intl === "undefined") {
+    return companyTimezone;
   }
-  
+
   try {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    
+
     // Get timezone abbreviation (e.g., "PST", "EST", "GMT")
     const date = new Date();
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: timeZone,
-      timeZoneName: 'short'
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      timeZoneName: "short",
     });
     const parts = formatter.formatToParts(date);
-    const tzAbbr = parts.find(part => part.type === 'timeZoneName')?.value || '';
-    
+    const tzAbbr = parts.find((part) => part.type === "timeZoneName")?.value || "";
+    const friendlyName = tzAbbr || timeZone.split("/").pop()?.replace(/_/g, " ") || companyInfo.timezoneAbbr;
+
     // Return both IANA timezone and abbreviation for convenience
     return {
       iana: timeZone,
-      abbreviation: tzAbbr || timeZone.split('/').pop()?.replace(/_/g, ' ') || '',
-      display: tzAbbr || timeZone.split('/').pop()?.replace(/_/g, ' ') || ''
+      abbreviation: tzAbbr || friendlyName,
+      display: `${friendlyName} (${timeZone})`,
+      isFallback: false,
     };
   } catch (error) {
-    console.warn('Failed to detect timezone:', error);
-    return {
-      iana: companyInfo.timezoneIANA,
-      abbreviation: companyInfo.timezoneAbbr,
-      display: companyInfo.timezoneAbbr
-    };
+    console.warn("Failed to detect timezone:", error);
+    return companyTimezone;
   }
 }
 

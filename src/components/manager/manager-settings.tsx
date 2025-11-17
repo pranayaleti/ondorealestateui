@@ -8,13 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { Mail, Bell, Shield, Globe, Moon, Sun, Smartphone, Laptop, CheckCircle } from "lucide-react"
+import { US_TIMEZONES } from "@/constants"
+import { useUserTimezone } from "@/hooks/use-user-timezone"
 
 export default function ManagerSettings() {
   const [activeTab, setActiveTab] = useState("general")
   const [settings, setSettings] = useState({
     general: {
       theme: "light",
-      language: "english",
+      language: "en-US",
       timezone: "America/Denver",
     },
     notifications: {
@@ -46,6 +48,7 @@ export default function ManagerSettings() {
     },
   })
   const { toast } = useToast()
+  const { displayTimezone, storageTimezone } = useUserTimezone()
 
   const handleToggleChange = (category: string, subcategory: string, setting: string) => {
     setSettings((prev) => ({
@@ -143,29 +146,31 @@ export default function ManagerSettings() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="english">English</SelectItem>
-                      <SelectItem value="spanish">Spanish</SelectItem>
-                      <SelectItem value="french">French</SelectItem>
+                      <SelectItem value="en-US">English (US)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label>Timezone</Label>
                   <Select
                     value={settings.general.timezone}
                     onValueChange={(value) => handleSettingChange("general", "timezone", value)}
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder={displayTimezone.display} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="America/Denver">Mountain Time (MST)</SelectItem>
-                      <SelectItem value="America/New_York">Eastern Time (EST)</SelectItem>
-                      <SelectItem value="America/Chicago">Central Time (CST)</SelectItem>
-                      <SelectItem value="America/Los_Angeles">Pacific Time (PST)</SelectItem>
+                      {US_TIMEZONES.map((tz) => (
+                        <SelectItem key={tz.value} value={tz.value}>
+                          {tz.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Showing local time as {displayTimezone.display}. Records are saved using {storageTimezone.display}.
+                  </p>
                 </div>
               </div>
             </CardContent>

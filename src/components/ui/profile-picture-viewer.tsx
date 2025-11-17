@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { X } from 'lucide-react'
 
 interface ProfilePictureViewerProps {
@@ -29,6 +29,8 @@ export function ProfilePictureViewer({ imageSrc, userName }: ProfilePictureViewe
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-md p-0 bg-transparent border-none shadow-none">
+          <DialogTitle className="sr-only">Profile picture of {userName}</DialogTitle>
+          <DialogDescription className="sr-only">Viewing profile picture for {userName}</DialogDescription>
           <button
             onClick={() => setIsOpen(false)}
             className="absolute top-4 right-4 z-10 bg-black/80 hover:bg-black text-white rounded-full p-2 transition-colors"

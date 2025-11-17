@@ -307,7 +307,7 @@ export function Footer() {
                   aria-label="Scan QR code to access all social media links"
                 >
                   <img 
-                    src="/Linktree.png" 
+                    src={`${import.meta.env.BASE_URL}Linktree.png`}
                     alt="Linktree QR Code - Scan to access all social media" 
                     className="h-8 w-8 rounded border bg-white p-0.5"
                   />
@@ -333,6 +333,11 @@ export function Footer() {
               <div className="flex items-center gap-2">
                 <div className="rounded border border-gray-500 px-1 py-0.5 text-[8px] font-semibold tracking-wide">MLS</div>
                 <span>Multiple Listing Service</span>
+              </div>
+              <span className="h-4 w-px bg-gray-600" />
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                <span>CCPA & US Privacy Compliant</span>
               </div>
             </div>
           </div>

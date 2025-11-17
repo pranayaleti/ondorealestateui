@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 
 interface NavItem {
@@ -55,6 +55,8 @@ export function ManagerNav({ items, activeTab, className }: ManagerNavProps) {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-[300px] bg-gray-800 dark:bg-gray-900 text-white">
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            <SheetDescription className="sr-only">Manager navigation menu</SheetDescription>
             <div className="flex flex-col gap-2 mt-8">
               {items.map((item) => (
                 <Button

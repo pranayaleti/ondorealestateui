@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -30,6 +30,7 @@ import {
 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { type Property, leadApi } from "@/lib/api"
+import { formatUSDate, formatUSD, formatUSPhone } from "@/lib/us-format"
 
 interface PropertyDetailModalProps {
   property: Property | null
@@ -130,6 +131,7 @@ export function PropertyDetailModal({
             <Building className="h-6 w-6" />
             {property.title}
           </DialogTitle>
+          <DialogDescription>View detailed information about this property</DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
@@ -236,7 +238,7 @@ export function PropertyDetailModal({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Submitted:</span>
-                      <span className="font-medium">{new Date(property.createdAt).toLocaleDateString()}</span>
+                      <span className="font-medium">{formatUSDate(property.createdAt)}</span>
                     </div>
                     {property.owner && (
                       <div className="flex justify-between">
@@ -257,7 +259,9 @@ export function PropertyDetailModal({
                     {property.price && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Price:</span>
-                        <span className="font-medium text-green-700">${property.price}/month</span>
+                        <span className="font-medium text-green-700">
+                          {formatUSD(property.price)} / month
+                        </span>
                       </div>
                     )}
                     {property.bedrooms && (
@@ -424,7 +428,7 @@ export function PropertyDetailModal({
                       <div>
                         <p className="text-sm text-gray-600">Phone</p>
                         <a href={`tel:${property.phone}`} className="text-blue-600 hover:underline font-medium">
-                          {property.phone}
+                          {formatUSPhone(property.phone)}
                         </a>
                       </div>
                     </div>
@@ -453,7 +457,6 @@ export function PropertyDetailModal({
                     {property.addressLine2 && <p><strong>Address Line 2:</strong> {property.addressLine2}</p>}
                     <p><strong>City:</strong> {property.city}</p>
                     {property.state && <p><strong>State:</strong> {property.state}</p>}
-                    <p><strong>Country:</strong> {property.country}</p>
                     {property.zipcode && <p><strong>ZIP Code:</strong> {property.zipcode}</p>}
                   </div>
                 </div>

@@ -32,6 +32,7 @@ import { useToast } from "@/hooks/use-toast"
 import { PropertyDetailModal } from "@/components/property-detail-modal"
 import { ModernPropertyCard } from "@/components/owner/modern-property-card"
 import ManagerMaintenance from "./manager-maintenance"
+import { formatUSDate, formatUSD, formatUSPhone } from "@/lib/us-format"
 
 export default function ManagerDashboard() {
   const { user } = useAuth()
@@ -568,7 +569,7 @@ export default function ManagerDashboard() {
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-600 dark:text-gray-400">Submitted:</span>
-                                  <span className="dark:text-gray-300">{new Date(property.createdAt).toLocaleDateString()}</span>
+                                  <span className="dark:text-gray-300">{formatUSDate(property.createdAt)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-600 dark:text-gray-400">Photos:</span>
@@ -662,7 +663,7 @@ export default function ManagerDashboard() {
                                   </div>
                                   <div className="flex justify-between">
                                     <span className="text-gray-600">Joined:</span>
-                                    <span>{new Date(owner.createdAt).toLocaleDateString()}</span>
+                                    <span>{formatUSDate(owner.createdAt)}</span>
                                   </div>
                                 </div>
                               </CardContent>
@@ -706,7 +707,7 @@ export default function ManagerDashboard() {
                                 <div className="space-y-2 text-sm">
                                   <div className="flex justify-between">
                                     <span className="text-gray-600">Joined:</span>
-                                    <span>{new Date(tenant.createdAt).toLocaleDateString()}</span>
+                                    <span>{formatUSDate(tenant.createdAt)}</span>
                                   </div>
                                 </div>
                               </CardContent>
@@ -923,7 +924,9 @@ export default function ManagerDashboard() {
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-base md:text-lg text-gray-900 dark:text-gray-100 truncate">{lead.tenantName}</h4>
-                          <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 truncate">{lead.tenantEmail} • {lead.tenantPhone}</p>
+                          <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 truncate">
+                            {lead.tenantEmail} • {formatUSPhone(lead.tenantPhone)}
+                          </p>
                         </div>
                         <Badge variant={
                           lead.status === "new" ? "secondary" :
@@ -960,14 +963,16 @@ export default function ManagerDashboard() {
                               <div className="text-center">
                                 <Calendar className="h-4 w-4 text-green-600 mx-auto mb-1" />
                                 <p className="text-xs text-green-600 font-medium">Move-in</p>
-                                <p className="text-xs text-green-800 dark:text-green-200">{new Date(lead.moveInDate).toLocaleDateString()}</p>
+                                <p className="text-xs text-green-800 dark:text-green-200">{formatUSDate(lead.moveInDate)}</p>
                               </div>
                             )}
                             {lead.monthlyBudget && (
                               <div className="text-center">
                                 <DollarSign className="h-4 w-4 text-green-600 mx-auto mb-1" />
                                 <p className="text-xs text-green-600 font-medium">Budget</p>
-                                <p className="text-xs text-green-800 dark:text-green-200">${lead.monthlyBudget}/mo</p>
+                                <p className="text-xs text-green-800 dark:text-green-200">
+                                  {formatUSD(lead.monthlyBudget)} / mo
+                                </p>
                               </div>
                             )}
                             {lead.occupants !== undefined && (
@@ -999,7 +1004,7 @@ export default function ManagerDashboard() {
                       {/* Footer and Actions - Single Row */}
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-xs text-gray-500 dark:text-gray-400">
-                          <span>Submitted: {new Date(lead.createdAt).toLocaleDateString()}</span>
+                          <span>Submitted: {formatUSDate(lead.createdAt)}</span>
                           <span className="hidden sm:inline">•</span>
                           <span>Source: {lead.source}</span>
                         </div>

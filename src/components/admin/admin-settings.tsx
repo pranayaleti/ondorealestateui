@@ -11,8 +11,12 @@ import {
   Building,
   Mail
 } from "lucide-react"
+import { companyInfo } from "@/constants"
+import { useUserTimezone } from "@/hooks/use-user-timezone"
 
 export default function AdminSettings() {
+  const { displayTimezone, storageTimezone } = useUserTimezone()
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -37,7 +41,10 @@ export default function AdminSettings() {
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="timezone">Timezone</Label>
-                <Input id="timezone" value="America/Denver" />
+                <Input id="timezone" value={companyInfo.timezoneIANA} readOnly />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Users see local times as {displayTimezone.display}. Data persists in {storageTimezone.display}.
+                </p>
               </div>
               <div>
                 <Label htmlFor="currency">Currency</Label>

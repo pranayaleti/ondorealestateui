@@ -26,6 +26,7 @@ import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { propertyApi, type Property } from "@/lib/api"
 import { PropertyImageCarousel } from "@/components/ui/property-image-carousel"
+import { formatUSDate } from "@/lib/us-format"
 
 export default function ManagerPropertyReview() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -252,7 +253,7 @@ export default function ManagerPropertyReview() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Submitted:</span>
-                    <span className="dark:text-gray-300">{new Date(property.createdAt).toLocaleDateString()}</span>
+                    <span className="dark:text-gray-300">{formatUSDate(property.createdAt)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Photos:</span>

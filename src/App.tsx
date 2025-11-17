@@ -23,6 +23,8 @@ const Search = lazy(() => import('@/pages/Search'))
 const Owner = lazy(() => import('@/pages/Owner'))
 const Tenant = lazy(() => import('@/pages/Tenant'))
 const PageNotFound = lazy(() => import('@/pages/PageNotFound'))
+const Privacy = lazy(() => import('@/pages/Privacy'))
+const Terms = lazy(() => import('@/pages/Terms'))
 
 function App() {
   const location = useLocation()
@@ -47,6 +49,8 @@ function App() {
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/verify" element={<Verify />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
                 
                 {/* Protected Routes */}
                 <Route path="/dashboard/*" element={

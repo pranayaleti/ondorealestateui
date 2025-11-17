@@ -6,7 +6,7 @@ import UserMenu from "@/components/user-menu"
 import { useAuth } from "@/lib/auth-context"
 import { Logo } from "@/components/logo"
 import { Menu, LogOut } from "lucide-react"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -66,17 +66,19 @@ export default function Header() {
           isScrolled && "shadow-lg"
         )}
       >
-        <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
-          <Logo 
-            size="md" 
-            showText={true}
-            textColor="white"
-            linkTo="/"
-          />
-          <div className="flex items-center gap-2 md:gap-3">
+        <div className="container mx-auto px-2 sm:px-4 md:px-6 h-16 flex items-center justify-between gap-2 min-w-0">
+          <div className="flex items-center flex-shrink-0 min-w-0">
+            <Logo 
+              size="md" 
+              showText={true}
+              textColor="white"
+              linkTo="/"
+            />
+          </div>
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-3 flex-shrink-0">
             <ModeToggle />
             <Link to="/login">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-gray-800 dark:hover:bg-gray-900">
+              <Button variant="ghost" size="sm" className="text-white hover:bg-gray-800 dark:hover:bg-gray-900 text-xs sm:text-sm">
                 Log in
               </Button>
             </Link>
@@ -93,10 +95,10 @@ export default function Header() {
         isScrolled && "shadow-lg"
       )}
     >
-      {/* Desktop Navigation - Single Row */}
-      <div className="hidden md:flex container mx-auto px-4 md:px-6 h-16 items-center justify-between">
+      {/* Desktop/Tablet Navigation */}
+      <div className="hidden lg:flex container mx-auto px-2 sm:px-4 md:px-6 h-16 items-center justify-between gap-2 min-w-0">
         {/* Left: Logo */}
-        <div className="flex items-center flex-shrink-0">
+        <div className="flex items-center flex-shrink-0 min-w-0">
           <Logo 
             size="md" 
             showText={true}
@@ -104,40 +106,42 @@ export default function Header() {
           />
         </div>
 
-        {/* Center: Navigation Links */}
-        <nav className="flex items-center gap-1 flex-1 justify-center overflow-x-auto px-4">
-          {navItems.map((item) => {
-            const href = item.tab ? `${item.path}?tab=${item.tab}` : item.path
-            return (
-              <Link
-                key={item.path}
-                to={href}
-                className={cn(
-                  "px-4 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap",
-                  isActive(item)
-                    ? "bg-orange-500 text-gray-900 dark:text-gray-900 font-semibold"
-                    : "text-gray-300 dark:text-gray-400 hover:text-white"
-                )}
-              >
-                {item.label}
-              </Link>
-            )
-          })}
+        {/* Center: Navigation Links - Fluid with scroll */}
+        <nav className="flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 px-2 sm:px-4 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-1 sm:gap-2">
+            {navItems.map((item) => {
+              const href = item.tab ? `${item.path}?tab=${item.tab}` : item.path
+              return (
+                <Link
+                  key={item.tab ? `${item.path}-${item.tab}` : item.path}
+                  to={href}
+                  className={cn(
+                    "px-2 sm:px-3 md:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0",
+                    isActive(item)
+                      ? "bg-orange-500 text-gray-900 dark:text-gray-900 font-semibold"
+                      : "text-gray-300 dark:text-gray-400 hover:text-white hover:bg-gray-800"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
+          </div>
         </nav>
 
         {/* Right: Mode Toggle, User Menu */}
-        <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 md:gap-3 flex-shrink-0">
           <ModeToggle />
           <UserMenu />
         </div>
       </div>
 
-      {/* Mobile Navigation - Hamburger Menu */}
-      <div className="md:hidden bg-black dark:bg-gray-950">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+      {/* Tablet/Mobile Navigation - Hamburger Menu */}
+      <div className="lg:hidden bg-black dark:bg-gray-950">
+        <div className="container mx-auto px-2 sm:px-4 h-16">
+          <div className="flex items-center justify-between h-full gap-2 min-w-0">
             {/* Left: Logo */}
-            <div className="flex items-center flex-shrink-0">
+            <div className="flex items-center flex-shrink-0 min-w-0">
               <Logo 
                 size="sm" 
                 showText={true}
@@ -146,7 +150,7 @@ export default function Header() {
             </div>
 
             {/* Right: Menu, Mode Toggle, User Menu */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               <ModeToggle />
               <UserMenu />
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -154,12 +158,14 @@ export default function Header() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-gray-800 dark:hover:bg-gray-900"
+                    className="text-white hover:bg-gray-800 dark:hover:bg-gray-900 p-2"
                   >
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[300px] bg-gray-900 text-white p-0">
+                <SheetContent side="right" className="w-[280px] sm:w-[300px] bg-gray-900 text-white p-0">
+                  <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                  <SheetDescription className="sr-only">Main navigation menu with links to different sections</SheetDescription>
                   <div className="flex flex-col h-full">
                     <div className="p-4 border-b border-gray-800">
                       <span className="text-lg font-semibold">Menu</span>
@@ -170,7 +176,7 @@ export default function Header() {
                           const href = item.tab ? `${item.path}?tab=${item.tab}` : item.path
                           return (
                             <Link
-                              key={item.path}
+                              key={item.tab ? `${item.path}-${item.tab}` : item.path}
                               to={href}
                               onClick={() => setIsMobileMenuOpen(false)}
                               className={cn(

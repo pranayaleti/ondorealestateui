@@ -8,14 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { Mail, CreditCard, Globe, Moon, Sun, Smartphone, Laptop, CheckCircle } from "lucide-react"
+import { US_TIMEZONES, companyInfo } from "@/constants"
+import { useUserTimezone } from "@/hooks/use-user-timezone"
 
 export function SettingsView() {
   const [activeTab, setActiveTab] = useState("general")
   const [settings, setSettings] = useState({
     general: {
       theme: "light",
-      language: "english",
-      timezone: "America/New_York",
+      language: "en-US",
+      timezone: companyInfo.timezoneIANA,
     },
     notifications: {
       email: {
@@ -44,6 +46,7 @@ export function SettingsView() {
     },
   })
   const { toast } = useToast()
+  const { displayTimezone, storageTimezone } = useUserTimezone()
 
   const handleToggleChange = (category: string, subcategory: string, setting: string) => {
     setSettings((prev) => ({
@@ -132,25 +135,13 @@ export function SettingsView() {
                   onValueChange={(value) => handleSelectChange("general", "language", value)}
                 >
                   <SelectTrigger id="language">
-                    <SelectValue placeholder="Select language" />
+                    <SelectValue placeholder="English (US)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="english">
+                    <SelectItem value="en-US">
                       <div className="flex items-center">
                         <Globe className="h-4 w-4 mr-2" />
-                        English
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="spanish">
-                      <div className="flex items-center">
-                        <Globe className="h-4 w-4 mr-2" />
-                        Spanish
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="french">
-                      <div className="flex items-center">
-                        <Globe className="h-4 w-4 mr-2" />
-                        French
+                        English (US)
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -164,16 +155,19 @@ export function SettingsView() {
                   onValueChange={(value) => handleSelectChange("general", "timezone", value)}
                 >
                   <SelectTrigger id="timezone">
-                    <SelectValue placeholder="Select timezone" />
+                    <SelectValue placeholder={displayTimezone.display} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="America/New_York">Eastern Time (ET)</SelectItem>
-                    <SelectItem value="America/Chicago">Central Time (CT)</SelectItem>
-                    <SelectItem value="America/Denver">Mountain Time (MT)</SelectItem>
-                    <SelectItem value="America/Los_Angeles">Pacific Time (PT)</SelectItem>
-                    <SelectItem value="Europe/London">Greenwich Mean Time (GMT)</SelectItem>
+                    {US_TIMEZONES.map((tz) => (
+                      <SelectItem key={tz.value} value={tz.value}>
+                        {tz.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">
+                  Showing local time as {displayTimezone.display}. We store all records in {storageTimezone.display} for consistency.
+                </p>
               </div>
             </div>
           </CardContent>

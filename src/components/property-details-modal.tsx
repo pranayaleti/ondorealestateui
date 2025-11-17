@@ -1,6 +1,6 @@
 import { useState } from "react"
 // Image component removed - using standard img tags
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -68,6 +68,7 @@ export function PropertyDetailsModal({ company, open, onOpenChange }: PropertyDe
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" style={{ zIndex: 9000 }}>
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">{company.name}</DialogTitle>
+            <DialogDescription>View detailed information about this property</DialogDescription>
           </DialogHeader>
 
           <div className="mt-4">

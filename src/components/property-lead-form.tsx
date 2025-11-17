@@ -1,7 +1,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -109,7 +109,12 @@ export function PropertyLeadForm({ open, onClose, propertyName }: PropertyLeadFo
           </button>
 
           <div className="p-6">
-            <h2 className="text-xl font-semibold mb-6">{isSubmitted ? "Thank You!" : `Apply for ${propertyName}`}</h2>
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold mb-6">{isSubmitted ? "Thank You!" : `Apply for ${propertyName}`}</DialogTitle>
+              <DialogDescription className="sr-only">
+                {isSubmitted ? "Your application has been submitted successfully" : `Fill out the form to apply for ${propertyName}`}
+              </DialogDescription>
+            </DialogHeader>
 
             {!isSubmitted && (
               <div className="flex justify-between mb-6">

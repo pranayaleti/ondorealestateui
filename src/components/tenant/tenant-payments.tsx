@@ -18,12 +18,15 @@ import {
   Building
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { US_STATE_SALES_TAX } from "@/constants"
+import { formatUSD, formatUSDate } from "@/lib/us-format"
 
 // Mock payment data
 const mockPaymentData = {
   currentRent: 1850,
   nextDueDate: "2024-02-01",
   balance: 0,
+  state: "UT",
   paymentHistory: [
     {
       id: 1,
@@ -90,6 +93,20 @@ const mockPaymentData = {
       last4: "1234",
       bank: "Chase Bank",
       isDefault: false
+    },
+    {
+      id: 3,
+      type: "ach",
+      last4: "6789",
+      bank: "US Bank",
+      isDefault: false
+    },
+    {
+      id: 4,
+      type: "digital_wallet",
+      brand: "Venmo",
+      handle: "@ondorealestate",
+      isDefault: false
     }
   ]
 }
@@ -99,11 +116,15 @@ export default function TenantPayments() {
   const [activeTab, setActiveTab] = useState("overview")
   const [paymentAmount, setPaymentAmount] = useState(mockPaymentData.currentRent.toString())
   const [paymentMethod, setPaymentMethod] = useState("1")
+  const stateTaxRate = US_STATE_SALES_TAX[mockPaymentData.state as keyof typeof US_STATE_SALES_TAX] ?? 0
+  const paymentAmountNumber = Number(paymentAmount) || 0
+  const salesTaxAmount = Number((paymentAmountNumber * stateTaxRate).toFixed(2))
+  const totalDue = paymentAmountNumber + salesTaxAmount
 
   const handlePayment = () => {
     toast({
       title: "Payment Processed",
-      description: `Payment of $${paymentAmount} has been processed successfully.`,
+      description: `Payment of ${formatUSD(totalDue)} has been processed successfully.`,
     })
   }
 
@@ -126,6 +147,10 @@ export default function TenantPayments() {
         return <CreditCard className="h-4 w-4" />
       case "bank_account":
         return <Building className="h-4 w-4" />
+      case "ach":
+        return <Building className="h-4 w-4" />
+      case "digital_wallet":
+        return <DollarSign className="h-4 w-4" />
       default:
         return <DollarSign className="h-4 w-4" />
     }
@@ -160,9 +185,9 @@ export default function TenantPayments() {
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${mockPaymentData.currentRent}</div>
+                <div className="text-2xl font-bold">{formatUSD(mockPaymentData.currentRent)}</div>
                 <p className="text-xs text-muted-foreground">
-                  Due {mockPaymentData.nextDueDate}
+                  Due {formatUSDate(mockPaymentData.nextDueDate)}
                 </p>
                 <Button className="w-full mt-3" onClick={() => setActiveTab("pay")}>
                   Pay Now
@@ -177,7 +202,7 @@ export default function TenantPayments() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${mockPaymentData.balance}
+                  {formatUSD(mockPaymentData.balance)}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {mockPaymentData.balance === 0 ? "All caught up!" : "Outstanding balance"}
@@ -230,11 +255,11 @@ export default function TenantPayments() {
                       </div>
                       <div>
                         <p className="font-medium">{payment.type}</p>
-                        <p className="text-sm text-gray-500">{payment.date}</p>
+                        <p className="text-sm text-gray-500">{formatUSDate(payment.date)}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">${payment.amount}</p>
+                      <p className="font-semibold">{formatUSD(payment.amount)}</p>
                       <Badge className={getStatusColor(payment.status)}>
                         {payment.status}
                       </Badge>
@@ -271,7 +296,7 @@ export default function TenantPayments() {
                     />
                   </div>
                   <p className="text-sm text-gray-500 mt-1">
-                    Monthly rent: ${mockPaymentData.currentRent}
+                    Monthly rent: {formatUSD(mockPaymentData.currentRent)}
                   </p>
                 </div>
 
@@ -282,22 +307,28 @@ export default function TenantPayments() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockPaymentData.savedPaymentMethods.map((method) => (
-                        <SelectItem key={method.id} value={method.id.toString()}>
-                          <div className="flex items-center space-x-2">
-                            {getPaymentMethodIcon(method.type)}
-                            <span>
-                              {method.type === "credit_card" 
-                                ? `${method.brand} •••• ${method.last4}`
-                                : `${method.bank} •••• ${method.last4}`
-                              }
-                            </span>
-                            {method.isDefault && (
-                              <Badge variant="outline" className="ml-2">Default</Badge>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {mockPaymentData.savedPaymentMethods.map((method) => {
+                        let label = ""
+                        if (method.type === "credit_card") {
+                          label = `${method.brand} •••• ${method.last4}`
+                        } else if (method.type === "digital_wallet") {
+                          label = `${method.brand} ${method.handle ?? ""}`.trim()
+                        } else {
+                          label = `${method.bank || "ACH"} •••• ${method.last4}`
+                        }
+
+                        return (
+                          <SelectItem key={method.id} value={method.id.toString()}>
+                            <div className="flex items-center space-x-2">
+                              {getPaymentMethodIcon(method.type)}
+                              <span>{label}</span>
+                              {method.isDefault && (
+                                <Badge variant="outline" className="ml-2">Default</Badge>
+                              )}
+                            </div>
+                          </SelectItem>
+                        )
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
@@ -309,22 +340,30 @@ export default function TenantPayments() {
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span>Rent Amount:</span>
-                      <span>${paymentAmount}</span>
+                      <span>{formatUSD(paymentAmountNumber)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>State Sales Tax ({(stateTaxRate * 100).toFixed(2)}% - {mockPaymentData.state}):</span>
+                      <span>{formatUSD(salesTaxAmount)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Processing Fee:</span>
-                      <span>$0.00</span>
+                      <span>{formatUSD(0)}</span>
                     </div>
                     <div className="flex justify-between font-medium border-t pt-1">
                       <span>Total:</span>
-                      <span>${paymentAmount}</span>
+                      <span>{formatUSD(totalDue)}</span>
                     </div>
                   </div>
                 </div>
 
+                <p className="text-xs text-gray-500">
+                  Sales tax calculated per {mockPaymentData.state} requirements. Total reflects any applicable state and local taxes.
+                </p>
+
                 <Button className="w-full" onClick={handlePayment}>
                   <CreditCard className="h-4 w-4 mr-2" />
-                  Pay ${paymentAmount}
+                  Pay {formatUSD(totalDue)}
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center">
@@ -366,18 +405,18 @@ export default function TenantPayments() {
                           <p className="font-medium">{payment.type}</p>
                           {payment.lateFee > 0 && (
                             <Badge variant="outline" className="text-red-600">
-                              +${payment.lateFee} late fee
+                              +{formatUSD(payment.lateFee)} late fee
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-gray-500">{payment.date}</p>
+                        <p className="text-sm text-gray-500">{formatUSDate(payment.date)}</p>
                         <p className="text-xs text-gray-400">
                           {payment.method} • Ref: {payment.reference}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-lg">${payment.amount}</p>
+                      <p className="font-semibold text-lg">{formatUSD(payment.amount)}</p>
                       <Badge className={getStatusColor(payment.status)}>
                         {payment.status}
                       </Badge>

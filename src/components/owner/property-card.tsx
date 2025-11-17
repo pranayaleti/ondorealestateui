@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { MapPin, DollarSign, Calendar, MoreHorizontal } from "lucide-react"
+import { formatUSDate, formatUSD } from "@/lib/us-format"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -87,7 +88,7 @@ export function PropertyCard({ property, getPropertyTypeIcon }: PropertyCardProp
               <div className="text-muted-foreground">Monthly Income</div>
               <div className="font-medium flex items-center">
                 <DollarSign className="h-3.5 w-3.5 mr-1" />
-                {property.monthlyIncome.toLocaleString()}
+                {formatUSD(property.monthlyIncome)}
               </div>
             </div>
             <div>
@@ -101,7 +102,7 @@ export function PropertyCard({ property, getPropertyTypeIcon }: PropertyCardProp
                 <div className="text-muted-foreground">Lease Ends</div>
                 <div className="font-medium flex items-center">
                   <Calendar className="h-3.5 w-3.5 mr-1" />
-                  {new Date(property.leaseEnd).toLocaleDateString()}
+                  {formatUSDate(property.leaseEnd)}
                 </div>
               </div>
             )}
