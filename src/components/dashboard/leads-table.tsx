@@ -250,7 +250,7 @@ export function LeadsTable() {
               <TableCell className="font-medium">
                 <div className="flex items-center">
                   <Avatar className="h-8 w-8 mr-2">
-                    <AvatarImage src={application.avatar || "/placeholder.svg"} alt={application.name} />
+                    <AvatarImage src={application.avatar || `${import.meta.env.BASE_URL}placeholder.svg`} alt={application.name} />
                     <AvatarFallback>{application.name.substring(0, 2)}</AvatarFallback>
                   </Avatar>
                   <div>

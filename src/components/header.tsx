@@ -5,9 +5,10 @@ import { ModeToggle } from "@/components/mode-toggle"
 import UserMenu from "@/components/user-menu"
 import { useAuth } from "@/lib/auth-context"
 import { Logo } from "@/components/logo"
-import { Menu, LogOut } from "lucide-react"
+import { Menu, LogOut, Users } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { authApi, type InvitedUser } from "@/lib/api"
 
 const navItems = [
   { label: "Overview", path: "/dashboard", tab: "overview" },
@@ -24,6 +25,8 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { user, logout } = useAuth()
   const location = useLocation()
+  const [invitedUsers, setInvitedUsers] = useState<InvitedUser[]>([])
+  const [isLoadingInvited, setIsLoadingInvited] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -32,6 +35,27 @@ export default function Header() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Fetch invited users to compute active owners and tenants counts
+  useEffect(() => {
+    const fetchInvited = async () => {
+      if (!user || (user.role !== "manager" && user.role !== "admin")) return
+      try {
+        setIsLoadingInvited(true)
+        const users = await authApi.getInvitedUsers()
+        setInvitedUsers(users)
+      } catch (error) {
+        console.error("Error fetching invited users:", error)
+        setInvitedUsers([])
+      } finally {
+        setIsLoadingInvited(false)
+      }
+    }
+    fetchInvited()
+  }, [user])
+
+  const activeOwnersCount = invitedUsers.filter(u => u.role === "owner" && u.isActive).length
+  const activeTenantsCount = invitedUsers.filter(u => u.role === "tenant" && u.isActive).length
 
 
   const isActive = (item: { path: string; tab?: string }) => {
@@ -126,6 +150,58 @@ export default function Header() {
                 </Link>
               )
             })}
+            
+            {/* Active Owners and Tenants - Only show for managers/admins */}
+            {(user?.role === "manager" || user?.role === "admin") && (
+              <>
+                <Link
+                  to="/dashboard/owners"
+                  className={cn(
+                    "flex items-center gap-2 px-2 sm:px-3 md:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0",
+                    location.pathname === "/dashboard/owners" || location.pathname.startsWith("/dashboard/owners/")
+                      ? "bg-orange-500 text-gray-900 dark:text-gray-900 font-semibold"
+                      : "text-gray-300 dark:text-gray-400 hover:text-white hover:bg-gray-800"
+                  )}
+                >
+                  <Users className={cn(
+                    "h-4 w-4",
+                    location.pathname === "/dashboard/owners" || location.pathname.startsWith("/dashboard/owners/")
+                      ? "text-gray-900 dark:text-gray-900"
+                      : "text-gray-400 dark:text-gray-400"
+                  )} />
+                  <span>Active Owners</span>
+                  <span className={cn(
+                    "font-bold",
+                    location.pathname === "/dashboard/owners" || location.pathname.startsWith("/dashboard/owners/")
+                      ? "text-gray-900 dark:text-gray-900"
+                      : "text-white"
+                  )}>{isLoadingInvited ? "..." : activeOwnersCount}</span>
+                </Link>
+                <Link
+                  to="/dashboard/tenants"
+                  className={cn(
+                    "flex items-center gap-2 px-2 sm:px-3 md:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0",
+                    location.pathname === "/dashboard/tenants" || location.pathname.startsWith("/dashboard/tenants/")
+                      ? "bg-orange-500 text-gray-900 dark:text-gray-900 font-semibold"
+                      : "text-gray-300 dark:text-gray-400 hover:text-white hover:bg-gray-800"
+                  )}
+                >
+                  <Users className={cn(
+                    "h-4 w-4",
+                    location.pathname === "/dashboard/tenants" || location.pathname.startsWith("/dashboard/tenants/")
+                      ? "text-gray-900 dark:text-gray-900"
+                      : "text-gray-400 dark:text-gray-400"
+                  )} />
+                  <span>Active Tenants</span>
+                  <span className={cn(
+                    "font-bold",
+                    location.pathname === "/dashboard/tenants" || location.pathname.startsWith("/dashboard/tenants/")
+                      ? "text-gray-900 dark:text-gray-900"
+                      : "text-white"
+                  )}>{isLoadingInvited ? "..." : activeTenantsCount}</span>
+                </Link>
+              </>
+            )}
           </div>
         </nav>
 
@@ -190,6 +266,64 @@ export default function Header() {
                             </Link>
                           )
                         })}
+                        
+                        {/* Active Owners and Tenants - Only show for managers/admins */}
+                        {(user?.role === "manager" || user?.role === "admin") && (
+                          <>
+                            <Link
+                              to="/dashboard/owners"
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className={cn(
+                                "px-4 py-3 text-sm font-medium transition-colors border-b border-gray-800 rounded-md mx-2 my-1 flex items-center justify-between",
+                                location.pathname === "/dashboard/owners" || location.pathname.startsWith("/dashboard/owners/")
+                                  ? "bg-orange-500 text-gray-900 dark:text-gray-900 font-semibold"
+                                  : "text-gray-300 dark:text-gray-400 hover:text-white hover:bg-gray-800"
+                              )}
+                            >
+                              <div className="flex items-center gap-2">
+                                <Users className={cn(
+                                  "h-4 w-4",
+                                  location.pathname === "/dashboard/owners" || location.pathname.startsWith("/dashboard/owners/")
+                                    ? "text-gray-900 dark:text-gray-900"
+                                    : "text-gray-400 dark:text-gray-400"
+                                )} />
+                                <span>Active Owners</span>
+                              </div>
+                              <span className={cn(
+                                "font-bold",
+                                location.pathname === "/dashboard/owners" || location.pathname.startsWith("/dashboard/owners/")
+                                  ? "text-gray-900 dark:text-gray-900"
+                                  : "text-white"
+                              )}>{isLoadingInvited ? "..." : activeOwnersCount}</span>
+                            </Link>
+                            <Link
+                              to="/dashboard/tenants"
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className={cn(
+                                "px-4 py-3 text-sm font-medium transition-colors border-b border-gray-800 rounded-md mx-2 my-1 flex items-center justify-between",
+                                location.pathname === "/dashboard/tenants" || location.pathname.startsWith("/dashboard/tenants/")
+                                  ? "bg-orange-500 text-gray-900 dark:text-gray-900 font-semibold"
+                                  : "text-gray-300 dark:text-gray-400 hover:text-white hover:bg-gray-800"
+                              )}
+                            >
+                              <div className="flex items-center gap-2">
+                                <Users className={cn(
+                                  "h-4 w-4",
+                                  location.pathname === "/dashboard/tenants" || location.pathname.startsWith("/dashboard/tenants/")
+                                    ? "text-gray-900 dark:text-gray-900"
+                                    : "text-gray-400 dark:text-gray-400"
+                                )} />
+                                <span>Active Tenants</span>
+                              </div>
+                              <span className={cn(
+                                "font-bold",
+                                location.pathname === "/dashboard/tenants" || location.pathname.startsWith("/dashboard/tenants/")
+                                  ? "text-gray-900 dark:text-gray-900"
+                                  : "text-white"
+                              )}>{isLoadingInvited ? "..." : activeTenantsCount}</span>
+                            </Link>
+                          </>
+                        )}
                       </nav>
                     </div>
                     <div className="p-4 border-t border-gray-800">

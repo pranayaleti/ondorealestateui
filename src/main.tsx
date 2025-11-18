@@ -7,7 +7,13 @@ import "@/lib/us-locale-override"
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter basename="/ondorealestateui">
+    <BrowserRouter 
+      basename="/ondorealestateui"
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <App />
     </BrowserRouter>
   </React.StrictMode>,

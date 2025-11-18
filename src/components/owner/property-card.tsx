@@ -30,7 +30,7 @@ export function PropertyCard({ property, getPropertyTypeIcon }: PropertyCardProp
       onClick={() => navigate(`/owner/properties/${property.id}`)}
     >
       <div className="relative h-48">
-        <img src={property.image || "/placeholder.svg"} alt={property.name} className="w-full h-full object-cover" />
+        <img src={property.image || `${import.meta.env.BASE_URL}placeholder.svg`} alt={property.name} className="w-full h-full object-cover" />
         <div className="absolute top-2 right-2" onClick={(e) => e.stopPropagation()}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

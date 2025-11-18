@@ -70,16 +70,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Welcome back, {user?.firstName} {user?.lastName}!
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Here's your property management overview.
-        </p>
-      </div>
-
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>

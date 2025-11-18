@@ -23,7 +23,7 @@ const MOCK_REQUEST = {
     name: "John Smith",
     email: "john.smith@example.com",
     phone: "555-123-4567",
-    avatar: "/placeholder.svg?key=1g942",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?key=1g942`,
   },
   dateSubmitted: "2023-05-10",
   status: "in-progress",
@@ -35,7 +35,7 @@ const MOCK_REQUEST = {
   assignedVendor: "Quick Fix Plumbing",
   description:
     "The kitchen faucet has been leaking steadily for the past two days. I've tried tightening it but the leak continues. Water is pooling under the sink and I'm concerned about water damage.",
-  photos: ["/leaking-faucet.png", "/placeholder.svg?key=4lraf"],
+  photos: ["/leaking-faucet.png", `${import.meta.env.BASE_URL}placeholder.svg?key=4lraf`],
   updates: [
     {
       id: "upd-001",
@@ -62,7 +62,7 @@ const MOCK_REQUEST = {
       type: "message",
       content: "That time works for me. Thank you for the quick response!",
       user: "Tenant",
-      avatar: "/placeholder.svg?key=9xqre",
+      avatar: `${import.meta.env.BASE_URL}placeholder.svg?key=9xqre`,
     },
     {
       id: "upd-004",
@@ -211,7 +211,7 @@ export function OwnerMaintenanceDetail() {
                     {request.photos.map((photo, index) => (
                       <img
                         key={index}
-                        src={photo || "/placeholder.svg"}
+                        src={photo || `${import.meta.env.BASE_URL}placeholder.svg`}
                         alt={`Issue photo ${index + 1}`}
                         className="w-32 h-32 object-cover rounded-md border hover:opacity-90 transition-opacity cursor-pointer"
                         onClick={() => window.open(photo, "_blank")}
@@ -260,7 +260,7 @@ export function OwnerMaintenanceDetail() {
                           <div className="flex justify-between items-center mb-2">
                             <div className="flex items-center">
                               <Avatar className="h-6 w-6 mr-2">
-                                <AvatarImage src={update.avatar || "/placeholder.svg"} alt={update.user} />
+                                <AvatarImage src={update.avatar || `${import.meta.env.BASE_URL}placeholder.svg`} alt={update.user} />
                                 <AvatarFallback>{update.user.charAt(0)}</AvatarFallback>
                               </Avatar>
                               <span className="font-medium">{update.user}</span>

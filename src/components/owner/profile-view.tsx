@@ -33,7 +33,7 @@ const USER = {
   name: "Sarah Johnson",
   email: "sarah.johnson@example.com",
   phone: "555-123-4567",
-  avatar: "/placeholder.svg?key=1g942",
+  avatar: `${import.meta.env.BASE_URL}placeholder.svg?key=1g942`,
   company: "Johnson Property Management",
   address: "789 Business Ave, Suite 300, Salt Lake City, UT 84101",
   bio: "Property manager with over 10 years of experience in residential and commercial property management.",
@@ -177,7 +177,7 @@ export function ProfileView() {
               <div className="flex flex-col items-center sm:flex-row sm:items-start gap-6">
                 <div className="flex flex-col items-center gap-2">
                   <Avatar className="h-24 w-24">
-                    <AvatarImage src={userData.avatar || "/placeholder.svg"} alt={userData.name} />
+                    <AvatarImage src={userData.avatar || `${import.meta.env.BASE_URL}placeholder.svg`} alt={userData.name} />
                     <AvatarFallback>{userData.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <Button variant="outline" size="sm">

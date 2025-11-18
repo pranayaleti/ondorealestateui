@@ -28,7 +28,7 @@ const CONVERSATIONS = [
     recipient: {
       id: "user1",
       name: "John Smith",
-      avatar: "/placeholder.svg?key=9xqre",
+      avatar: `${import.meta.env.BASE_URL}placeholder.svg?key=9xqre`,
       role: "tenant",
       property: "123 Main Street, Unit 1",
     },
@@ -45,7 +45,7 @@ const CONVERSATIONS = [
     recipient: {
       id: "user2",
       name: "Sarah Johnson",
-      avatar: "/placeholder.svg?key=1g942",
+      avatar: `${import.meta.env.BASE_URL}placeholder.svg?key=1g942`,
       role: "tenant",
       property: "123 Main Street, Unit 2",
     },
@@ -62,7 +62,7 @@ const CONVERSATIONS = [
     recipient: {
       id: "user3",
       name: "Michael Brown",
-      avatar: "/placeholder.svg?key=3m7yt",
+      avatar: `${import.meta.env.BASE_URL}placeholder.svg?key=3m7yt`,
       role: "tenant",
       property: "456 Oak Avenue",
     },
@@ -79,7 +79,7 @@ const CONVERSATIONS = [
     recipient: {
       id: "user4",
       name: "Quick Fix Plumbing",
-      avatar: "/placeholder.svg?key=7p9qs",
+      avatar: `${import.meta.env.BASE_URL}placeholder.svg?key=7p9qs`,
       role: "vendor",
       property: "Multiple Properties",
     },
@@ -96,7 +96,7 @@ const CONVERSATIONS = [
     recipient: {
       id: "user5",
       name: "Elite Electric",
-      avatar: "/placeholder.svg?key=2k8lp",
+      avatar: `${import.meta.env.BASE_URL}placeholder.svg?key=2k8lp`,
       role: "vendor",
       property: "123 Main Street",
     },
@@ -113,7 +113,7 @@ const CONVERSATIONS = [
     recipient: {
       id: "user6",
       name: "Emily Wilson",
-      avatar: "/placeholder.svg?key=5r3tv",
+      avatar: `${import.meta.env.BASE_URL}placeholder.svg?key=5r3tv`,
       role: "tenant",
       property: "456 Oak Avenue, Unit 2",
     },
@@ -296,7 +296,7 @@ export function MessagesView() {
       recipient: {
         id: `user${conversations.length + 1}`,
         name: data.recipient,
-        avatar: "/placeholder.svg?key=new-user",
+        avatar: `${import.meta.env.BASE_URL}placeholder.svg?key=new-user`,
         role: data.recipientType,
         property: data.property,
       },
@@ -404,7 +404,7 @@ export function MessagesView() {
                     >
                       <Avatar className="h-10 w-10">
                         <AvatarImage
-                          src={conversation.recipient.avatar || "/placeholder.svg"}
+                          src={conversation.recipient.avatar || `${import.meta.env.BASE_URL}placeholder.svg`}
                           alt={conversation.recipient.name}
                         />
                         <AvatarFallback>{conversation.recipient.name.charAt(0)}</AvatarFallback>
@@ -446,7 +446,7 @@ export function MessagesView() {
                   <Avatar className="h-10 w-10">
                     <AvatarImage
                       src={
-                        conversations.find((c) => c.id === selectedConversation)?.recipient.avatar || "/placeholder.svg"
+                        conversations.find((c) => c.id === selectedConversation)?.recipient.avatar || `${import.meta.env.BASE_URL}placeholder.svg`
                       }
                       alt={conversations.find((c) => c.id === selectedConversation)?.recipient.name || "User"}
                     />

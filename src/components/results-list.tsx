@@ -32,7 +32,7 @@ const mockCompanies = [
   {
     id: 1,
     name: "Elite Property Management",
-    logo: "/placeholder.svg?height=80&width=80",
+    logo: `${import.meta.env.BASE_URL}placeholder.svg?height=80&width=80`,
     rating: 4.8,
     reviewCount: 124,
     address: "123 Main St, Salt Lake City, UT",
@@ -42,9 +42,9 @@ const mockCompanies = [
       "Full-service property management company with over 15 years of experience in the Salt Lake City area.",
     valueRanges: ["300k-500k", "500k-750k", "750k-1m"],
     images: [
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
     ],
     leaseTerms:
       "12-month minimum lease term with option to renew. $50 application fee per adult. Security deposit equal to one month's rent.",
@@ -90,7 +90,7 @@ export default function ResultsList({ properties }: ResultsListProps) {
               <div className="flex flex-col md:flex-row">
                 <div className="relative h-48 md:h-auto md:w-1/3">
                   <img
-                    src={property.image || "/placeholder.svg?height=300&width=400"}
+                    src={property.image || `${import.meta.env.BASE_URL}placeholder.svg?height=300&width=400`}
                     alt={property.title}
                     className="w-full h-full object-cover"
                   />

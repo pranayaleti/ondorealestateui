@@ -113,7 +113,7 @@ export function DashboardSidebar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="w-full justify-start px-2 py-6">
                 <Avatar className="h-8 w-8 mr-3">
-                  <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Avatar" />
+                  <AvatarImage src={`${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`} alt="Avatar" />
                   <AvatarFallback>AD</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-start">

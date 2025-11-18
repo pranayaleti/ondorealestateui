@@ -71,11 +71,6 @@ export default function LoginPage() {
 
       if (result.success) {
         // The auth context will handle redirection based on user role
-        toast({
-          title: "Login successful",
-          description: "Welcome back to Ondo Real Estate!",
-          duration: 1000, // 3 seconds for success messages
-        })
       } else {
         toast({
           title: "Login failed",
@@ -114,40 +109,104 @@ export default function LoginPage() {
         </div>
 
         {/* Test Credentials */}
-        <div className="mb-6 p-5 bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600 rounded-xl">
-          <h3 className="text-lg font-bold text-orange-500 dark:text-orange-400 mb-1">Test Credentials</h3>
-          <p className="text-gray-400 dark:text-gray-300 text-sm mb-4">Use these credentials to sign in for testing purposes</p>
+        <div className="mb-6">
+          <h3 className="text-lg font-bold text-orange-500 dark:text-orange-400 mb-1 text-center">Test Credentials</h3>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 text-center">Use these credentials to sign in for testing purposes</p>
           
-          {/* Super Admin Account */}
-          <div className="mb-4 pb-4 border-b border-gray-700 dark:border-gray-600 last:border-b-0 last:mb-0 last:pb-0">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-base font-semibold text-gray-200 dark:text-gray-100">Super Admin Account</h4>
-              <button
-                type="button"
-                onClick={() => handleFillCredentials('pharikrishnaeee@gmail.com', 'hari1234')}
-                className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 text-sm font-medium transition-colors"
-              >
-                Fill
-              </button>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-400 dark:text-gray-300">Email:</span>
-                <span className="text-gray-200 dark:text-gray-100 font-medium">pharikrishnaeee@gmail.com</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-400 dark:text-gray-300">Password:</span>
-                <span className="text-gray-200 dark:text-gray-100 font-medium">hari1234</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-400 dark:text-gray-300">Role:</span>
-                <span className="text-gray-200 dark:text-gray-100 font-medium">Super Administrator</span>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {/* Super Admin Account */}
+            <Card className="bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-base font-semibold text-gray-200 dark:text-gray-100">Super Admin</h4>
+                  <button
+                    type="button"
+                    onClick={() => handleFillCredentials('pharikrishnaeee@gmail.com', 'hari1234')}
+                    className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 text-sm font-medium transition-colors"
+                  >
+                    Fill
+                  </button>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-gray-400 dark:text-gray-300">Email:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all">pharikrishnaeee@gmail.com</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-gray-400 dark:text-gray-300">Password:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium">hari1234</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400 dark:text-gray-300">Role:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium">Super Admin</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tenant Account */}
+            <Card className="bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-base font-semibold text-gray-200 dark:text-gray-100">Tenant</h4>
+                  <button
+                    type="button"
+                    onClick={() => handleFillCredentials('pranayreddyui@gmail.com', 'Test@123')}
+                    className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 text-sm font-medium transition-colors"
+                  >
+                    Fill
+                  </button>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-gray-400 dark:text-gray-300">Email:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all">pranayreddyui@gmail.com</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-gray-400 dark:text-gray-300">Password:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium">Test@123</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400 dark:text-gray-300">Role:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium">Tenant</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Owner Account */}
+            <Card className="bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-base font-semibold text-gray-200 dark:text-gray-100">Owner</h4>
+                  <button
+                    type="button"
+                    onClick={() => handleFillCredentials('mail2pranayreddy@gmail.com', 'Test@123')}
+                    className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 text-sm font-medium transition-colors"
+                  >
+                    Fill
+                  </button>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-gray-400 dark:text-gray-300">Email:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all">mail2pranayreddy@gmail.com</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-gray-400 dark:text-gray-300">Password:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium">Test@123</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400 dark:text-gray-300">Role:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium">Owner</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Note about other roles */}
-          <div className="text-xs text-gray-500 dark:text-gray-400 italic">
+          <div className="text-xs text-gray-500 dark:text-gray-400 italic text-center">
             <p>Note: Manager, Owner, and Tenant accounts can be created through the invitation system.</p>
           </div>
         </div>

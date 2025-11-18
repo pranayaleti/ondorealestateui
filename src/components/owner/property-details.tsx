@@ -116,7 +116,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
         <Card className="md:col-span-2">
           <div className="relative h-64 w-full">
             <img
-              src={property.image || "/placeholder.svg"}
+              src={property.image || `${import.meta.env.BASE_URL}placeholder.svg`}
               alt={property.name}
               className="w-full h-full object-cover rounded-t-lg"
             />

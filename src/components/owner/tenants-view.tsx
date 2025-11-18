@@ -138,7 +138,7 @@ export function TenantsView() {
       leaseEnd: data.leaseEnd,
       rent: Number.parseInt(data.rent),
       status: "active",
-      avatar: `/placeholder.svg?height=40&width=40&query=${data.name
+      avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=40&width=40&query=${data.name
         .split(" ")
         .map((n: string) => n[0])
         .join("")}`,
@@ -212,7 +212,7 @@ export function TenantsView() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar>
-                              <AvatarImage src={tenant.avatar || "/placeholder.svg"} alt={tenant.name} />
+                              <AvatarImage src={tenant.avatar || `${import.meta.env.BASE_URL}placeholder.svg`} alt={tenant.name} />
                               <AvatarFallback>
                                 {tenant.name
                                   .split(" ")

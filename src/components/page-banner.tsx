@@ -11,12 +11,12 @@ export function PageBanner({ title, subtitle, backgroundImage }: PageBannerProps
       <div className="relative h-[300px] overflow-hidden">
         {backgroundImage ? (
           <img
-            src={backgroundImage || "/placeholder.svg"}
+            src={backgroundImage || `${import.meta.env.BASE_URL}placeholder.svg`}
             alt=""
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
-          <img src="/modern-apartment-balcony.png" alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <img src={`${import.meta.env.BASE_URL}modern-apartment-balcony.png`} alt="" className="absolute inset-0 w-full h-full object-cover" />
         )}
       </div>
       <div className="absolute inset-0 flex items-center z-20">

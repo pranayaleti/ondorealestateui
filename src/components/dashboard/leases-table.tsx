@@ -240,7 +240,7 @@ export function LeasesTable({ status }: { status?: string }) {
               <TableCell>
                 <div className="flex items-center">
                   <Avatar className="h-8 w-8 mr-2">
-                    <AvatarImage src={lease.avatar || "/placeholder.svg"} alt={lease.tenant} />
+                    <AvatarImage src={lease.avatar || `${import.meta.env.BASE_URL}placeholder.svg`} alt={lease.tenant} />
                     <AvatarFallback>{lease.tenant.substring(0, 2)}</AvatarFallback>
                   </Avatar>
                   <span>{lease.tenant}</span>

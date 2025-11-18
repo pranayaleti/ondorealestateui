@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -377,58 +378,66 @@ export default function ManagerProfile() {
                 </div>
 
                 <div className="w-full space-y-4 pt-6 border-t">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Building2 className="h-4 w-4" />
-                      <span>Properties Managed</span>
+                  <Link to="/dashboard/properties" className="block">
+                    <div className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Building2 className="h-4 w-4" />
+                        <span>Properties Managed</span>
+                      </div>
+                      <span className="font-semibold text-base">
+                        {isLoadingStats ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          portfolioStats?.propertiesManaged || 0
+                        )}
+                      </span>
                     </div>
-                    <span className="font-semibold text-base">
-                      {isLoadingStats ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        portfolioStats?.propertiesManaged || 0
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Users className="h-4 w-4" />
-                      <span>Active Owners</span>
+                  </Link>
+                  <Link to="/dashboard/owners" className="block">
+                    <div className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Users className="h-4 w-4" />
+                        <span>Active Owners</span>
+                      </div>
+                      <span className="font-semibold text-base">
+                        {(isLoadingInvited || isLoadingStats) ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          invitedUsers.filter(u => u.role === "owner" && u.isActive).length
+                        )}
+                      </span>
                     </div>
-                    <span className="font-semibold text-base">
-                      {(isLoadingInvited || isLoadingStats) ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        invitedUsers.filter(u => u.role === "owner" && u.isActive).length
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Users className="h-4 w-4" />
-                      <span>Active Tenants</span>
+                  </Link>
+                  <Link to="/dashboard/tenants" className="block">
+                    <div className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Users className="h-4 w-4" />
+                        <span>Active Tenants</span>
+                      </div>
+                      <span className="font-semibold text-base">
+                        {(isLoadingInvited || isLoadingStats) ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          invitedUsers.filter(u => u.role === "tenant" && u.isActive).length
+                        )}
+                      </span>
                     </div>
-                    <span className="font-semibold text-base">
-                      {(isLoadingInvited || isLoadingStats) ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        invitedUsers.filter(u => u.role === "tenant" && u.isActive).length
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <DollarSign className="h-4 w-4" />
-                      <span>Monthly Revenue</span>
+                  </Link>
+                  <Link to="/dashboard/finances" className="block">
+                    <div className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <DollarSign className="h-4 w-4" />
+                        <span>Monthly Revenue</span>
+                      </div>
+                      <span className="font-semibold text-base text-primary">
+                        {isLoadingStats ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          portfolioStats?.formattedMonthlyRevenue || "$0K"
+                        )}
+                      </span>
                     </div>
-                    <span className="font-semibold text-base text-primary">
-                      {isLoadingStats ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        portfolioStats?.formattedMonthlyRevenue || "$0K"
-                      )}
-                    </span>
-                  </div>
+                  </Link>
                 </div>
               </div>
             </CardContent>
@@ -588,14 +597,14 @@ export default function ManagerProfile() {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="city">City / District</Label>
+                      <Label htmlFor="city">City</Label>
                       <Input
                         id="city"
                         value={formData.city}
                         onChange={(e) => handleInputChange("city", e.target.value)}
                         disabled={!isEditing || isSavingProfile}
                         className={!isEditing ? "bg-muted" : ""}
-                        placeholder="City or district"
+                        placeholder="City"
                       />
                     </div>
                     <div className="space-y-2">

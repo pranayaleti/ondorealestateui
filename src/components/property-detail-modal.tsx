@@ -74,7 +74,7 @@ export function PropertyDetailModal({
           {hasImages ? (
             <div className="relative h-[300px] md:h-[400px] mb-6 rounded-lg overflow-hidden bg-gray-100">
               <img
-                src={property.photos?.[currentImageIndex]?.url || '/placeholder.svg'}
+                src={property.photos?.[currentImageIndex]?.url || `${import.meta.env.BASE_URL}placeholder.svg`}
                 alt={`${property.title} - Image ${currentImageIndex + 1}`}
                 className="w-full h-full object-cover"
               />

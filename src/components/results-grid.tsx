@@ -31,7 +31,7 @@ const mockCompanies = [
   {
     id: 1,
     name: "Elite Property Management",
-    logo: "/placeholder.svg?height=80&width=80",
+    logo: `${import.meta.env.BASE_URL}placeholder.svg?height=80&width=80`,
     rating: 4.8,
     reviewCount: 124,
     address: "123 Main St, Salt Lake City, UT",
@@ -41,9 +41,9 @@ const mockCompanies = [
       "Full-service property management company with over 15 years of experience in the Salt Lake City area.",
     valueRanges: ["300k-500k", "500k-750k", "750k-1m"],
     images: [
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
     ],
     leaseTerms:
       "12-month minimum lease term with option to renew. $50 application fee per adult. Security deposit equal to one month's rent.",
@@ -61,7 +61,7 @@ const mockCompanies = [
   {
     id: 2,
     name: "Premier Property Solutions",
-    logo: "/placeholder.svg?height=80&width=80",
+    logo: `${import.meta.env.BASE_URL}placeholder.svg?height=80&width=80`,
     rating: 4.6,
     reviewCount: 98,
     address: "456 State St, Salt Lake City, UT",
@@ -70,9 +70,9 @@ const mockCompanies = [
     description: "Specializing in residential and vacation rental management with personalized service.",
     valueRanges: ["under-300k", "300k-500k"],
     images: [
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
     ],
     leaseTerms:
       "6 or 12-month lease terms available. $35 application fee. Security deposit varies based on property value.",
@@ -90,7 +90,7 @@ const mockCompanies = [
   {
     id: 3,
     name: "Commercial Property Experts",
-    logo: "/placeholder.svg?height=80&width=80",
+    logo: `${import.meta.env.BASE_URL}placeholder.svg?height=80&width=80`,
     rating: 4.9,
     reviewCount: 76,
     address: "789 Business Blvd, Salt Lake City, UT",
@@ -99,9 +99,9 @@ const mockCompanies = [
     description: "Focused on commercial property management and HOA management services.",
     valueRanges: ["750k-1m", "over-1m"],
     images: [
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
     ],
     leaseTerms:
       "3-5 year commercial leases with annual increases. $100 application fee. Security deposit equal to two months' rent.",
@@ -119,7 +119,7 @@ const mockCompanies = [
   {
     id: 4,
     name: "Residential Management Group",
-    logo: "/placeholder.svg?height=80&width=80",
+    logo: `${import.meta.env.BASE_URL}placeholder.svg?height=80&width=80`,
     rating: 4.7,
     reviewCount: 112,
     address: "321 Housing Lane, Salt Lake City, UT",
@@ -128,9 +128,9 @@ const mockCompanies = [
     description: "Dedicated to providing exceptional management services for residential properties.",
     valueRanges: ["under-300k", "300k-500k", "500k-750k"],
     images: [
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
     ],
     leaseTerms:
       "12-month standard lease. $45 application fee per adult. Security deposit equal to one month's rent plus $500.",
@@ -148,7 +148,7 @@ const mockCompanies = [
   {
     id: 5,
     name: "Luxury Property Services",
-    logo: "/placeholder.svg?height=80&width=80",
+    logo: `${import.meta.env.BASE_URL}placeholder.svg?height=80&width=80`,
     rating: 4.9,
     reviewCount: 64,
     address: "555 Luxury Ave, Salt Lake City, UT",
@@ -157,9 +157,9 @@ const mockCompanies = [
     description: "Specializing in high-end properties and vacation rentals with concierge-level service.",
     valueRanges: ["750k-1m", "over-1m"],
     images: [
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
     ],
     leaseTerms:
       "12-month minimum for residential, flexible terms for vacation rentals. $75 application fee. Security deposit varies by property.",
@@ -177,7 +177,7 @@ const mockCompanies = [
   {
     id: 6,
     name: "Mountain View Management",
-    logo: "/placeholder.svg?height=80&width=80",
+    logo: `${import.meta.env.BASE_URL}placeholder.svg?height=80&width=80`,
     rating: 4.5,
     reviewCount: 87,
     address: "888 Mountain Rd, Salt Lake City, UT",
@@ -186,9 +186,9 @@ const mockCompanies = [
     description: "Local experts in Utah property management with a focus on customer satisfaction.",
     valueRanges: ["300k-500k", "500k-750k"],
     images: [
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
     ],
     leaseTerms: "6 or 12-month lease terms. $40 application fee. Security deposit equal to one month's rent.",
     services: ["Tenant screening", "Rent collection", "Maintenance", "Accounting", "Eviction handling"],
@@ -225,7 +225,7 @@ export default function ResultsGrid({ properties }: ResultsGridProps) {
           >
             <div className="relative h-48 w-full">
               <img
-                src={property.image || "/placeholder.svg?height=300&width=400"}
+                src={property.image || `${import.meta.env.BASE_URL}placeholder.svg?height=300&width=400`}
                 alt={property.title}
                 className="w-full h-full object-cover"
               />

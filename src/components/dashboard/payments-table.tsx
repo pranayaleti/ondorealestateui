@@ -247,7 +247,7 @@ export function PaymentsTable({ status }: { status?: string }) {
               <TableCell>
                 <div className="flex items-center">
                   <Avatar className="h-8 w-8 mr-2">
-                    <AvatarImage src={payment.avatar || "/placeholder.svg"} alt={payment.tenant} />
+                    <AvatarImage src={payment.avatar || `${import.meta.env.BASE_URL}placeholder.svg`} alt={payment.tenant} />
                     <AvatarFallback>{payment.tenant.substring(0, 2)}</AvatarFallback>
                   </Avatar>
                   <span>{payment.tenant}</span>

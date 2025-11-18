@@ -25,7 +25,7 @@ const maintenanceRequests = [
     priority: "low",
     status: "open",
     date: "2023-04-25T09:24:00",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`,
     description: "The kitchen sink faucet has been leaking for the past two days. Water is pooling under the sink.",
     category: "plumbing",
   },
@@ -37,7 +37,7 @@ const maintenanceRequests = [
     priority: "high",
     status: "in-progress",
     date: "2023-04-24T14:12:00",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`,
     description:
       "The air conditioning unit is making a loud noise and not cooling effectively. Temperature inside is 85°F.",
     category: "hvac",
@@ -50,7 +50,7 @@ const maintenanceRequests = [
     priority: "medium",
     status: "scheduled",
     date: "2023-04-23T11:45:00",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`,
     description:
       "The window in the living room has a crack across the bottom pane. It doesn't appear to be letting air in but should be fixed.",
     category: "windows",
@@ -64,7 +64,7 @@ const maintenanceRequests = [
     priority: "medium",
     status: "completed",
     date: "2023-04-22T16:30:00",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`,
     description:
       "Dishwasher fills with water but doesn't drain properly. Standing water remains after cycle completes.",
     category: "appliance",
@@ -78,7 +78,7 @@ const maintenanceRequests = [
     priority: "high",
     status: "open",
     date: "2023-04-21T10:15:00",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`,
     description: "The smoke detector in the hallway is beeping every 30 seconds. Likely needs a battery replacement.",
     category: "electrical",
   },
@@ -90,7 +90,7 @@ const maintenanceRequests = [
     priority: "low",
     status: "in-progress",
     date: "2023-04-20T13:20:00",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`,
     description: "Garbage disposal makes a humming sound but doesn't spin. Something may be stuck inside.",
     category: "plumbing",
   },
@@ -102,7 +102,7 @@ const maintenanceRequests = [
     priority: "high",
     status: "scheduled",
     date: "2023-04-19T15:45:00",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`,
     description: "Water is leaking from the bathroom ceiling when the upstairs neighbor uses their shower.",
     category: "plumbing",
     scheduledDate: "2023-04-26T09:30:00",
@@ -115,7 +115,7 @@ const maintenanceRequests = [
     priority: "medium",
     status: "completed",
     date: "2023-04-18T09:30:00",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`,
     description:
       "The central heating system isn't turning on. Thermostat shows power but no heat is coming through vents.",
     category: "hvac",
@@ -129,7 +129,7 @@ const maintenanceRequests = [
     priority: "low",
     status: "open",
     date: "2023-04-17T11:15:00",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`,
     description: "The sliding closet door in the bedroom is off its track and won't close properly.",
     category: "doors",
   },
@@ -141,7 +141,7 @@ const maintenanceRequests = [
     priority: "medium",
     status: "scheduled",
     date: "2023-04-16T14:50:00",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`,
     description:
       "The electrical outlet in the living room near the TV isn't working. Other outlets in the room work fine.",
     category: "electrical",
@@ -237,7 +237,7 @@ export function MaintenanceTable({ status }: { status?: string }) {
               <TableCell>
                 <div className="flex items-center">
                   <Avatar className="h-8 w-8 mr-2">
-                    <AvatarImage src={request.avatar || "/placeholder.svg"} alt={request.tenant} />
+                    <AvatarImage src={request.avatar || `${import.meta.env.BASE_URL}placeholder.svg`} alt={request.tenant} />
                     <AvatarFallback>{request.tenant.substring(0, 2)}</AvatarFallback>
                   </Avatar>
                   <span>{request.tenant}</span>

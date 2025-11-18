@@ -75,7 +75,7 @@ export function PropertyDetailsModal({ company, open, onOpenChange }: PropertyDe
             {/* Image Slider */}
             <div className="relative h-[300px] md:h-[400px] mb-6 rounded-lg overflow-hidden">
               <img
-                src={company.images[currentImageIndex] || "/placeholder.svg"}
+                src={company.images[currentImageIndex] || `${import.meta.env.BASE_URL}placeholder.svg`}
                 alt={`${company.name} property image ${currentImageIndex + 1}`}
                 className="w-full h-full object-cover"
               />
@@ -109,7 +109,7 @@ export function PropertyDetailsModal({ company, open, onOpenChange }: PropertyDe
             <div className="flex items-center mb-6">
               <div className="relative h-20 w-20 rounded-md overflow-hidden bg-gray-100 mr-4">
                 <img
-                  src={company.logo || "/placeholder.svg"}
+                  src={company.logo || `${import.meta.env.BASE_URL}placeholder.svg`}
                   alt={`${company.name} logo`}
                   className="w-full h-full object-contain p-2"
                 />

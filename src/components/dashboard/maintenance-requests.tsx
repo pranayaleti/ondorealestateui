@@ -14,7 +14,7 @@ const maintenanceRequests = [
     priority: "low",
     status: "open",
     date: "2023-04-25T09:24:00",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`,
   },
   {
     id: "M-1002",
@@ -24,7 +24,7 @@ const maintenanceRequests = [
     priority: "high",
     status: "in-progress",
     date: "2023-04-24T14:12:00",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`,
   },
   {
     id: "M-1003",
@@ -34,7 +34,7 @@ const maintenanceRequests = [
     priority: "medium",
     status: "scheduled",
     date: "2023-04-23T11:45:00",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`,
   },
   {
     id: "M-1004",
@@ -44,7 +44,7 @@ const maintenanceRequests = [
     priority: "medium",
     status: "completed",
     date: "2023-04-22T16:30:00",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: `${import.meta.env.BASE_URL}placeholder.svg?height=32&width=32`,
   },
 ]
 
@@ -86,7 +86,7 @@ export function MaintenanceRequests() {
           <CardContent className="p-0">
             <div className="flex items-start p-4">
               <Avatar className="h-9 w-9 mr-3">
-                <AvatarImage src={request.avatar || "/placeholder.svg"} alt={request.tenant} />
+                <AvatarImage src={request.avatar || `${import.meta.env.BASE_URL}placeholder.svg`} alt={request.tenant} />
                 <AvatarFallback>{request.tenant.substring(0, 2)}</AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-1">

@@ -26,7 +26,7 @@ export function PropertyListItem({ property, getPropertyTypeIcon }: PropertyList
       <CardContent className="p-0">
         <div className="flex flex-col sm:flex-row">
           <div className="relative w-full sm:w-48 h-32">
-            <img src={property.image || "/placeholder.svg"} alt={property.name} className="w-full h-full object-cover" />
+            <img src={property.image || `${import.meta.env.BASE_URL}placeholder.svg`} alt={property.name} className="w-full h-full object-cover" />
           </div>
           <div className="flex-1 p-4">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">

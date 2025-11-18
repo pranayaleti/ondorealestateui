@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Routes, Route, Link, useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -69,8 +69,18 @@ const mockOwners = [
 ]
 
 function OwnersList() {
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  
+  // Check URL params for status filter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const statusParam = params.get("status")
+    if (statusParam) {
+      setStatusFilter(statusParam)
+    }
+  }, [])
 
   const filteredOwners = mockOwners.filter(owner => {
     const matchesSearch = owner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -114,50 +124,58 @@ function OwnersList() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Owners</p>
-                <p className="text-2xl font-bold">{mockOwners.length}</p>
+        <Link to="/dashboard/owners">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Owners</p>
+                  <p className="text-2xl font-bold">{mockOwners.length}</p>
+                </div>
+                <Users className="h-8 w-8 text-blue-500" />
               </div>
-              <Users className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active Owners</p>
-                <p className="text-2xl font-bold">{mockOwners.filter(o => o.status === "active").length}</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link to="/dashboard/owners?status=active">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Active Owners</p>
+                  <p className="text-2xl font-bold">{mockOwners.filter(o => o.status === "active").length}</p>
+                </div>
+                <Building className="h-8 w-8 text-green-500" />
               </div>
-              <Building className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Pending Invites</p>
-                <p className="text-2xl font-bold">{mockOwners.filter(o => o.status === "pending_invitation").length}</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link to="/dashboard/owners?status=pending_invitation">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Pending Invites</p>
+                  <p className="text-2xl font-bold">{mockOwners.filter(o => o.status === "pending_invitation").length}</p>
+                </div>
+                <Mail className="h-8 w-8 text-orange-500" />
               </div>
-              <Mail className="h-8 w-8 text-orange-500" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Properties</p>
-                <p className="text-2xl font-bold">{mockOwners.reduce((sum, o) => sum + o.properties, 0)}</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link to="/dashboard/properties">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Properties</p>
+                  <p className="text-2xl font-bold">{mockOwners.reduce((sum, o) => sum + o.properties, 0)}</p>
+                </div>
+                <DollarSign className="h-8 w-8 text-purple-500" />
               </div>
-              <DollarSign className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Filters */}
@@ -191,8 +209,9 @@ function OwnersList() {
       {/* Owners List */}
       <div className="space-y-4">
         {filteredOwners.map((owner) => (
-          <Card key={owner.id} className="hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
+          <Link key={owner.id} to={`/dashboard/owners/${owner.id}`}>
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-12 w-12">
@@ -225,19 +244,39 @@ function OwnersList() {
                         variant="outline" 
                         size="sm" 
                         className="ml-2 border-ondo-orange text-ondo-orange hover:bg-ondo-orange hover:text-white"
-                        onClick={() => handleResendInvitation(owner.email)}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleResendInvitation(owner.email)
+                        }}
                       >
                         <Send className="h-4 w-4 mr-2" />
                         Resend Invite
                       </Button>
                     )}
                   </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
+                  <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        navigate(`/dashboard/owners/${owner.id}`)
+                      }}
+                    >
                       <Eye className="h-4 w-4 mr-2" />
                       View
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        navigate(`/dashboard/owners/${owner.id}/edit`)
+                      }}
+                    >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
                     </Button>
@@ -294,7 +333,11 @@ function OwnersList() {
                       variant="outline" 
                       size="sm"
                       className="border-ondo-orange text-ondo-orange hover:bg-ondo-orange hover:text-white"
-                      onClick={() => handleResendInvitation(owner.email)}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleResendInvitation(owner.email)
+                      }}
                     >
                       <Send className="h-4 w-4 mr-2" />
                       Resend Invitation
@@ -304,6 +347,7 @@ function OwnersList() {
               )}
             </CardContent>
           </Card>
+          </Link>
         ))}
       </div>
 

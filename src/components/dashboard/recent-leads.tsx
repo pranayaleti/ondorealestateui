@@ -108,7 +108,7 @@ export function RecentLeads() {
             <TableCell className="font-medium">
               <div className="flex items-center">
                 <Avatar className="h-8 w-8 mr-2">
-                  <AvatarImage src={lead.avatar || "/placeholder.svg"} alt={lead.name} />
+                  <AvatarImage src={lead.avatar || `${import.meta.env.BASE_URL}placeholder.svg`} alt={lead.name} />
                   <AvatarFallback>{lead.name.substring(0, 2)}</AvatarFallback>
                 </Avatar>
                 <div>

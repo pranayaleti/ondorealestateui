@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { authApi, tokenManager, type User, ApiError } from "@/lib/api"
+import { toast } from "@/hooks/use-toast"
 
 export type UserRole = "admin" | "manager" | "owner" | "tenant"
 
@@ -41,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     phone: apiUser.phone,
     address: apiUser.address,
     profilePicture: apiUser.profilePicture,
-    avatar: apiUser.profilePicture || "/abstract-geometric-shapes.png", // Use profile picture or default
+    avatar: apiUser.profilePicture, // Use profile picture, fallback handled in components
   })
 
   // Check for existing session on mount
@@ -74,11 +75,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setUser(userData)
       
-      // Auto-redirect based on user role
+      // Show welcome toast once per session after login
+      const welcomeKey = `welcome_shown_${userData.id}`
+      const hasShownWelcome = sessionStorage.getItem(welcomeKey)
+      
+      if (!hasShownWelcome && userData.firstName) {
+        toast({
+          title: `Welcome back, ${userData.firstName}!`,
+          description: "Here's your property management overview.",
+          duration: 4000,
+          variant: "orange",
+        })
+        sessionStorage.setItem(welcomeKey, "true")
+      }
+      
+      // Auto-redirect based on user role (with small delay to ensure toast shows)
       const redirectPath = userData.role === "tenant" ? "/tenant" : 
                           userData.role === "owner" ? "/owner" : 
                           userData.role === "manager" ? "/dashboard" : "/"
-      navigate(redirectPath)
+      
+      // Small delay to ensure toast is displayed before navigation
+      setTimeout(() => {
+        navigate(redirectPath)
+      }, 100)
       
       setIsLoading(false)
       return { success: true }

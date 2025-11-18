@@ -12,22 +12,22 @@ const featuredProperties = [
     id: 101,
     name: "Modern Downtown Apartment",
     description: "Salt Lake City, UT",
-    image: "/modern-apartment-balcony.png",
+    image: `${import.meta.env.BASE_URL}modern-apartment-balcony.png`,
     bedrooms: 2,
     bathrooms: 2,
     price: 1850,
     shortDescription: "Luxury apartment with balcony and city views, pet-friendly with modern amenities.",
     address: "123 Downtown Ave, Salt Lake City, UT",
-    logo: "/placeholder.svg?height=80&width=80",
+    logo: `${import.meta.env.BASE_URL}placeholder.svg?height=80&width=80`,
     rating: 4.8,
     reviewCount: 24,
     phone: "(801) 555-1234",
     specialties: ["apartment", "downtown"],
     valueRanges: ["300k-500k"],
     images: [
-      "/modern-apartment-balcony.png",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      `${import.meta.env.BASE_URL}modern-apartment-balcony.png`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
     ],
     leaseTerms: "12-month minimum lease term with option to renew. $50 application fee per adult.",
     services: ["24/7 maintenance", "Package receiving", "Online rent payment", "Fitness center", "Rooftop lounge"],
@@ -45,7 +45,7 @@ const featuredProperties = [
     price: 2400,
     shortDescription: "Spacious family home with fenced backyard, finished basement, and 2-car garage.",
     address: "456 Garden Lane, Holladay, UT",
-    logo: "/placeholder.svg?height=80&width=80",
+    logo: `${import.meta.env.BASE_URL}placeholder.svg?height=80&width=80`,
     rating: 4.6,
     reviewCount: 18,
     phone: "(801) 555-5678",
@@ -53,8 +53,8 @@ const featuredProperties = [
     valueRanges: ["500k-750k"],
     images: [
       "/suburban-house-garden.png",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
     ],
     leaseTerms: "12-month lease. $45 application fee per adult. Security deposit equal to one month's rent.",
     services: ["Lawn maintenance", "Snow removal", "Pest control", "Annual HVAC service", "24/7 emergency support"],
@@ -72,7 +72,7 @@ const featuredProperties = [
     price: 1650,
     shortDescription: "Contemporary townhouse with attached garage, open floor plan, and community pool access.",
     address: "789 Modern Way, Midvale, UT",
-    logo: "/placeholder.svg?height=80&width=80",
+    logo: `${import.meta.env.BASE_URL}placeholder.svg?height=80&width=80`,
     rating: 4.7,
     reviewCount: 15,
     phone: "(801) 555-9012",
@@ -80,8 +80,8 @@ const featuredProperties = [
     valueRanges: ["300k-500k"],
     images: [
       "/modern-townhouse-garage.png",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
+      `${import.meta.env.BASE_URL}placeholder.svg?height=600&width=800`,
     ],
     leaseTerms: "6 or 12-month lease terms. $40 application fee. Security deposit equal to one month's rent.",
     services: ["Community pool maintenance", "Exterior maintenance", "Trash removal", "Snow removal", "HOA management"],
@@ -167,7 +167,7 @@ export default function LandingPage() {
               <Card key={property.id} className="dark:bg-gray-900">
                 <div className="relative h-48 w-full">
                   <img
-                    src={property.image || "/placeholder.svg"}
+                    src={property.image || `${import.meta.env.BASE_URL}placeholder.svg`}
                     alt={property.name}
                     className="w-full h-full object-cover"
                   />

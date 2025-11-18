@@ -323,11 +323,6 @@ export default function ManagerDashboard() {
 
   return (
     <div className="container mx-auto px-4 py-4 md:py-8">
-      <div className="mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {user?.firstName} {user?.lastName}!</h1>
-        <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">Here's your property management overview.</p>
-      </div>
-
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
 
         <TabsContent value="overview" className="space-y-4">
