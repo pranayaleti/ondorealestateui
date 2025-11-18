@@ -1,20 +1,43 @@
 import { Navigate, useLocation } from "react-router-dom"
+import { useEffect, useRef } from "react"
 import { useAuth } from "@/lib/auth-context"
+import { canAccessRoute, getUnauthorizedRedirectPath, type UserRole } from "@/lib/auth-utils"
 import Loading from "@/components/loading"
+import { toast } from "@/hooks/use-toast"
 
 interface ProtectedRouteProps {
   children: React.ReactNode
-  allowedRoles?: ("admin" | "manager" | "owner" | "tenant")[]
+  allowedRoles?: UserRole[]
   redirectTo?: string
 }
 
 export default function ProtectedRoute({ 
   children, 
-  allowedRoles = ["admin", "manager", "owner", "tenant"],
+  allowedRoles,
   redirectTo = "/login"
 }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth()
   const location = useLocation()
+  const hasWarnedRef = useRef(false)
+
+  useEffect(() => {
+    if (
+      !hasWarnedRef.current &&
+      !isLoading &&
+      user &&
+      allowedRoles &&
+      allowedRoles.length > 0 &&
+      !canAccessRoute(user.role, allowedRoles)
+    ) {
+      const roleLabel = user.role.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())
+      toast({
+        title: "Access restricted",
+        description: `${roleLabel} cannot access that page. Redirected to your dashboard.`,
+        variant: "destructive",
+      })
+      hasWarnedRef.current = true
+    }
+  }, [isLoading, user, allowedRoles])
 
   // Show loading while checking authentication
   if (isLoading) {
@@ -26,14 +49,12 @@ export default function ProtectedRoute({
     return <Navigate to={redirectTo} state={{ from: location }} replace />
   }
 
-  // Check if user role is allowed
-  if (user.role && !allowedRoles.includes(user.role)) {
-    // Redirect to appropriate dashboard based on user role
-    const userDashboard = user.role === "tenant" ? "/tenant" : 
-                         user.role === "owner" ? "/owner" : 
-                         user.role === "manager" ? "/dashboard" :
-                         user.role === "admin" ? "/admin" : "/"
-    return <Navigate to={userDashboard} replace />
+  // If allowedRoles is specified, check if user role is allowed
+  if (allowedRoles && allowedRoles.length > 0) {
+    if (!canAccessRoute(user.role, allowedRoles)) {
+      const userDashboard = getUnauthorizedRedirectPath(user.role)
+      return <Navigate to={userDashboard} replace />
+    }
   }
 
   return <>{children}</>

@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { Building, Home, Hotel, Store, Users } from "lucide-react"
+import { AddressForm, type AddressFormValues } from "@/components/forms/address-form"
+import { formatAddressFields } from "@/utils/address"
 
 export function LeadForm() {
   const [formData, setFormData] = useState({
@@ -15,13 +17,18 @@ export function LeadForm() {
     lastName: "",
     email: "",
     phone: "",
-    address: "",
-    city: "",
-    zipCode: "",
     propertyType: "",
     propertyValue: "",
     source: "",
     comments: "",
+  })
+  const [addressValue, setAddressValue] = useState<AddressFormValues>({
+    addressType: "home",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    postalCode: "",
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -35,7 +42,22 @@ export function LeadForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Form submitted:", formData)
+    const formattedAddress = formatAddressFields({
+      line1: addressValue.addressLine1,
+      line2: addressValue.addressLine2,
+      city: addressValue.city,
+      state: addressValue.state,
+      postalCode: addressValue.postalCode,
+    })
+
+    console.log("Form submitted:", {
+      ...formData,
+      address: formattedAddress,
+      city: addressValue.city,
+      state: addressValue.state,
+      zipCode: addressValue.postalCode,
+      addressType: addressValue.addressType,
+    })
     // Here you would typically send the data to your API
     alert("Lead added successfully!")
   }
@@ -65,20 +87,13 @@ export function LeadForm() {
             <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} required />
           </div>
 
-          <div>
-            <Label htmlFor="address">Property Address</Label>
-            <Input id="address" name="address" value={formData.address} onChange={handleChange} required />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="city">City</Label>
-              <Input id="city" name="city" value={formData.city} onChange={handleChange} required />
-            </div>
-            <div>
-              <Label htmlFor="zipCode">ZIP Code</Label>
-              <Input id="zipCode" name="zipCode" value={formData.zipCode} onChange={handleChange} required />
-            </div>
+          <div className="space-y-2">
+            <Label className="font-medium">Property Address</Label>
+            <AddressForm
+              value={addressValue}
+              onChange={setAddressValue}
+              idPrefix="lead"
+            />
           </div>
         </div>
 

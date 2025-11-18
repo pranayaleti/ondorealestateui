@@ -1,83 +1,94 @@
-import * as React from "react"
-import { ChevronRight, MoreHorizontal } from "lucide-react"
-
+import { Link } from "react-router-dom"
+import { 
+  Home, 
+  ChevronRight, 
+  FileText, 
+  Building, 
+  DollarSign, 
+  Users, 
+  MessageSquare, 
+  Wrench, 
+  BarChart3, 
+  User, 
+  Settings,
+  FolderOpen,
+  Plus,
+  type LucideIcon
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const Breadcrumb = React.forwardRef<
-  HTMLElement,
-  React.ComponentPropsWithoutRef<"nav"> & {
-    separator?: React.ReactNode
+interface BreadcrumbItem {
+  label: string
+  href?: string
+  icon?: LucideIcon
+}
+
+interface BreadcrumbProps {
+  items: BreadcrumbItem[]
+  className?: string
+}
+
+// Icon mapping for common pages
+const getIconForLabel = (label: string): LucideIcon | undefined => {
+  const iconMap: Record<string, LucideIcon> = {
+    "Documents": FileText,
+    "Properties": Building,
+    "Finances": DollarSign,
+    "Tenants": Users,
+    "Messages": MessageSquare,
+    "Maintenance": Wrench,
+    "Reports": BarChart3,
+    "Profile": User,
+    "Settings": Settings,
+    "Add Property": Plus,
+    "Monthly Summary": BarChart3,
+    "Occupancy Report": Users,
+    "Tax Report": DollarSign,
+    "Compose": MessageSquare,
   }
->(({ ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" {...props} />)
-Breadcrumb.displayName = "Breadcrumb"
+  return iconMap[label]
+}
 
-const BreadcrumbList = React.forwardRef<HTMLOListElement, React.ComponentPropsWithoutRef<"ol">>(
-  ({ className, ...props }, ref) => (
-    <ol
-      ref={ref}
-      className={cn("flex flex-wrap items-center gap-1.5 break-words text-sm text-muted-foreground", className)}
-      {...props}
-    />
-  ),
-)
-BreadcrumbList.displayName = "BreadcrumbList"
-
-const BreadcrumbItem = React.forwardRef<HTMLLIElement, React.ComponentPropsWithoutRef<"li">>(
-  ({ className, ...props }, ref) => (
-    <li ref={ref} className={cn("inline-flex items-center gap-1.5", className)} {...props} />
-  ),
-)
-BreadcrumbItem.displayName = "BreadcrumbItem"
-
-const BreadcrumbLink = React.forwardRef<HTMLAnchorElement, React.ComponentPropsWithoutRef<"a">>(
-  ({ className, ...props }, ref) => {
+export function Breadcrumb({ items, className }: BreadcrumbProps) {
   return (
-    <a ref={ref} className={cn("transition-colors hover:text-foreground flex items-center", className)} {...props} />
+    <nav className={cn("flex items-center space-x-2 text-sm", className)} aria-label="Breadcrumb">
+      <Link 
+        to="/owner" 
+        className="flex items-center gap-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+      >
+        <Home className="h-4 w-4" />
+        <span>Dashboard</span>
+      </Link>
+      
+      {items.map((item, index) => {
+        const Icon = item.icon || getIconForLabel(item.label)
+        const isLast = index === items.length - 1
+        
+        return (
+          <div key={index} className="flex items-center space-x-2">
+            <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+            {item.href ? (
+              <Link
+                to={item.href}
+                className="flex items-center gap-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+              >
+                {Icon && <Icon className="h-4 w-4" />}
+                <span>{item.label}</span>
+              </Link>
+            ) : (
+              <span className={cn(
+                "flex items-center gap-1.5",
+                isLast 
+                  ? "text-gray-900 dark:text-gray-100 font-medium" 
+                  : "text-gray-500 dark:text-gray-400"
+              )}>
+                {Icon && <Icon className="h-4 w-4" />}
+                <span>{item.label}</span>
+              </span>
+            )}
+          </div>
+        )
+      })}
+    </nav>
   )
-  },
-)
-BreadcrumbLink.displayName = "BreadcrumbLink"
-
-const BreadcrumbPage = React.forwardRef<HTMLSpanElement, React.ComponentPropsWithoutRef<"span">>(
-  ({ className, ...props }, ref) => (
-    <span
-      ref={ref}
-      role="link"
-      aria-disabled="true"
-      aria-current="page"
-      className={cn("font-normal text-foreground", className)}
-      {...props}
-    />
-  ),
-)
-BreadcrumbPage.displayName = "BreadcrumbPage"
-
-const BreadcrumbSeparator = ({ children, className, ...props }: React.ComponentProps<"li">) => (
-  <li role="presentation" aria-hidden="true" className={cn("[&>svg]:size-3.5", className)} {...props}>
-    {children ?? <ChevronRight className="h-4 w-4" />}
-  </li>
-)
-BreadcrumbSeparator.displayName = "BreadcrumbSeparator"
-
-const BreadcrumbEllipsis = ({ className, ...props }: React.ComponentProps<"span">) => (
-  <span
-    role="presentation"
-    aria-hidden="true"
-    className={cn("flex h-9 w-9 items-center justify-center", className)}
-    {...props}
-  >
-    <MoreHorizontal className="h-4 w-4" />
-    <span className="sr-only">More</span>
-  </span>
-)
-BreadcrumbEllipsis.displayName = "BreadcrumbElipssis"
-
-export {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  BreadcrumbEllipsis,
 }

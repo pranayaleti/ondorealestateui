@@ -1,0 +1,275 @@
+import { Link, useLocation } from "react-router-dom"
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar"
+import {
+  Building,
+  DollarSign,
+  FileText,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+  User,
+  Users,
+  Wrench,
+  Shield,
+  BarChart3,
+  MessageSquare,
+  FolderOpen,
+} from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { useAuth } from "@/lib/auth-context"
+import { getDashboardPath, type UserRole } from "@/lib/auth-utils"
+import { cn } from "@/lib/utils"
+import { Logo } from "@/components/logo"
+import { useMediaQuery } from "@/hooks/use-media-query"
+
+interface NavItem {
+  title: string
+  href: string
+  icon: React.ReactNode
+  roles?: UserRole[] // If specified, only show for these roles
+}
+
+// Define navigation items for each role
+const getNavItems = (role: UserRole): NavItem[] => {
+  const basePath = getDashboardPath(role)
+  
+  switch (role) {
+    case "super_admin":
+      return [
+        { title: "Dashboard", href: `${basePath}`, icon: <LayoutDashboard className="h-5 w-5" /> },
+        { title: "Managers", href: `${basePath}/managers`, icon: <Users className="h-5 w-5" /> },
+        { title: "Admins", href: `${basePath}/admins`, icon: <Shield className="h-5 w-5" /> },
+        { title: "Owners", href: `${basePath}/owners`, icon: <Building className="h-5 w-5" /> },
+        { title: "Tenants", href: `${basePath}/tenants`, icon: <Users className="h-5 w-5" /> },
+        { title: "Maintenance", href: `${basePath}/maintenance`, icon: <Wrench className="h-5 w-5" /> },
+        { title: "Properties", href: `${basePath}/properties`, icon: <Building className="h-5 w-5" /> },
+        { title: "Finances", href: `${basePath}/finances`, icon: <DollarSign className="h-5 w-5" /> },
+        { title: "Reports", href: `${basePath}/reports`, icon: <BarChart3 className="h-5 w-5" /> },
+        { title: "Profile", href: `${basePath}/profile`, icon: <User className="h-5 w-5" /> },
+        { title: "Settings", href: `${basePath}/settings`, icon: <Settings className="h-5 w-5" /> },
+      ]
+    
+    case "admin":
+      return [
+        { title: "Dashboard", href: `${basePath}`, icon: <LayoutDashboard className="h-5 w-5" /> },
+        { title: "Managers", href: `${basePath}/managers`, icon: <Users className="h-5 w-5" /> },
+        { title: "Owners", href: `${basePath}/owners`, icon: <Building className="h-5 w-5" /> },
+        { title: "Tenants", href: `${basePath}/tenants`, icon: <Users className="h-5 w-5" /> },
+        { title: "Maintenance", href: `${basePath}/maintenance`, icon: <Wrench className="h-5 w-5" /> },
+        { title: "Properties", href: `${basePath}/properties`, icon: <Building className="h-5 w-5" /> },
+        { title: "Finances", href: `${basePath}/finances`, icon: <DollarSign className="h-5 w-5" /> },
+        { title: "Reports", href: `${basePath}/reports`, icon: <BarChart3 className="h-5 w-5" /> },
+        { title: "Profile", href: `${basePath}/profile`, icon: <User className="h-5 w-5" /> },
+        { title: "Settings", href: `${basePath}/settings`, icon: <Settings className="h-5 w-5" /> },
+      ]
+    
+    case "manager":
+      return [
+        { title: "Dashboard", href: `${basePath}`, icon: <LayoutDashboard className="h-5 w-5" /> },
+        { title: "Properties", href: `${basePath}/properties`, icon: <Building className="h-5 w-5" /> },
+        { title: "Owners", href: `${basePath}/owners`, icon: <Users className="h-5 w-5" /> },
+        { title: "Tenants", href: `${basePath}/tenants`, icon: <Users className="h-5 w-5" /> },
+        { title: "Maintenance", href: `${basePath}/maintenance`, icon: <Wrench className="h-5 w-5" /> },
+        { title: "Finances", href: `${basePath}/finances`, icon: <DollarSign className="h-5 w-5" /> },
+        { title: "Reports", href: `${basePath}/reports`, icon: <BarChart3 className="h-5 w-5" /> },
+        { title: "Profile", href: `${basePath}/profile`, icon: <User className="h-5 w-5" /> },
+        { title: "Settings", href: `${basePath}/settings`, icon: <Settings className="h-5 w-5" /> },
+      ]
+    
+    case "owner":
+      return [
+        { title: "Dashboard", href: `${basePath}`, icon: <LayoutDashboard className="h-5 w-5" /> },
+        { title: "Properties", href: `${basePath}/properties`, icon: <Building className="h-5 w-5" /> },
+        { title: "Finances", href: `${basePath}/finances`, icon: <DollarSign className="h-5 w-5" /> },
+        { title: "Reports", href: `${basePath}/reports`, icon: <BarChart3 className="h-5 w-5" /> },
+        { title: "Tenants", href: `${basePath}/tenants`, icon: <Users className="h-5 w-5" /> },
+        { title: "Maintenance", href: `${basePath}/maintenance`, icon: <Wrench className="h-5 w-5" /> },
+        { title: "Messages", href: `${basePath}/messages`, icon: <MessageSquare className="h-5 w-5" /> },
+        { title: "Documents", href: `${basePath}/documents`, icon: <FolderOpen className="h-5 w-5" /> },
+        { title: "Profile", href: `${basePath}/profile`, icon: <User className="h-5 w-5" /> },
+        { title: "Settings", href: `${basePath}/settings`, icon: <Settings className="h-5 w-5" /> },
+      ]
+    
+    case "tenant":
+      return [
+        { title: "Dashboard", href: `${basePath}`, icon: <LayoutDashboard className="h-5 w-5" /> },
+        { title: "Maintenance", href: `${basePath}/maintenance`, icon: <Wrench className="h-5 w-5" /> },
+        { title: "Payments", href: `${basePath}/payments`, icon: <DollarSign className="h-5 w-5" /> },
+        { title: "Documents", href: `${basePath}/documents`, icon: <FileText className="h-5 w-5" /> },
+        { title: "Messages", href: `${basePath}/messages`, icon: <MessageSquare className="h-5 w-5" /> },
+        { title: "Profile", href: `${basePath}/profile`, icon: <User className="h-5 w-5" /> },
+        { title: "Settings", href: `${basePath}/settings`, icon: <Settings className="h-5 w-5" /> },
+      ]
+    
+    case "maintenance":
+      return [
+        { title: "Dashboard", href: `${basePath}`, icon: <LayoutDashboard className="h-5 w-5" /> },
+        { title: "Tickets", href: `${basePath}/tickets`, icon: <Wrench className="h-5 w-5" /> },
+        { title: "Profile", href: `${basePath}/profile`, icon: <User className="h-5 w-5" /> },
+        { title: "Settings", href: `${basePath}/settings`, icon: <Settings className="h-5 w-5" /> },
+      ]
+    
+    default:
+      return []
+  }
+}
+
+interface PortalSidebarProps {
+  children: React.ReactNode
+}
+
+function SidebarLayout({
+  children,
+  navItems,
+  basePath,
+  logout,
+  location,
+  user,
+}: {
+  children: React.ReactNode
+  navItems: NavItem[]
+  basePath: string
+  logout: () => void
+  location: ReturnType<typeof useLocation>
+  user: NonNullable<ReturnType<typeof useAuth>["user"]>
+}) {
+  const { expanded } = useSidebar()
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName[0]}${lastName[0]}`.toUpperCase()
+  }
+
+  return (
+    <div className="flex min-h-screen w-full">
+      <Sidebar className="border-r border-slate-700/50 dark:border-slate-800/50">
+        <SidebarHeader className="flex justify-between items-center p-4">
+          <Logo 
+            size="lg" 
+            showText={expanded}
+            linkTo={basePath}
+            variant="default"
+            textColor="default"
+            className="flex-shrink-0 transition-all duration-300"
+          />
+          <SidebarTrigger />
+        </SidebarHeader>
+        
+        <SidebarContent>
+          <SidebarMenu>
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.href || 
+                (item.href !== basePath && location.pathname.startsWith(item.href))
+              
+              return (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={isActive}
+                    tooltip={item.title}
+                  >
+                    <Link
+                      to={item.href}
+                      className="flex items-center gap-3"
+                    >
+                      {item.icon}
+                      {expanded && <span>{item.title}</span>}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )
+            })}
+          </SidebarMenu>
+        </SidebarContent>
+        
+        <SidebarFooter className="p-4 border-t mt-auto flex flex-col gap-3">
+          <div className="relative">
+            <Link
+              to={`${basePath}/profile`}
+              className={cn(
+                "flex w-full items-center gap-3 rounded-md px-2 py-2 transition-colors group",
+                "hover:bg-slate-700/30 dark:hover:bg-slate-800/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400",
+                expanded ? "justify-start" : "justify-center"
+              )}
+            >
+              <Avatar className="h-10 w-10 border border-slate-700 dark:border-slate-800">
+                <AvatarImage 
+                  src={user.avatar || user.profilePicture} 
+                  alt={`${user.firstName} ${user.lastName}`} 
+                />
+                <AvatarFallback className="bg-slate-700 dark:bg-slate-800 text-white">{getInitials(user.firstName, user.lastName)}</AvatarFallback>
+              </Avatar>
+              {expanded && (
+                <div className="flex flex-col text-left leading-tight">
+                  <span className="text-sm font-semibold text-white">{user.firstName} {user.lastName}</span>
+                  <span className="text-xs text-slate-400 capitalize">{user.role.replace("_", " ")}</span>
+                </div>
+              )}
+            </Link>
+            {!expanded && (
+              <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 rounded-md bg-slate-800 dark:bg-slate-950 text-white text-xs shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                <div className="font-semibold">{user.firstName} {user.lastName}</div>
+                <div className="text-slate-400 capitalize">{user.role.replace("_", " ")}</div>
+              </div>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            onClick={logout}
+            className={cn(
+              "gap-2 text-sm text-slate-400 hover:text-white hover:bg-slate-700/30 dark:hover:bg-slate-800/30",
+              expanded ? "justify-start w-full" : "justify-center w-full"
+            )}
+          >
+            <LogOut className="h-4 w-4" />
+            {expanded && <span>Log out</span>}
+          </Button>
+        </SidebarFooter>
+      </Sidebar>
+      
+      <main className="flex-1 overflow-auto">
+        {children}
+      </main>
+    </div>
+  )
+}
+
+export function PortalSidebar({ children }: PortalSidebarProps) {
+  const { user, logout } = useAuth()
+  const location = useLocation()
+  const isDesktop = useMediaQuery("(min-width: 1024px)")
+  const sidebarKey = isDesktop ? "desktop" : "mobile"
+  
+  if (!user) {
+    return <>{children}</>
+  }
+
+  const navItems = getNavItems(user.role)
+  const basePath = getDashboardPath(user.role)
+
+  return (
+    <SidebarProvider key={sidebarKey} defaultExpanded={isDesktop}>
+      <SidebarLayout
+        user={user}
+        navItems={navItems}
+        basePath={basePath}
+        logout={logout}
+        location={location}
+      >
+        {children}
+      </SidebarLayout>
+    </SidebarProvider>
+  )
+}
+

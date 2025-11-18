@@ -7,9 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Wrench, CreditCard, FileText, MessageSquare, Calendar, DollarSign, Clock, MapPin, Building } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { propertyApi, maintenanceApi, type Property, type MaintenanceRequest } from "@/lib/api"
+import { useWelcomeToast } from "@/hooks/use-welcome-toast"
 
 export default function TenantDashboard() {
   const { user } = useAuth()
+  useWelcomeToast() // Show welcome toast on dashboard visit
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("overview")
   const [assignedProperty, setAssignedProperty] = useState<Property | null>(null)
@@ -95,10 +97,10 @@ export default function TenantDashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Welcome back, {user?.firstName} {user?.lastName}!
+          Dashboard
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Here's what's happening with your rental
+          Your rental property overview
         </p>
       </div>
 

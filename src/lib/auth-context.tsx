@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { authApi, tokenManager, type User, ApiError } from "@/lib/api"
-import { toast } from "@/hooks/use-toast"
+import { normalizeRole, getDashboardPath, type UserRole } from "@/lib/auth-utils"
 
-export type UserRole = "admin" | "manager" | "owner" | "tenant"
+export type { UserRole } from "@/lib/auth-utils"
 
 export interface UserData {
   id: string
@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     firstName: apiUser.firstName,
     lastName: apiUser.lastName,
     email: apiUser.email,
-    role: apiUser.role,
+    role: normalizeRole(apiUser.role), // Normalize role (handles legacy "admin" -> "super_admin")
     phone: apiUser.phone,
     address: apiUser.address,
     profilePicture: apiUser.profilePicture,
@@ -75,24 +75,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setUser(userData)
       
-      // Show welcome toast once per session after login
-      const welcomeKey = `welcome_shown_${userData.id}`
-      const hasShownWelcome = sessionStorage.getItem(welcomeKey)
-      
-      if (!hasShownWelcome && userData.firstName) {
-        toast({
-          title: `Welcome back, ${userData.firstName}!`,
-          description: "Here's your property management overview.",
-          duration: 4000,
-          variant: "orange",
-        })
-        sessionStorage.setItem(welcomeKey, "true")
-      }
+      // Welcome toast will be shown by useWelcomeToast hook when dashboard loads
       
       // Auto-redirect based on user role (with small delay to ensure toast shows)
-      const redirectPath = userData.role === "tenant" ? "/tenant" : 
-                          userData.role === "owner" ? "/owner" : 
-                          userData.role === "manager" ? "/dashboard" : "/"
+      const redirectPath = getDashboardPath(userData.role)
       
       // Small delay to ensure toast is displayed before navigation
       setTimeout(() => {

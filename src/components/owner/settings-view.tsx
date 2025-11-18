@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { useToast } from "@/hooks/use-toast"
-import { Mail, CreditCard, Globe, Moon, Sun, Smartphone, Laptop, CheckCircle } from "lucide-react"
+import { Mail, CreditCard, Globe, Moon, Sun, Smartphone, Laptop, CheckCircle, Settings } from "lucide-react"
 import { US_TIMEZONES, companyInfo } from "@/constants"
 import { useUserTimezone } from "@/hooks/use-user-timezone"
 
@@ -80,13 +81,17 @@ export function SettingsView() {
   }
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <TabsList className="grid grid-cols-4 w-full md:w-auto">
-        <TabsTrigger value="general">General</TabsTrigger>
-        <TabsTrigger value="notifications">Notifications</TabsTrigger>
-        <TabsTrigger value="security">Security</TabsTrigger>
-        <TabsTrigger value="billing">Billing</TabsTrigger>
-      </TabsList>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <Breadcrumb items={[{ label: "Settings", icon: Settings }]} />
+      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid grid-cols-4 w-full md:w-auto">
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="billing">Billing</TabsTrigger>
+        </TabsList>
 
       <TabsContent value="general" className="space-y-6">
         <Card>
@@ -495,6 +500,7 @@ export function SettingsView() {
           </CardFooter>
         </Card>
       </TabsContent>
-    </Tabs>
+      </Tabs>
+    </div>
   )
 }

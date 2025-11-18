@@ -1,98 +1,100 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { ExportPDFButton } from "@/components/ui/export-pdf-button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { 
   DollarSign, 
   TrendingUp, 
   TrendingDown,
-  Download,
   Receipt,
-  BarChart3
+  BarChart3,
+  CreditCard
 } from "lucide-react"
 
 const mockFinancialData = {
   summary: {
-    totalRevenue: 78650,
-    totalExpenses: 23450,
-    netIncome: 55200,
-    annualROI: 12.8,
+    totalRevenue: 24000,
+    totalExpenses: 4800,
+    netIncome: 19200,
+    annualROI: 8.5,
     portfolioValue: 8500000
   },
   monthlyBreakdown: [
     { month: "Jan", revenue: 75200, expenses: 22100, netIncome: 53100 },
     { month: "Feb", revenue: 78650, expenses: 23450, netIncome: 55200 },
     { month: "Mar", revenue: 82100, expenses: 24800, netIncome: 57300 }
+  ],
+  recentTransactions: [
+    { type: 'income', desc: 'Rent Payment - Unit 101', amount: '+$2,000', date: 'Nov 15, 2025' },
+    { type: 'expense', desc: 'Plumbing Repair', amount: '-$150', date: 'Nov 12, 2025' },
+    { type: 'income', desc: 'Rent Payment - Unit 102', amount: '+$1,800', date: 'Nov 10, 2025' },
+    { type: 'expense', desc: 'Property Insurance', amount: '-$300', date: 'Nov 5, 2025' },
+    { type: 'income', desc: 'Rent Payment - Unit 103', amount: '+$2,200', date: 'Nov 3, 2025' }
   ]
 }
 
 export default function OwnerFinances() {
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <Breadcrumb items={[{ label: "Finances", icon: DollarSign }]} />
+      </div>
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Financial Overview</h1>
           <p className="text-gray-600 dark:text-gray-400">Track your investment performance and cash flow</p>
         </div>
-        <Button>
-          <Download className="h-4 w-4 mr-2" />
-          Export Financial Report
-        </Button>
+        <ExportPDFButton fileName="financial-overview" />
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-        <Card>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <Card className="bg-gradient-to-br from-green-900 to-green-800 dark:from-green-950 dark:to-green-900">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
-                <p className="text-2xl font-bold text-green-600">${mockFinancialData.summary.totalRevenue.toLocaleString()}</p>
+                <TrendingUp className="w-6 h-6 text-green-400 mb-2" />
+                <p className="text-green-300 text-sm mb-1">Total Revenue</p>
+                <p className="text-white text-2xl font-bold">${mockFinancialData.summary.totalRevenue.toLocaleString()}</p>
+                <p className="text-green-400 text-xs">Year to date</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gradient-to-br from-red-900 to-red-800 dark:from-red-950 dark:to-red-900">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Monthly Expenses</p>
-                <p className="text-2xl font-bold text-red-600">${mockFinancialData.summary.totalExpenses.toLocaleString()}</p>
+                <CreditCard className="w-6 h-6 text-red-400 mb-2" />
+                <p className="text-red-300 text-sm mb-1">Total Expenses</p>
+                <p className="text-white text-2xl font-bold">${mockFinancialData.summary.totalExpenses.toLocaleString()}</p>
+                <p className="text-red-400 text-xs">Year to date</p>
               </div>
-              <TrendingDown className="h-8 w-8 text-red-500" />
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gradient-to-br from-green-900 to-green-800 dark:from-green-950 dark:to-green-900">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Net Income</p>
-                <p className="text-2xl font-bold text-blue-600">${mockFinancialData.summary.netIncome.toLocaleString()}</p>
+                <DollarSign className="w-6 h-6 text-green-400 mb-2" />
+                <p className="text-green-300 text-sm mb-1">Net Income</p>
+                <p className="text-white text-2xl font-bold">${mockFinancialData.summary.netIncome.toLocaleString()}</p>
+                <p className="text-green-400 text-xs">Year to date</p>
               </div>
-              <DollarSign className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gradient-to-br from-green-900 to-green-800 dark:from-green-950 dark:to-green-900">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Annual ROI</p>
-                <p className="text-2xl font-bold text-purple-600">{mockFinancialData.summary.annualROI}%</p>
+                <BarChart3 className="w-6 h-6 text-green-400 mb-2" />
+                <p className="text-green-300 text-sm mb-1">ROI</p>
+                <p className="text-white text-2xl font-bold">{mockFinancialData.summary.annualROI}%</p>
+                <p className="text-green-400 text-xs">Annual return</p>
               </div>
-              <BarChart3 className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Portfolio Value</p>
-                <p className="text-2xl font-bold text-orange-600">${(mockFinancialData.summary.portfolioValue / 1000000).toFixed(1)}M</p>
-              </div>
-              <Receipt className="h-8 w-8 text-orange-500" />
             </div>
           </CardContent>
         </Card>
@@ -108,25 +110,19 @@ export default function OwnerFinances() {
         <TabsContent value="overview" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Monthly Performance</CardTitle>
-              <CardDescription>Revenue, expenses, and net income trends</CardDescription>
+              <CardTitle>Recent Transactions</CardTitle>
+              <CardDescription>Latest income and expense entries</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockFinancialData.monthlyBreakdown.map((month) => (
-                  <div key={month.month} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{month.month}</span>
-                      </div>
+              <div className="space-y-3">
+                {mockFinancialData.recentTransactions.map((transaction, index) => (
+                  <div key={index} className="flex justify-between items-center bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                       <div>
-                        <p className="font-medium">Revenue: ${month.revenue.toLocaleString()}</p>
-                        <p className="text-sm text-gray-500">Expenses: ${month.expenses.toLocaleString()}</p>
-                      </div>
+                      <div className="text-gray-900 dark:text-white font-medium">{transaction.desc}</div>
+                      <div className="text-gray-500 dark:text-gray-400 text-sm">{transaction.date}</div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-green-600">${month.netIncome.toLocaleString()}</p>
-                      <p className="text-xs text-gray-500">Net Income</p>
+                    <div className={`font-bold ${transaction.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
+                      {transaction.amount}
                     </div>
                   </div>
                 ))}
@@ -138,22 +134,22 @@ export default function OwnerFinances() {
         <TabsContent value="income" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Income Sources</CardTitle>
-              <CardDescription>Breakdown of rental income by property</CardDescription>
+              <CardTitle>Income Analysis</CardTitle>
+              <CardDescription>Rental income performance metrics</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-4 border rounded">
-                  <span>Oak Street Apartments</span>
-                  <span className="font-semibold">$18,500/month</span>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 dark:text-gray-400">Monthly Average</span>
+                  <span className="text-gray-900 dark:text-white font-bold">$2,000</span>
                 </div>
-                <div className="flex justify-between items-center p-4 border rounded">
-                  <span>Pine View Complex</span>
-                  <span className="font-semibold">$14,200/month</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 dark:text-gray-400">Highest Month</span>
+                  <span className="text-green-400 font-bold">$2,400</span>
                 </div>
-                <div className="flex justify-between items-center p-4 border rounded">
-                  <span>Maple Heights</span>
-                  <span className="font-semibold">$24,750/month</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 dark:text-gray-400">Collection Rate</span>
+                  <span className="text-gray-900 dark:text-white font-bold">98.5%</span>
                 </div>
               </div>
             </CardContent>
@@ -163,30 +159,22 @@ export default function OwnerFinances() {
         <TabsContent value="expenses" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Expense Categories</CardTitle>
-              <CardDescription>Monthly operating expenses breakdown</CardDescription>
+              <CardTitle>Expense Breakdown</CardTitle>
+              <CardDescription>Monthly operating expenses by category</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-4 border rounded">
-                  <span>Property Management Fees</span>
-                  <span className="font-semibold text-red-600">$7,865</span>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 dark:text-gray-400">Maintenance</span>
+                  <span className="text-gray-900 dark:text-white font-bold">$250</span>
                 </div>
-                <div className="flex justify-between items-center p-4 border rounded">
-                  <span>Maintenance & Repairs</span>
-                  <span className="font-semibold text-red-600">$5,200</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 dark:text-gray-400">Insurance</span>
+                  <span className="text-gray-900 dark:text-white font-bold">$100</span>
                 </div>
-                <div className="flex justify-between items-center p-4 border rounded">
-                  <span>Insurance</span>
-                  <span className="font-semibold text-red-600">$3,450</span>
-                </div>
-                <div className="flex justify-between items-center p-4 border rounded">
-                  <span>Property Taxes</span>
-                  <span className="font-semibold text-red-600">$4,200</span>
-                </div>
-                <div className="flex justify-between items-center p-4 border rounded">
-                  <span>Utilities & Other</span>
-                  <span className="font-semibold text-red-600">$2,735</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 dark:text-gray-400">Property Tax</span>
+                  <span className="text-gray-900 dark:text-white font-bold">$50</span>
                 </div>
               </div>
             </CardContent>

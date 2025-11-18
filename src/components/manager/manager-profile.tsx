@@ -1,16 +1,11 @@
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ImageUploader } from "@/components/ui/image-uploader"
-import { ProfilePictureViewer } from "@/components/ui/profile-picture-viewer"
 import { 
   Shield,
-  Upload,
   User,
   Mail,
   Phone,
@@ -29,39 +24,9 @@ import {
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { authApi, ApiError, type ManagerPortfolioStats, type InvitedUser } from "@/lib/api"
-
-const defaultAddressFields = {
-  line1: "",
-  line2: "",
-  city: "",
-  state: "",
-  postalCode: "",
-}
-
-const parseAddressString = (address?: string | null) => {
-  if (!address) {
-    return { ...defaultAddressFields }
-  }
-
-  const segments = address
-    .split(",")
-    .map(segment => segment.trim())
-    .filter(Boolean)
-
-  return {
-    line1: segments[0] || "",
-    line2: segments[1] || "",
-    city: segments[2] || "",
-    state: segments[3] || "",
-    postalCode: segments.slice(4).join(", ") || "",
-  }
-}
-
-const formatAddressFields = (fields: typeof defaultAddressFields) => {
-  return [fields.line1, fields.line2, fields.city, fields.state, fields.postalCode]
-    .filter(part => part && part.trim().length > 0)
-    .join(", ")
-}
+import { ProfileShell, ProfileSummaryCard, type SummaryMetric } from "@/components/portal/profile"
+import { AddressForm, type AddressFormValues } from "@/components/forms/address-form"
+import { parseAddressString, formatAddressFields, defaultAddressFields } from "@/utils/address"
 
 export default function ManagerProfile() {
   const { user, refreshUser } = useAuth()
@@ -167,6 +132,17 @@ export default function ManagerProfile() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleAddressFormChange = (nextAddress: AddressFormValues) => {
+    setFormData(prev => ({
+      ...prev,
+      addressLine1: nextAddress.addressLine1,
+      addressLine2: nextAddress.addressLine2,
+      city: nextAddress.city,
+      state: nextAddress.state,
+      postalCode: nextAddress.postalCode,
+    }))
   }
 
   const handleSave = async () => {
@@ -325,127 +301,61 @@ export default function ManagerProfile() {
   }
 
 
+  const ownerCount = invitedUsers.filter(u => u.role === "owner" && u.isActive).length
+  const tenantCount = invitedUsers.filter(u => u.role === "tenant" && u.isActive).length
+
+  const summaryMetrics: SummaryMetric[] = [
+    {
+      id: "properties",
+      label: "Properties Managed",
+      value: portfolioStats?.propertiesManaged || 0,
+      icon: <Building2 className="h-4 w-4" />,
+      href: "/dashboard/properties",
+      loading: isLoadingStats,
+    },
+    {
+      id: "owners",
+      label: "Active Owners",
+      value: ownerCount,
+      icon: <Users className="h-4 w-4" />,
+      href: "/dashboard/owners",
+      loading: isLoadingInvited || isLoadingStats,
+    },
+    {
+      id: "tenants",
+      label: "Active Tenants",
+      value: tenantCount,
+      icon: <Users className="h-4 w-4" />,
+      href: "/dashboard/tenants",
+      loading: isLoadingInvited || isLoadingStats,
+    },
+    {
+      id: "revenue",
+      label: "Monthly Revenue",
+      value: (
+        <span className="text-primary">
+          {portfolioStats?.formattedMonthlyRevenue || "$0K"}
+        </span>
+      ),
+      icon: <DollarSign className="h-4 w-4" />,
+      href: "/dashboard/finances",
+      loading: isLoadingStats,
+    },
+  ]
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Manager Profile</h1>
-        <p className="text-muted-foreground mt-2">Manage your account and property management preferences</p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Profile Summary */}
-        <div className="lg:col-span-1">
-          <Card className="h-fit">
-            <CardContent className="pt-8 pb-6">
-              <div className="flex flex-col items-center text-center">
-                <div className="relative mb-4">
-                  {user?.profilePicture ? (
-                    <ProfilePictureViewer
-                      imageSrc={user.profilePicture}
-                      userName={`${user.firstName} ${user.lastName}`}
-                    />
-                  ) : (
-                    <Avatar className="h-28 w-28 border-4 border-background shadow-lg">
-                      <AvatarImage src={user?.profilePicture} />
-                      <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  <ImageUploader 
-                    onCropComplete={handleProfilePictureUpdate}
-                    trigger={
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="absolute bottom-0 right-0 rounded-full h-9 w-9 p-0 shadow-md hover:shadow-lg transition-shadow border-2 border-background"
-                      >
-                        <Upload className="h-4 w-4" />
-                      </Button>
-                    }
-                  />
-                </div>
-                <h3 className="font-semibold text-xl mt-2 mb-1">
-                  {user?.firstName} {user?.lastName}
-                </h3>
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1">
-                  <User className="h-3.5 w-3.5" />
-                  <span>Property Manager</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-6">
-                  <Mail className="h-3.5 w-3.5" />
-                  <span className="break-all">{user?.email}</span>
-                </div>
-
-                <div className="w-full space-y-4 pt-6 border-t">
-                  <Link to="/dashboard/properties" className="block">
-                    <div className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Building2 className="h-4 w-4" />
-                        <span>Properties Managed</span>
-                      </div>
-                      <span className="font-semibold text-base">
-                        {isLoadingStats ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          portfolioStats?.propertiesManaged || 0
-                        )}
-                      </span>
-                    </div>
-                  </Link>
-                  <Link to="/dashboard/owners" className="block">
-                    <div className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Users className="h-4 w-4" />
-                        <span>Active Owners</span>
-                      </div>
-                      <span className="font-semibold text-base">
-                        {(isLoadingInvited || isLoadingStats) ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          invitedUsers.filter(u => u.role === "owner" && u.isActive).length
-                        )}
-                      </span>
-                    </div>
-                  </Link>
-                  <Link to="/dashboard/tenants" className="block">
-                    <div className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Users className="h-4 w-4" />
-                        <span>Active Tenants</span>
-                      </div>
-                      <span className="font-semibold text-base">
-                        {(isLoadingInvited || isLoadingStats) ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          invitedUsers.filter(u => u.role === "tenant" && u.isActive).length
-                        )}
-                      </span>
-                    </div>
-                  </Link>
-                  <Link to="/dashboard/finances" className="block">
-                    <div className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <DollarSign className="h-4 w-4" />
-                        <span>Monthly Revenue</span>
-                      </div>
-                      <span className="font-semibold text-base text-primary">
-                        {isLoadingStats ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          portfolioStats?.formattedMonthlyRevenue || "$0K"
-                        )}
-                      </span>
-                    </div>
-                  </Link>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Profile Details */}
-        <div className="lg:col-span-3">
+    <ProfileShell
+      title="Manager Profile"
+      description="Manage your account and property management preferences"
+      summary={
+        <ProfileSummaryCard
+          roleLabel="Property Manager"
+          metrics={summaryMetrics}
+          onAvatarChange={handleProfilePictureUpdate}
+          isAvatarUpdating={isSavingProfile}
+        />
+      }
+    >
           <Tabs defaultValue="personal" className="space-y-6">
             <TabsList className="grid w-full grid-cols-2 h-11">
               <TabsTrigger value="personal" className="flex items-center gap-2">
@@ -570,65 +480,25 @@ export default function ManagerProfile() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <Label className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
-                      Address Lines
+                      Address
                     </Label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        id="addressLine1"
-                        value={formData.addressLine1}
-                        onChange={(e) => handleInputChange("addressLine1", e.target.value)}
-                        disabled={!isEditing || isSavingProfile}
-                        className={!isEditing ? "bg-muted" : ""}
-                        placeholder="Building / Street"
-                      />
-                      <Input
-                        id="addressLine2"
-                        value={formData.addressLine2}
-                        onChange={(e) => handleInputChange("addressLine2", e.target.value)}
-                        disabled={!isEditing || isSavingProfile}
-                        className={!isEditing ? "bg-muted" : ""}
-                        placeholder="Area / Locality"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">City</Label>
-                      <Input
-                        id="city"
-                        value={formData.city}
-                        onChange={(e) => handleInputChange("city", e.target.value)}
-                        disabled={!isEditing || isSavingProfile}
-                        className={!isEditing ? "bg-muted" : ""}
-                        placeholder="City"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="state">State</Label>
-                      <Input
-                        id="state"
-                        value={formData.state}
-                        onChange={(e) => handleInputChange("state", e.target.value)}
-                        disabled={!isEditing || isSavingProfile}
-                        className={!isEditing ? "bg-muted" : ""}
-                        placeholder="State"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="postalCode">Postal Code</Label>
-                      <Input
-                        id="postalCode"
-                        value={formData.postalCode}
-                        onChange={(e) => handleInputChange("postalCode", e.target.value)}
-                        disabled={!isEditing || isSavingProfile}
-                        className={!isEditing ? "bg-muted" : ""}
-                        placeholder="ZIP / PIN"
-                      />
-                    </div>
+                    <AddressForm
+                      value={{
+                        addressLine1: formData.addressLine1 || "",
+                        addressLine2: formData.addressLine2 || "",
+                        city: formData.city || "",
+                        state: formData.state || "",
+                        postalCode: formData.postalCode || "",
+                      }}
+                      onChange={handleAddressFormChange}
+                      hideTypeToggle
+                      disabled={!isEditing || isSavingProfile}
+                      idPrefix="manager"
+                      className="border border-dashed bg-muted/30 p-4 shadow-none"
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -779,8 +649,6 @@ export default function ManagerProfile() {
               </Card>
             </TabsContent>
           </Tabs>
-        </div>
-      </div>
-    </div>
+    </ProfileShell>
   )
 }

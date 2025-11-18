@@ -11,13 +11,46 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Upload, X } from "lucide-react"
+import { Upload, X, Building, Plus } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { propertyApi } from "@/lib/api"
 import { useS3Upload } from "@/hooks/useS3Upload"
-import { US_STATES, DEFAULT_US_COUNTRY, DEFAULT_US_COUNTRY_CODE } from "@/constants"
+import { DEFAULT_US_COUNTRY, DEFAULT_US_COUNTRY_CODE } from "@/constants"
 import { normalizeUSPhone, validateUSPhone, validateUSZip } from "@/lib/us-format"
+import { Breadcrumb } from "@/components/ui/breadcrumb"
+import { AddressForm, type AddressFormValues, type AddressUsageType } from "@/components/forms/address-form"
+
+interface AddPropertyFormState {
+  title: string
+  type: string
+  addressType: AddressUsageType
+  addressLine1: string
+  addressLine2: string
+  city: string
+  state: string
+  country: string
+  zipcode: string
+  description: string
+  price: string
+  bedrooms: string
+  bathrooms: string
+  sqft: string
+  phone: string
+  website: string
+  leaseTerms: string
+  fees: string
+  availability: string
+  specialties: string[]
+  services: string[]
+  valueRanges: string[]
+  amenities: string[]
+  specialtiesInput: string
+  servicesInput: string
+  valueRangesInput: string
+  rating: string
+  reviewCount: string
+}
 
 export function AddPropertyForm() {
   const navigate = useNavigate()
@@ -51,9 +84,10 @@ export function AddPropertyForm() {
     { key: "storage", label: "Storage Space" },
   ]
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AddPropertyFormState>({
     title: "",
     type: "",
+    addressType: "home",
     addressLine1: "",
     addressLine2: "",
     city: "",
@@ -115,6 +149,18 @@ export function AddPropertyForm() {
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleAddressFormChange = (nextAddress: AddressFormValues) => {
+    setFormData((prev) => ({
+      ...prev,
+      addressType: nextAddress.addressType ?? prev.addressType,
+      addressLine1: nextAddress.addressLine1,
+      addressLine2: nextAddress.addressLine2,
+      city: nextAddress.city,
+      state: nextAddress.state,
+      zipcode: nextAddress.postalCode,
+    }))
   }
 
   const handleArrayFieldBlur = (fieldName: string, value: string) => {
@@ -239,14 +285,21 @@ export function AddPropertyForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Property Details</CardTitle>
-              <CardDescription>Basic information about the property</CardDescription>
-            </CardHeader>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <Breadcrumb items={[
+          { label: "Properties", href: "/owner/properties", icon: Building },
+          { label: "Add Property", icon: Plus }
+        ]} />
+      </div>
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Property Details</CardTitle>
+                <CardDescription>Basic information about the property</CardDescription>
+              </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-2">
                 <Label htmlFor="title">Property Title</Label>
@@ -275,75 +328,30 @@ export function AddPropertyForm() {
                 </Select>
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="addressLine1">Address Line 1</Label>
-                <Input
-                  id="addressLine1"
-                  name="addressLine1"
-                  placeholder="e.g. 123 Main St"
-                  value={formData.addressLine1}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+              <AddressForm
+                value={{
+                  addressType: formData.addressType,
+                  addressLine1: formData.addressLine1,
+                  addressLine2: formData.addressLine2,
+                  city: formData.city,
+                  state: formData.state,
+                  postalCode: formData.zipcode,
+                }}
+                onChange={handleAddressFormChange}
+                disabled={isSubmitting || isUploading}
+                idPrefix="property"
+              />
 
               <div className="grid gap-2">
-                <Label htmlFor="addressLine2">Address Line 2</Label>
+                <Label htmlFor="country">Country</Label>
                 <Input
-                  id="addressLine2"
-                  name="addressLine2"
-                  placeholder="e.g. Apt 4B"
-                  value={formData.addressLine2}
-                  onChange={handleChange}
+                  id="country"
+                  name="country"
+                  value={DEFAULT_US_COUNTRY}
+                  readOnly
+                  aria-readonly
+                  className="bg-muted/50"
                 />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    name="city"
-                    placeholder="e.g. Salt Lake City"
-                    value={formData.city}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="state">State</Label>
-                  <Select value={formData.state} onValueChange={(value) => handleSelectChange("state", value)}>
-                    <SelectTrigger id="state">
-                      <SelectValue placeholder="Select state" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {US_STATES.map((stateOption) => (
-                        <SelectItem key={stateOption.value} value={stateOption.value}>
-                          {stateOption.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="country">Country</Label>
-                  <Input id="country" name="country" value={DEFAULT_US_COUNTRY} readOnly aria-readonly />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="zipcode">ZIP Code</Label>
-                  <Input
-                    id="zipcode"
-                    name="zipcode"
-                    placeholder="e.g. 84101 or 84101-1234"
-                    value={formData.zipcode}
-                    onChange={handleChange}
-                    inputMode="numeric"
-                    pattern="\\d{5}(-\\d{4})?"
-                  />
-                </div>
               </div>
 
               <div className="grid gap-2">
@@ -671,6 +679,7 @@ export function AddPropertyForm() {
           {isSubmitting ? "Adding Property..." : isUploading ? "Uploading Photos..." : "Add Property"}
         </Button>
       </div>
-    </form>
+      </form>
+    </div>
   )
 }

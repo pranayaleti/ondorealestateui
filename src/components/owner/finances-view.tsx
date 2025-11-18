@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { ExportPDFButton } from "@/components/ui/export-pdf-button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
@@ -11,7 +12,6 @@ import type { DateRange } from "react-day-picker"
 import { format, subMonths } from "date-fns"
 import {
   DollarSign,
-  Download,
   Filter,
   TrendingUp,
   TrendingDown,
@@ -20,6 +20,7 @@ import {
   Calendar,
   Building,
   Search,
+  Download,
 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Progress } from "@/components/ui/progress"
@@ -598,10 +599,7 @@ export function FinancesView() {
             </div>
             <div className="flex gap-2">
               <DatePickerWithRange date={date} setDate={setDate} />
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
+              <ExportPDFButton fileName="financial-report" size="default" />
             </div>
           </div>
 

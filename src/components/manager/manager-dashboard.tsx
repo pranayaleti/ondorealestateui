@@ -28,6 +28,7 @@ import {
 import { useAuth } from "@/lib/auth-context"
 import { propertyApi, authApi, leadApi, ApiError, type Property, type InvitedUser, type Lead } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
+import { useWelcomeToast } from "@/hooks/use-welcome-toast"
 import { PropertyDetailModal } from "@/components/property-detail-modal"
 import { ModernPropertyCard } from "@/components/owner/modern-property-card"
 import ManagerMaintenance from "./manager-maintenance"
@@ -35,6 +36,7 @@ import { formatUSDate, formatUSD, formatUSPhone } from "@/lib/us-format"
 
 export default function ManagerDashboard() {
   const { user } = useAuth()
+  useWelcomeToast() // Show welcome toast on dashboard visit
   const { toast } = useToast()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()

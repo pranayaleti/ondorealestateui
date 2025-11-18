@@ -1,9 +1,30 @@
-import { Link } from "react-router-dom"
+import { useEffect, useRef } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, Home, AlertTriangle } from "lucide-react"
 import { Logo } from "@/components/logo"
+import { useAuth } from "@/lib/auth-context"
+import { toast } from "@/hooks/use-toast"
+import { getDashboardPath } from "@/lib/auth-utils"
 
 export default function PageNotFound() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const hasWarned = useRef(false)
+  const homeLink = user ? getDashboardPath(user.role) : "/"
+
+  useEffect(() => {
+    if (!hasWarned.current) {
+      toast({
+        title: "Page not found",
+        description: "Redirecting you to your dashboard.",
+        variant: "destructive",
+      })
+      hasWarned.current = true
+      navigate(homeLink, { replace: true })
+    }
+  }, [homeLink, navigate])
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md">
@@ -31,7 +52,7 @@ export default function PageNotFound() {
             </p>
             
             <div className="space-y-3">
-              <Link to="/">
+              <Link to={homeLink}>
                 <button className="w-full bg-gradient-to-r from-orange-500 to-red-800 hover:from-orange-600 hover:to-red-900 text-white font-medium py-4 rounded-2xl text-xl transition-all duration-200 flex items-center justify-center gap-2">
                   <Home className="h-5 w-5" />
                   Go Home
@@ -39,11 +60,13 @@ export default function PageNotFound() {
                 </button>
               </Link>
               
-              <Link to="/login">
-                <button className="w-full border-2 border-gray-300 hover:border-orange-500 hover:bg-orange-50 text-gray-700 hover:text-orange-700 font-medium py-4 rounded-2xl text-xl transition-all duration-200">
-                  Sign In
-                </button>
-              </Link>
+              {!user && (
+                <Link to="/login">
+                  <button className="w-full border-2 border-gray-300 hover:border-orange-500 hover:bg-orange-50 text-gray-700 hover:text-orange-700 font-medium py-4 rounded-2xl text-xl transition-all duration-200">
+                    Sign In
+                  </button>
+                </Link>
+              )}
             </div>
             
             <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">

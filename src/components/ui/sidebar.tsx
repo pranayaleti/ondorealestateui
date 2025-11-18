@@ -44,7 +44,8 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "h-screen sticky top-0 z-30 flex flex-col transition-all duration-300 ease-in-out bg-slate-50 dark:bg-slate-900",
+        "h-screen sticky top-0 z-30 flex flex-col transition-all duration-300 ease-in-out",
+        "bg-[#1e293b] dark:bg-[#0f172a]",
         expanded ? "w-64" : "w-16",
         className,
       )}
@@ -61,7 +62,7 @@ export function SidebarHeader({
   className?: string
   children: React.ReactNode
 }) {
-  return <div className={cn("flex h-16 items-center border-b px-4", className)}>{children}</div>
+  return <div className={cn("flex h-16 items-center border-b border-slate-700/50 dark:border-slate-800/50 px-4", className)}>{children}</div>
 }
 
 export function SidebarContent({
@@ -81,7 +82,7 @@ export function SidebarFooter({
   className?: string
   children: React.ReactNode
 }) {
-  return <div className={cn("flex items-center border-t p-4", className)}>{children}</div>
+  return <div className={cn("flex items-center border-t border-slate-700/50 dark:border-slate-800/50 p-4", className)}>{children}</div>
 }
 
 export function SidebarMenu({
@@ -112,7 +113,7 @@ export function SidebarTrigger() {
       variant="ghost"
       size="icon"
       onClick={toggleExpanded}
-      className="absolute top-4 -right-4 h-8 w-8 rounded-full border shadow-md bg-background z-10"
+      className="absolute top-4 -right-4 h-8 w-8 rounded-full border border-slate-700 dark:border-slate-800 shadow-md bg-slate-800 dark:bg-slate-950 hover:bg-slate-700 dark:hover:bg-slate-900 text-white z-10"
     >
       {expanded ? <PanelLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
     </Button>
@@ -136,20 +137,23 @@ export function SidebarMenuButton({
   const { expanded } = useSidebar()
 
   if (asChild) {
+    const child = React.Children.only(children) as React.ReactElement
+
     return (
       <div className="relative group w-full">
-        {React.cloneElement(children as React.ReactElement, {
+        {React.cloneElement(child, {
           className: cn(
-            "flex w-full items-center rounded-md px-3 py-3 text-sm font-medium transition-colors",
+            child.props.className,
+            "flex w-full items-center rounded-md px-3 py-3 text-sm font-medium transition-colors gap-3",
             isActive
-              ? "bg-primary/10 text-primary font-semibold"
-              : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
+              ? "bg-slate-700/50 dark:bg-slate-800/50 text-white font-semibold"
+              : "text-slate-300 dark:text-slate-400 hover:bg-slate-700/30 dark:hover:bg-slate-800/30 hover:text-white",
             expanded ? "justify-start" : "justify-center",
             className,
           ),
         })}
         {tooltip && !expanded && (
-          <div className="absolute left-full top-1/2 ml-4 -translate-y-1/2 rounded bg-primary px-2 py-1 text-xs text-primary-foreground opacity-0 shadow group-hover:opacity-100 z-50">
+          <div className="absolute left-full top-1/2 ml-4 -translate-y-1/2 rounded bg-slate-800 dark:bg-slate-950 px-2 py-1 text-xs text-white opacity-0 shadow-lg group-hover:opacity-100 z-50 whitespace-nowrap">
             {tooltip}
           </div>
         )}
@@ -161,17 +165,17 @@ export function SidebarMenuButton({
     <button
       {...props}
       className={cn(
-        "group relative flex w-full items-center rounded-md px-3 py-3 text-sm font-medium transition-colors",
+        "group relative flex w-full items-center rounded-md px-3 py-3 text-sm font-medium transition-colors gap-3",
         isActive
-          ? "bg-primary/10 text-primary font-semibold"
-          : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
+          ? "bg-slate-700/50 dark:bg-slate-800/50 text-white font-semibold"
+          : "text-slate-300 dark:text-slate-400 hover:bg-slate-700/30 dark:hover:bg-slate-800/30 hover:text-white",
         expanded ? "justify-start" : "justify-center",
         className,
       )}
     >
       {children}
       {tooltip && !expanded && (
-        <div className="absolute left-full top-1/2 ml-4 -translate-y-1/2 rounded bg-primary px-2 py-1 text-xs text-primary-foreground opacity-0 shadow group-hover:opacity-100 z-50">
+        <div className="absolute left-full top-1/2 ml-4 -translate-y-1/2 rounded bg-slate-800 dark:bg-slate-950 px-2 py-1 text-xs text-white opacity-0 shadow-lg group-hover:opacity-100 z-50 whitespace-nowrap">
           {tooltip}
         </div>
       )}

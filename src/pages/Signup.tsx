@@ -13,6 +13,8 @@ import { useValidatedForm } from "@/hooks/useValidatedForm"
 import type { FormValidationSchema } from "@/utils/validation.utils"
 import { formatters, sanitize, validators } from "@/utils/validation.utils"
 import { ERROR_MESSAGES, REGEX_PATTERNS, validationPresets } from "@/constants"
+import { AddressForm, type AddressFormValues } from "@/components/forms/address-form"
+import { parseAddressString, formatAddressFields } from "@/utils/address"
 
 export default function Signup() {
   const { token } = useParams<{ token: string }>()
@@ -78,7 +80,7 @@ export default function Signup() {
     },
   }
 
-  const { values, errors, touched, handleChange, handleBlur, validateForm } = useValidatedForm({
+  const { values, errors, touched, handleChange, handleBlur, validateForm, setFieldValue } = useValidatedForm({
     initialValues: {
       firstName: "",
       lastName: "",
@@ -94,6 +96,55 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [addressValue, setAddressValue] = useState<AddressFormValues>(() => {
+    const parsed = parseAddressString("")
+    return {
+      addressType: "home",
+      addressLine1: parsed.line1,
+      addressLine2: parsed.line2,
+      city: parsed.city,
+      state: parsed.state,
+      postalCode: parsed.postalCode,
+    }
+  })
+  const updateFormattedAddress = (nextValue: AddressFormValues) => {
+    const formatted = formatAddressFields({
+      line1: nextValue.addressLine1,
+      line2: nextValue.addressLine2,
+      city: nextValue.city,
+      state: nextValue.state,
+      postalCode: nextValue.postalCode,
+    })
+    setFieldValue("address", formatted)
+    return formatted
+  }
+
+  const handleAddressFormChange = (nextValue: AddressFormValues) => {
+    setAddressValue(nextValue)
+    updateFormattedAddress(nextValue)
+  }
+
+  const handleAddressBlur = () => {
+    const formatted = updateFormattedAddress(addressValue)
+    handleBlur("address")({
+      target: { value: formatted },
+    } as any)
+  }
+
+  useEffect(() => {
+    if (!values.address) {
+      const parsed = parseAddressString("")
+      setAddressValue({
+        addressType: "home",
+        addressLine1: parsed.line1,
+        addressLine2: parsed.line2,
+        city: parsed.city,
+        state: parsed.state,
+        postalCode: parsed.postalCode,
+      })
+    }
+  }, [values.address])
+
 
   // API hooks
   const { data: invitation, loading: loadingInvitation, error: invitationError, execute: fetchInvitation } = useApi(authApi.getInvitation)
@@ -325,20 +376,16 @@ export default function Signup() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="address" className="text-gray-700 dark:text-gray-300">Address (Optional)</Label>
-                <Input
-                  id="address"
-                  type="text"
-                  placeholder="123 Main St, City, State 12345"
-                  value={values.address}
-                  maxLength={120}
-                  onChange={handleChange("address")}
-                  onBlur={handleBlur("address")}
-                  aria-invalid={touched.address && !!errors.address}
-                  className={`rounded-xl border-gray-300 focus:border-orange-500 focus:ring-orange-500 ${
-                    touched.address && errors.address ? "border-red-500 focus:ring-red-500" : ""
-                  }`}
+                <Label className="text-gray-700 dark:text-gray-300">Address (Optional)</Label>
+                <AddressForm
+                  value={addressValue}
+                  onChange={handleAddressFormChange}
+                  onFieldBlur={handleAddressBlur}
+                  hideTypeToggle
+                  showRequiredIndicator={false}
+                  idPrefix="signup"
                 />
+                <p className="text-xs text-gray-500 dark:text-gray-400">Helps personalize your portal experience.</p>
                 {touched.address && errors.address && <p className="text-sm text-red-600">{errors.address}</p>}
               </div>
 

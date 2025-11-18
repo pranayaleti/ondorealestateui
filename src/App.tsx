@@ -17,25 +17,39 @@ const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'))
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'))
 const Verify = lazy(() => import('@/pages/Verify'))
 const Signup = lazy(() => import('@/pages/Signup'))
-const Dashboard = lazy(() => import('@/pages/Dashboard'))
+const Manager = lazy(() => import('@/pages/Manager'))
+const SuperAdmin = lazy(() => import('@/pages/SuperAdmin'))
+const Admin = lazy(() => import('@/pages/Admin'))
 const Properties = lazy(() => import('@/pages/Properties'))
 const Search = lazy(() => import('@/pages/Search'))
 const Owner = lazy(() => import('@/pages/Owner'))
 const Tenant = lazy(() => import('@/pages/Tenant'))
+const Maintenance = lazy(() => import('@/pages/Maintenance'))
 const PageNotFound = lazy(() => import('@/pages/PageNotFound'))
 const Privacy = lazy(() => import('@/pages/Privacy'))
 const Terms = lazy(() => import('@/pages/Terms'))
 
 function App() {
   const location = useLocation()
-  const hideHeaderRoutes = ['/', '/login', '/signup', '/forgot-password', '/reset-password', '/verify'] // Hide header on all auth pages
-  const hideFooterRoutes = ['/', '/login', '/signup', '/forgot-password', '/reset-password', '/verify'] // Hide footer on all auth pages
+  // Hide header on auth pages and portal pages (portals have their own navigation)
+  const hideHeaderRoutes = [
+    '/', '/login', '/signup', '/forgot-password', '/reset-password', '/verify',
+    '/super-admin', '/admin', '/dashboard', '/owner', '/tenant', '/maintenance'
+  ]
+  const hideFooterRoutes = [
+    '/', '/login', '/signup', '/forgot-password', '/reset-password', '/verify',
+    '/super-admin', '/admin', '/dashboard', '/owner', '/tenant', '/maintenance'
+  ]
+  
+  // Check if current path starts with any hide route
+  const shouldHideHeader = hideHeaderRoutes.some(route => location.pathname.startsWith(route))
+  const shouldHideFooter = hideFooterRoutes.some(route => location.pathname.startsWith(route))
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <AuthProvider>
         <div className="min-h-screen flex flex-col">
-          {!hideHeaderRoutes.includes(location.pathname) && <Header />}
+          {!shouldHideHeader && <Header />}
           <main className="flex-1">
             <Suspense fallback={<Loading />}>
               <Routes>
@@ -52,10 +66,20 @@ function App() {
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />
                 
-                {/* Protected Routes */}
+                {/* Protected Routes - Role-Specific Portals */}
+                <Route path="/super-admin/*" element={
+                  <ProtectedRoute allowedRoles={["super_admin"]}>
+                    <SuperAdmin />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/*" element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <Admin />
+                  </ProtectedRoute>
+                } />
                 <Route path="/dashboard/*" element={
                   <ProtectedRoute allowedRoles={["manager"]}>
-                    <Dashboard />
+                    <Manager />
                   </ProtectedRoute>
                 } />
                 <Route path="/owner/*" element={
@@ -66,6 +90,11 @@ function App() {
                 <Route path="/tenant/*" element={
                   <ProtectedRoute allowedRoles={["tenant"]}>
                     <Tenant />
+                  </ProtectedRoute>
+                } />
+                <Route path="/maintenance/*" element={
+                  <ProtectedRoute allowedRoles={["maintenance"]}>
+                    <Maintenance />
                   </ProtectedRoute>
                 } />
                 
@@ -86,7 +115,7 @@ function App() {
               </Routes>
             </Suspense>
           </main>
-          {!hideFooterRoutes.includes(location.pathname) && <Footer />}
+          {!shouldHideFooter && <Footer />}
         </div>
         <Toaster />
       </AuthProvider>

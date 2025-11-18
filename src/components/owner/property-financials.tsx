@@ -2,10 +2,11 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { ExportPDFButton } from "@/components/ui/export-pdf-button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
-import { DollarSign, TrendingUp, TrendingDown, Download, Calendar } from "lucide-react"
+import { DollarSign, TrendingUp, TrendingDown, Calendar } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 interface PropertyFinancialsProps {
@@ -172,10 +173,7 @@ export function PropertyFinancials({ property }: PropertyFinancialsProps) {
                   <TabsTrigger value="yearly">Yearly</TabsTrigger>
                 </TabsList>
               </Tabs>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
+              <ExportPDFButton fileName="property-financials" size="sm" variant="outline" />
             </div>
           </div>
         </CardHeader>

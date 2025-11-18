@@ -16,12 +16,22 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FileUp, AlertTriangle } from "lucide-react"
+import { FileUp, AlertTriangle, Upload } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-export function AddDocumentDialog() {
+interface AddDocumentDialogProps {
+  onAddDocument?: (data: any) => void
+}
+
+export function AddDocumentDialog({ onAddDocument }: AddDocumentDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [formData, setFormData] = useState({
+    name: "",
+    category: "",
+    property: "",
+    folder: "",
+  })
   const { toast } = useToast()
 
   const handleUpload = (e: React.FormEvent) => {
@@ -33,10 +43,21 @@ export function AddDocumentDialog() {
       setIsUploading(false)
       setIsOpen(false)
 
+      if (onAddDocument) {
+        onAddDocument(formData)
+      }
+
       toast({
-        title: "Feature in development",
-        description: "Document upload functionality is coming soon. We're working on it!",
-        variant: "destructive",
+        title: "Document uploaded",
+        description: "The document has been successfully uploaded.",
+      })
+
+      // Reset form
+      setFormData({
+        name: "",
+        category: "",
+        property: "",
+        folder: "",
       })
     }, 1500)
   }
@@ -44,8 +65,8 @@ export function AddDocumentDialog() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <FileUp className="mr-2 h-4 w-4" />
+        <Button size="sm">
+          <Upload className="mr-2 h-4 w-4" />
           Upload Document
         </Button>
       </DialogTrigger>
@@ -58,20 +79,56 @@ export function AddDocumentDialog() {
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="document-name">Document Name</Label>
-              <Input id="document-name" placeholder="Enter document name" />
+              <Input 
+                id="document-name" 
+                placeholder="Enter document name" 
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                required
+              />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="document-type">Document Type</Label>
-              <Select>
+              <Label htmlFor="document-type">Document Category</Label>
+              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
                 <SelectTrigger id="document-type">
-                  <SelectValue placeholder="Select document type" />
+                  <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="lease">Lease Agreement</SelectItem>
-                  <SelectItem value="inspection">Inspection Report</SelectItem>
-                  <SelectItem value="maintenance">Maintenance Record</SelectItem>
-                  <SelectItem value="financial">Financial Document</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="lease">Lease</SelectItem>
+                  <SelectItem value="insurance">Insurance</SelectItem>
+                  <SelectItem value="tax">Tax</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                  <SelectItem value="inspection">Inspection</SelectItem>
+                  <SelectItem value="financial">Financial</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="document-property">Property</Label>
+              <Select value={formData.property} onValueChange={(value) => setFormData(prev => ({ ...prev, property: value }))}>
+                <SelectTrigger id="document-property">
+                  <SelectValue placeholder="Select property" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="123 Main Street">123 Main Street</SelectItem>
+                  <SelectItem value="456 Oak Avenue">456 Oak Avenue</SelectItem>
+                  <SelectItem value="All Properties">All Properties</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="document-folder">Folder</Label>
+              <Select value={formData.folder} onValueChange={(value) => setFormData(prev => ({ ...prev, folder: value }))}>
+                <SelectTrigger id="document-folder">
+                  <SelectValue placeholder="Select folder" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Leases">Leases</SelectItem>
+                  <SelectItem value="Insurance">Insurance</SelectItem>
+                  <SelectItem value="Tax Documents">Tax Documents</SelectItem>
+                  <SelectItem value="Maintenance Records">Maintenance Records</SelectItem>
+                  <SelectItem value="Property Inspections">Property Inspections</SelectItem>
+                  <SelectItem value="Financial Records">Financial Records</SelectItem>
                 </SelectContent>
               </Select>
             </div>

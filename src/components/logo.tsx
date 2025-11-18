@@ -27,12 +27,18 @@ export function Logo({
     if (linkTo) return linkTo
     if (!user) return "/"
     switch (user.role) {
+      case "super_admin":
+        return "/super-admin"
+      case "admin":
+        return "/admin"
       case "manager":
         return "/dashboard"
       case "owner":
         return "/owner"
       case "tenant":
         return "/tenant"
+      case "maintenance":
+        return "/maintenance"
       default:
         return "/dashboard"
     }

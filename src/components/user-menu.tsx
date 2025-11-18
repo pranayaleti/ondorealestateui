@@ -1,4 +1,5 @@
 import { useAuth } from "@/lib/auth-context"
+import { getDashboardPath } from "@/lib/auth-utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { LogOut, User, Settings, Home, Building, Shield } from "lucide-react"
+import { LogOut, User, Settings, Home, Building, Shield, Wrench } from "lucide-react"
 import { Link } from "react-router-dom"
 
 export default function UserMenu() {
@@ -20,8 +21,8 @@ export default function UserMenu() {
     return null
   }
 
-  // Determine dashboard path based on user role
-  const dashboardPath = user.role === "tenant" ? "/tenant" : user.role === "owner" ? "/owner" : "/dashboard"
+  // Determine dashboard path based on user role using centralized utility
+  const dashboardPath = getDashboardPath(user.role)
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName[0]}${lastName[0]}`.toUpperCase()
@@ -52,6 +53,10 @@ export default function UserMenu() {
                 <Home className="mr-2 h-4 w-4" />
               ) : user.role === "owner" ? (
                 <Building className="mr-2 h-4 w-4" />
+              ) : user.role === "maintenance" ? (
+                <Wrench className="mr-2 h-4 w-4" />
+              ) : user.role === "super_admin" || user.role === "admin" ? (
+                <Shield className="mr-2 h-4 w-4" />
               ) : (
                 <Shield className="mr-2 h-4 w-4" />
               )}
@@ -64,7 +69,7 @@ export default function UserMenu() {
               <span>My Profile</span>
             </Link>
           </DropdownMenuItem>
-          {user.role === "admin" && (
+          {(user.role === "super_admin" || user.role === "admin" || user.role === "manager" || user.role === "owner" || user.role === "tenant" || user.role === "maintenance") && (
             <DropdownMenuItem asChild>
               <Link to={`${dashboardPath}/settings`} className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />

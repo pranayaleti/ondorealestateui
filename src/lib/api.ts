@@ -7,7 +7,7 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
-  role: "admin" | "manager" | "owner" | "tenant";
+  role: "super_admin" | "admin" | "manager" | "owner" | "tenant" | "maintenance";
   phone?: string;
   address?: string;
   profilePicture?: string;
@@ -26,7 +26,7 @@ export interface LoginResponse {
 
 export interface InviteRequest {
   email: string;
-  role: 'manager' | 'owner' | 'tenant';
+  role: 'super_admin' | 'admin' | 'manager' | 'owner' | 'tenant' | 'maintenance';
 }
 
 export interface InviteResponse {
@@ -39,7 +39,7 @@ export interface InviteResponse {
 
 export interface InvitationDetails {
   email: string;
-  role: 'manager' | 'owner' | 'tenant';
+  role: 'super_admin' | 'admin' | 'manager' | 'owner' | 'tenant' | 'maintenance';
   expiresAt: string;
 }
 

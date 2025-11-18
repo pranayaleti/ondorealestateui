@@ -10,7 +10,8 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from 
 import { cn } from "@/lib/utils"
 import { authApi, type InvitedUser } from "@/lib/api"
 
-const navItems = [
+// Navigation items - only shown for managers
+const managerNavItems = [
   { label: "Overview", path: "/dashboard", tab: "overview" },
   { label: "Properties", path: "/dashboard/properties", tab: "properties" },
   { label: "Owner Properties", path: "/dashboard", tab: "owner-properties" },
@@ -39,7 +40,7 @@ export default function Header() {
   // Fetch invited users to compute active owners and tenants counts
   useEffect(() => {
     const fetchInvited = async () => {
-      if (!user || (user.role !== "manager" && user.role !== "admin")) return
+      if (!user || (user.role !== "manager" && user.role !== "super_admin" && user.role !== "admin")) return
       try {
         setIsLoadingInvited(true)
         const users = await authApi.getInvitedUsers()
@@ -133,7 +134,8 @@ export default function Header() {
         {/* Center: Navigation Links - Fluid with scroll */}
         <nav className="flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 px-2 sm:px-4 overflow-x-auto scrollbar-hide">
           <div className="flex items-center gap-1 sm:gap-2">
-            {navItems.map((item) => {
+            {/* Only show navigation for managers - other roles have their own portals */}
+            {user?.role === "manager" && managerNavItems.map((item) => {
               const href = item.tab ? `${item.path}?tab=${item.tab}` : item.path
               return (
                 <Link
@@ -151,8 +153,8 @@ export default function Header() {
               )
             })}
             
-            {/* Active Owners and Tenants - Only show for managers/admins */}
-            {(user?.role === "manager" || user?.role === "admin") && (
+            {/* Active Owners and Tenants - Only show for managers/super_admins/admins */}
+            {(user?.role === "manager" || user?.role === "super_admin" || user?.role === "admin") && (
               <>
                 <Link
                   to="/dashboard/owners"
@@ -248,7 +250,8 @@ export default function Header() {
                     </div>
                     <div className="flex-1 overflow-y-auto">
                       <nav className="flex flex-col">
-                        {navItems.map((item) => {
+                        {/* Only show navigation for managers - other roles have their own portals */}
+                        {user?.role === "manager" && managerNavItems.map((item) => {
                           const href = item.tab ? `${item.path}?tab=${item.tab}` : item.path
                           return (
                             <Link
@@ -267,8 +270,8 @@ export default function Header() {
                           )
                         })}
                         
-                        {/* Active Owners and Tenants - Only show for managers/admins */}
-                        {(user?.role === "manager" || user?.role === "admin") && (
+                        {/* Active Owners and Tenants - Only show for managers/super_admins/admins */}
+                        {(user?.role === "manager" || user?.role === "super_admin" || user?.role === "admin") && (
                           <>
                             <Link
                               to="/dashboard/owners"

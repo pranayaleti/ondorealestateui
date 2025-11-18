@@ -3,15 +3,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ImageUploader } from "@/components/ui/image-uploader"
 import { ProfilePictureViewer } from "@/components/ui/profile-picture-viewer"
-import { User, Calendar, Edit, Save, Loader2, Upload } from "lucide-react"
+import { User, Calendar, Edit, Save, Loader2, Upload, DollarSign, Home } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { propertyApi, authApi, type Property } from "@/lib/api"
+import { ProfileShell, ProfileSummaryCard, type SummaryMetric } from "@/components/portal/profile"
+import { AddressForm, type AddressFormValues } from "@/components/forms/address-form"
+import { parseAddressString, formatAddressFields } from "@/utils/address"
 
 // Mock tenant profile data - will be replaced with real data from API
 const getInitialProfileData = (user: any) => ({
@@ -46,12 +48,34 @@ const getInitialProfileData = (user: any) => ({
   }
 })
 
+const buildAddressFormValue = (address?: string | null): AddressFormValues => {
+  const parsed = parseAddressString(address)
+  return {
+    addressType: "home",
+    addressLine1: parsed.line1,
+    addressLine2: parsed.line2,
+    city: parsed.city,
+    state: parsed.state,
+    postalCode: parsed.postalCode,
+  }
+}
+
+const formatAddressFromForm = (value: AddressFormValues) =>
+  formatAddressFields({
+    line1: value.addressLine1,
+    line2: value.addressLine2,
+    city: value.city,
+    state: value.state,
+    postalCode: value.postalCode,
+  })
+
 export default function TenantProfile() {
   const { user, refreshUser } = useAuth()
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("personal")
   const [isEditing, setIsEditing] = useState(false)
   const [profileData, setProfileData] = useState(() => getInitialProfileData(user))
+  const [addressFormValue, setAddressFormValue] = useState<AddressFormValues>(() => buildAddressFormValue(user?.address))
   const [assignedProperty, setAssignedProperty] = useState<Property | null>(null)
   const [loadingProperty, setLoadingProperty] = useState(true)
   const [passwordData, setPasswordData] = useState({
@@ -61,6 +85,11 @@ export default function TenantProfile() {
   })
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [isSavingProfile, setIsSavingProfile] = useState(false)
+
+  useEffect(() => {
+    setProfileData(getInitialProfileData(user))
+    setAddressFormValue(buildAddressFormValue(user?.address))
+  }, [user])
 
   // Fetch assigned property data
   useEffect(() => {
@@ -121,7 +150,18 @@ export default function TenantProfile() {
 
   const handleCancel = () => {
     setProfileData(getInitialProfileData(user))
+    setAddressFormValue(buildAddressFormValue(user?.address))
     setIsEditing(false)
+  }
+  const handleAddressFormChange = (nextValue: AddressFormValues) => {
+    setAddressFormValue(nextValue)
+    setProfileData(prev => ({
+      ...prev,
+      personalInfo: {
+        ...prev.personalInfo,
+        address: formatAddressFromForm(nextValue),
+      },
+    }))
   }
 
   const handleProfilePictureUpdate = async (profilePictureUrl: string) => {
@@ -202,89 +242,43 @@ export default function TenantProfile() {
     }
   }
 
+  const summaryMetrics: SummaryMetric[] = [
+    {
+      id: "property",
+      label: "Property",
+      value: loadingProperty ? "Loading..." : assignedProperty ? assignedProperty.title : "No property assigned",
+      icon: <Home className="h-4 w-4" />,
+      loading: loadingProperty,
+    },
+    {
+      id: "lease",
+      label: "Lease Status",
+      value: loadingProperty ? "..." : assignedProperty ? "Active" : "No Property",
+      icon: <Calendar className="h-4 w-4" />,
+      loading: loadingProperty,
+    },
+    {
+      id: "rent",
+      label: "Monthly Rent",
+      value: loadingProperty ? "..." : assignedProperty ? `$${assignedProperty.price || 0}` : "$0",
+      icon: <DollarSign className="h-4 w-4" />,
+      loading: loadingProperty,
+    },
+  ]
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Profile Settings
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Manage your personal information and preferences
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Profile Summary */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center text-center">
-                <div className="relative">
-                  {user?.profilePicture ? (
-                    <ProfilePictureViewer
-                      imageSrc={user.profilePicture}
-                      userName={`${profileData.personalInfo.firstName} ${profileData.personalInfo.lastName}`}
-                    />
-                  ) : (
-                    <Avatar className="h-24 w-24">
-                      <AvatarImage src={user?.profilePicture} />
-                      <AvatarFallback className="text-lg">
-                        {profileData.personalInfo.firstName[0]}{profileData.personalInfo.lastName[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  <ImageUploader 
-                    onCropComplete={handleProfilePictureUpdate}
-                    trigger={
-                      <Button 
-                        size="sm"
-                        variant="outline"
-                        className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
-                      >
-                        <Upload className="h-4 w-4" />
-                      </Button>
-                    }
-                  />
-                </div>
-                <h3 className="font-semibold text-lg mt-4">
-                  {profileData.personalInfo.firstName} {profileData.personalInfo.lastName}
-                </h3>
-                <p className="text-sm text-gray-500">{profileData.personalInfo.email}</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  {loadingProperty ? "Loading..." : assignedProperty ? assignedProperty.title : "No property assigned"}
-                </p>
-                
-                <div className="w-full mt-6 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Lease Status:</span>
-                    <span className="font-medium text-green-600">
-                      {loadingProperty ? "..." : assignedProperty ? "Active" : "No Property"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Lease Expires:</span>
-                    <span className="font-medium">
-                      {loadingProperty ? "..." : assignedProperty ? 
-                        new Date(new Date(assignedProperty.createdAt).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString() : 
-                        "N/A"
-                      }
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Monthly Rent:</span>
-                    <span className="font-medium">
-                      {loadingProperty ? "..." : assignedProperty ? `$${assignedProperty.price || 0}` : "$0"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Profile Details */}
-        <div className="lg:col-span-3">
+    <ProfileShell
+      title="Profile Settings"
+      description="Manage your personal information and preferences"
+      summary={
+        <ProfileSummaryCard
+          roleLabel="Tenant"
+          metrics={summaryMetrics}
+          onAvatarChange={handleProfilePictureUpdate}
+          isAvatarUpdating={isSavingProfile}
+        />
+      }
+    >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="personal">Personal Info</TabsTrigger>
@@ -379,18 +373,13 @@ export default function TenantProfile() {
                     </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="address">Address</Label>
-                    <Textarea
-                      id="address"
-                      value={profileData.personalInfo.address}
-                      onChange={(e) => setProfileData(prev => ({
-                        ...prev,
-                        personalInfo: { ...prev.personalInfo, address: e.target.value }
-                      }))}
-                      disabled={!isEditing}
-                      placeholder="Enter your address"
-                      rows={3}
+                  <div className="space-y-2">
+                    <Label htmlFor="tenant-profile-address">Address</Label>
+                    <AddressForm
+                      value={addressFormValue}
+                      onChange={handleAddressFormChange}
+                      disabled={!isEditing || isSavingProfile}
+                      idPrefix="tenant-profile"
                     />
                   </div>
 
@@ -543,8 +532,6 @@ export default function TenantProfile() {
               </Card>
             </TabsContent>
           </Tabs>
-        </div>
-      </div>
-    </div>
+    </ProfileShell>
   )
 }

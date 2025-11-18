@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CheckCircle, Clock, PenToolIcon as Tool, Search, ArrowRight, Calendar, Home, AlertCircle } from "lucide-react"
+import { Breadcrumb } from "@/components/ui/breadcrumb"
+import { CheckCircle, Clock, PenToolIcon as Tool, Search, ArrowRight, Calendar, Home, AlertCircle, Wrench } from "lucide-react"
 import { Link } from "react-router-dom"
 
 // Mock data for maintenance requests
@@ -171,11 +172,15 @@ export function OwnerMaintenanceManagement() {
   const uniqueProperties = [...new Set(requests.map((req) => req.property))]
 
   return (
-    <Card className="w-full shadow-md">
-      <CardHeader className="bg-muted/50">
-        <CardTitle>Maintenance Requests</CardTitle>
-        <CardDescription>Manage maintenance requests for your properties</CardDescription>
-      </CardHeader>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <Breadcrumb items={[{ label: "Maintenance", icon: Wrench }]} />
+      </div>
+      <Card className="w-full shadow-md">
+        <CardHeader className="bg-muted/50">
+          <CardTitle>Maintenance Requests</CardTitle>
+          <CardDescription>Manage maintenance requests for your properties</CardDescription>
+        </CardHeader>
       <CardContent className="p-4 sm:p-6">
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
@@ -282,5 +287,6 @@ export function OwnerMaintenanceManagement() {
         </Tabs>
       </CardContent>
     </Card>
+    </div>
   )
 }

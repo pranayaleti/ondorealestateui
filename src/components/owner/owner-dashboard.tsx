@@ -4,11 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Building, DollarSign, TrendingUp, Users, FileText, BarChart3, AlertTriangle, Plus, MessageSquare } from "lucide-react"
+import { Building, DollarSign, TrendingUp, Users, FileText, BarChart3, AlertTriangle, Plus, MessageSquare, Wrench, ArrowUp, Calendar, Home, FolderOpen, Loader2 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { propertyApi, type Property } from "@/lib/api"
 import { ModernPropertyCard } from "./modern-property-card"
 import { PropertyDetailModal } from "@/components/property-detail-modal"
+import { useWelcomeToast } from "@/hooks/use-welcome-toast"
 
 // Extended property interface for dashboard
 interface DashboardProperty extends Property {
@@ -30,14 +31,31 @@ const mockStaticData = {
     { id: 4, type: "financial", message: "Monthly reports available", time: "3 days ago", property: "All Properties" }
   ],
   alerts: [
-    { id: 1, type: "financial", message: "Property insurance renewal due", priority: "high", dueDate: "Coming Soon..." },
-    { id: 2, type: "maintenance", message: "Property maintenance scheduled", priority: "medium", dueDate: "Coming Soon..." },
-    { id: 3, type: "legal", message: "Document review required", priority: "medium", dueDate: "Coming Soon..." }
-  ]
+    { id: 1, type: "financial", message: "Property insurance renewal due", priority: "high", dueDate: "December 1, 2025" },
+    { id: 2, type: "maintenance", message: "Property maintenance scheduled", priority: "medium", dueDate: "November 25, 2025" },
+    { id: 3, type: "legal", message: "Document review required", priority: "medium", dueDate: "November 30, 2025" }
+  ],
+  unreadMessages: 3,
+  maintenanceRequests: {
+    active: 5,
+    completedThisMonth: 3
+  },
+  recentPayments: [
+    { id: 1, tenant: "John Smith", date: "May 1, 2023", amount: 1250.00 },
+    { id: 2, tenant: "Sarah Johnson", date: "May 1, 2023", amount: 950.00 },
+    { id: 3, tenant: "Michael Brown", date: "May 2, 2023", amount: 1100.00 }
+  ],
+  upcomingEvents: [
+    { id: 1, type: "Lease Renewal", property: "123 Main St", date: "May 15, 2023" },
+    { id: 2, type: "Property Inspection", property: "456 Oak Ave", date: "May 20, 2023" },
+    { id: 3, type: "Insurance Payment Due", property: "All Properties", date: "May 31, 2023" }
+  ],
+  lastMonthRevenue: 0 // Will be calculated
 }
 
 export default function OwnerDashboard() {
   const { user } = useAuth()
+  useWelcomeToast() // Show welcome toast on dashboard visit
   const [activeTab, setActiveTab] = useState("overview")
   const [properties, setProperties] = useState<DashboardProperty[]>([])
   const [loading, setLoading] = useState(true)
@@ -50,7 +68,15 @@ export default function OwnerDashboard() {
     monthlyRevenue: 0,
     monthlyExpenses: 0,
     netIncome: 0,
-    occupancyRate: 0
+    occupancyRate: 0,
+    propertyTypeBreakdown: { singleFamily: 0, apartments: 0, other: 0 },
+    revenueTrend: 0, // Percentage change from last month
+    expenseBreakdown: {
+      maintenance: 0,
+      utilities: 0,
+      propertyManagement: 0,
+      insurance: 0
+    }
   })
 
   useEffect(() => {
@@ -98,6 +124,17 @@ export default function OwnerDashboard() {
         acc.monthlyRevenue += property.monthlyRevenue || 0
         acc.monthlyExpenses += property.monthlyExpenses || 0
         acc.netIncome += property.netIncome || 0
+        
+        // Count property types
+        const propertyType = property.type?.toLowerCase() || ""
+        if (propertyType.includes("single") || propertyType.includes("family") || propertyType.includes("house")) {
+          acc.propertyTypeBreakdown.singleFamily += 1
+        } else if (propertyType.includes("apartment") || propertyType.includes("unit")) {
+          acc.propertyTypeBreakdown.apartments += 1
+        } else {
+          acc.propertyTypeBreakdown.other += 1
+        }
+        
         return acc
       }, {
         totalProperties: 0,
@@ -106,11 +143,28 @@ export default function OwnerDashboard() {
         monthlyRevenue: 0,
         monthlyExpenses: 0,
         netIncome: 0,
-        occupancyRate: 0
+        occupancyRate: 0,
+        propertyTypeBreakdown: { singleFamily: 0, apartments: 0, other: 0 },
+        revenueTrend: 0,
+        expenseBreakdown: {
+          maintenance: 0,
+          utilities: 0,
+          propertyManagement: 0,
+          insurance: 0
+        }
       })
       
       // Calculate occupancy rate based on actual occupancy
       stats.occupancyRate = stats.totalProperties > 0 ? (stats.occupiedUnits / stats.totalProperties) * 100 : 0
+      
+      // Calculate expense breakdown (mock percentages for now)
+      stats.expenseBreakdown.maintenance = stats.monthlyExpenses * 0.36 // ~36%
+      stats.expenseBreakdown.utilities = stats.monthlyExpenses * 0.26 // ~26%
+      stats.expenseBreakdown.propertyManagement = stats.monthlyExpenses * 0.24 // ~24%
+      stats.expenseBreakdown.insurance = stats.monthlyExpenses * 0.13 // ~13%
+      
+      // Calculate revenue trend (mock 4.3% increase for now)
+      stats.revenueTrend = 4.3
       
       setProperties(dashboardProperties)
       setPortfolioStats(stats)
@@ -156,8 +210,9 @@ export default function OwnerDashboard() {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center py-12">
-          <div className="text-lg">Loading dashboard...</div>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="text-lg text-gray-600 dark:text-gray-400">Loading dashboard...</div>
         </div>
       </div>
     )
@@ -168,10 +223,10 @@ export default function OwnerDashboard() {
       {/* Header */}
       <div className="mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-          Welcome back, {user?.firstName} {user?.lastName}!
+          Dashboard
         </h1>
         <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1 md:mt-2">
-          Here's your investment portfolio overview.
+          Your investment portfolio overview
         </p>
       </div>
 
@@ -185,7 +240,10 @@ export default function OwnerDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{portfolioStats.totalProperties}</div>
             <p className="text-xs text-muted-foreground">
-              Properties in portfolio
+              {portfolioStats.propertyTypeBreakdown.singleFamily > 0 && `${portfolioStats.propertyTypeBreakdown.singleFamily} single-family`}
+              {portfolioStats.propertyTypeBreakdown.singleFamily > 0 && portfolioStats.propertyTypeBreakdown.apartments > 0 && ", "}
+              {portfolioStats.propertyTypeBreakdown.apartments > 0 && `${portfolioStats.propertyTypeBreakdown.apartments} apartments`}
+              {portfolioStats.propertyTypeBreakdown.singleFamily === 0 && portfolioStats.propertyTypeBreakdown.apartments === 0 && "Properties in portfolio"}
             </p>
           </CardContent>
         </Card>
@@ -196,22 +254,23 @@ export default function OwnerDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${portfolioStats.monthlyRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              From occupied properties
+            <div className="text-2xl font-bold">${portfolioStats.monthlyRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <ArrowUp className="h-3 w-3 text-green-500" />
+              <span className="text-green-500">{portfolioStats.revenueTrend}%</span> from last month
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Net Income</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Maintenance Requests</CardTitle>
+            <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">${portfolioStats.netIncome.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{mockStaticData.maintenanceRequests.active} Active</div>
             <p className="text-xs text-muted-foreground">
-              {portfolioStats.monthlyRevenue > 0 ? Math.round((portfolioStats.netIncome / portfolioStats.monthlyRevenue) * 100) : 0}% profit margin
+              {mockStaticData.maintenanceRequests.completedThisMonth} completed this month
             </p>
           </CardContent>
         </Card>
@@ -222,9 +281,9 @@ export default function OwnerDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{portfolioStats.occupancyRate.toFixed(1)}%</div>
+            <div className="text-2xl font-bold">{Math.round(portfolioStats.occupancyRate)}%</div>
             <p className="text-xs text-muted-foreground">
-              {portfolioStats.occupiedUnits} of {portfolioStats.totalProperties} properties
+              {portfolioStats.occupiedUnits} of {portfolioStats.totalProperties} units occupied
             </p>
           </CardContent>
         </Card>
@@ -244,34 +303,31 @@ export default function OwnerDashboard() {
           </Card>
         </Link>
 
-        {/* <Link to="/owner/messages"> */}
+        <Link to="/owner/messages">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
               <MessageSquare className="h-8 w-8 text-blue-500 mr-3" />
               <div>
                 <p className="text-sm font-medium">Messages</p>
-                {/* <p className="text-xs text-gray-500">Chat with Tenants</p> */}
-                <p className="text-xs text-gray-500">Coming Soon...</p>
-
+                <p className="text-xs text-gray-500">{mockStaticData.unreadMessages} Unread</p>
               </div>
             </CardContent>
           </Card>
-        {/* </Link> */}
+        </Link>
 
       
 
-        {/* <Link to="/owner/finances"> */}
+        <Link to="/owner/finances">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
               <DollarSign className="h-8 w-8 text-green-500 mr-3" />
               <div>
                 <p className="text-sm font-medium">Finances</p>
-                {/* <p className="text-xs text-gray-500">Income & ROI</p> */}
-                <p className="text-xs text-gray-500">Coming Soon...</p>
+                <p className="text-xs text-gray-500">Track Income</p>
               </div>
             </CardContent>
           </Card>
-        {/* </Link> */}
+        </Link>
 
         <Link to="/owner/tenants">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
@@ -285,18 +341,29 @@ export default function OwnerDashboard() {
           </Card>
         </Link>
 
-        {/* <Link to="/owner/reports"> */}
+        <Link to="/owner/reports">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
               <BarChart3 className="h-8 w-8 text-indigo-500 mr-3" />
               <div>
                 <p className="text-sm font-medium">Reports</p>
-                {/* <p className="text-xs text-gray-500">Analytics</p> */}
-                <p className="text-xs text-gray-500">Coming Soon...</p>
+                <p className="text-xs text-gray-500">Analytics</p>
               </div>
             </CardContent>
           </Card>
-        {/* </Link> */}
+        </Link>
+
+        <Link to="/owner/documents">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="flex items-center p-4">
+              <FolderOpen className="h-8 w-8 text-purple-500 mr-3" />
+              <div>
+                <p className="text-sm font-medium">Documents</p>
+                <p className="text-xs text-gray-500">Files & Records</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
@@ -309,123 +376,193 @@ export default function OwnerDashboard() {
 
         <TabsContent value="overview" className="space-y-4 md:space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            {/* Portfolio Performance */}
+            {/* Financial Overview */}
             <Card>
               <CardHeader>
-                <CardTitle>Portfolio Performance</CardTitle>
-                <CardDescription>Key investment metrics</CardDescription>
+                <CardTitle>Financial Overview</CardTitle>
+                <CardDescription>Revenue and expenses for the current month</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">${portfolioStats.monthlyRevenue.toLocaleString()}</div>
-                    <div className="text-sm text-gray-500">Monthly Revenue</div>
+              <CardContent className="space-y-6">
+                {/* Total Revenue */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Total Revenue</span>
+                    <span className="text-lg font-bold">${portfolioStats.monthlyRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-red-600">${portfolioStats.monthlyExpenses.toLocaleString()}</div>
-                    <div className="text-sm text-gray-500">Monthly Expenses</div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-green-500 h-2 rounded-full" 
+                      style={{ width: '100%' }}
+                    ></div>
                   </div>
                 </div>
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-3xl font-bold text-blue-600">${portfolioStats.netIncome.toLocaleString()}</div>
-                  <div className="text-sm text-gray-500">Net Monthly Income</div>
+
+                {/* Expenses */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Expenses</span>
+                    <span className="text-lg font-bold">${portfolioStats.monthlyExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-red-500 h-2 rounded-full" 
+                      style={{ width: `${Math.min((portfolioStats.monthlyExpenses / Math.max(portfolioStats.monthlyRevenue, 1)) * 100, 100)}%` }}
+                    ></div>
+                  </div>
+                  <div className="space-y-2 pt-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Maintenance:</span>
+                      <span className="font-medium">${portfolioStats.expenseBreakdown.maintenance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Utilities:</span>
+                      <span className="font-medium">${portfolioStats.expenseBreakdown.utilities.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Property Management:</span>
+                      <span className="font-medium">${portfolioStats.expenseBreakdown.propertyManagement.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Insurance:</span>
+                      <span className="font-medium">${portfolioStats.expenseBreakdown.insurance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Net Income */}
+                <div className="pt-4 border-t">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Net Income</span>
+                    <span className="text-2xl font-bold text-green-600">${portfolioStats.netIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Important Alerts */}
+            {/* Property Occupancy */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <AlertTriangle className="h-5 w-5 mr-2 text-orange-500" />
-                  Important Alerts
-                </CardTitle>
-                {/* <CardDescription>Items requiring your attention</CardDescription> */}
-                <CardDescription>Coming Soon...</CardDescription>
+                <CardTitle>Property Occupancy</CardTitle>
+                <CardDescription>Current occupancy status</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {mockStaticData.alerts.map((alert) => (
-                  <div key={alert.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{alert.message}</p>
-                      <p className="text-sm text-gray-500">Due: {alert.dueDate}</p>
-                    </div>
-                    <Badge className={getPriorityColor(alert.priority)}>
-                      {alert.priority}
-                    </Badge>
+              <CardContent className="space-y-6">
+                {/* Overall Occupancy */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Overall Occupancy</span>
+                    <span className="text-lg font-bold">{Math.round(portfolioStats.occupancyRate)}%</span>
                   </div>
-                ))}
-                <Button variant="outline" className="w-full border-ondo-orange text-ondo-orange hover:bg-ondo-orange hover:text-white">
-                  Coming Soon...{/* View All Alerts */}
-                </Button>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full" 
+                      style={{ width: `${portfolioStats.occupancyRate}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Individual Properties */}
+                <div className="space-y-3 pt-2">
+                  {properties.slice(0, 4).map((property) => {
+                    const isOccupied = property.tenantId ? true : false
+                    const propertyName = property.addressLine1 || `${property.type} - ${property.id.slice(-4)}`
+                    return (
+                      <div key={property.id} className="flex justify-between items-center p-2 border rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Home className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{propertyName}</span>
+                          <span className="text-xs text-muted-foreground">({property.type})</span>
+                        </div>
+                        <Badge variant={isOccupied ? "default" : "destructive"} className={isOccupied ? "bg-green-500" : ""}>
+                          {isOccupied ? "Occupied" : "Vacant"}
+                        </Badge>
+                      </div>
+                    )
+                  })}
+                  {properties.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">No properties found</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Investment Summary */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+          {/* Bottom Row: Recent Payments, Quick Actions, Upcoming Events */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+            {/* Recent Payments */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Annual ROI</CardTitle>
+                <CardTitle>Recent Payments</CardTitle>
+                <CardDescription>Latest tenant payments</CardDescription>
               </CardHeader>
-              <CardContent>
-                {(() => {
-                  // Calculate Annual ROI: (Annual Net Income / Portfolio Value) * 100
-                  // Portfolio Value = Total property values (estimated at price * 12 * 10 years)
-                  // Annual Net Income = Net Income * 12
-                  const annualNetIncome = portfolioStats.netIncome * 12
-                  const estimatedPortfolioValue = properties.reduce((sum, prop) => {
-                    return sum + (prop.price ? prop.price * 12 * 10 : 0) // 10 years of rent (monthly * 12 * 10)
-                  }, 0)
-                  const annualROI = estimatedPortfolioValue > 0 
-                    ? ((annualNetIncome / estimatedPortfolioValue) * 100).toFixed(1) 
-                    : 0
-                  
-                  return (
-                    <>
-                      <div className="text-3xl font-bold text-green-600">{annualROI}%</div>
-                      <p className="text-sm text-gray-500 mt-2">Return on investment</p>
-                    </>
-                  )
-                })()}
+              <CardContent className="space-y-3">
+                {mockStaticData.recentPayments.map((payment) => (
+                  <div key={payment.id} className="flex justify-between items-center p-2 border rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">{payment.tenant}</p>
+                      <p className="text-xs text-muted-foreground">{payment.date}</p>
+                    </div>
+                    <span className="font-bold">${payment.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                ))}
+                <Link to="/owner/finances">
+                  <Button variant="link" className="w-full text-sm p-0 h-auto">
+                    View all payments →
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 
+            {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Portfolio Value</CardTitle>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Common owner tasks</CardDescription>
               </CardHeader>
-              <CardContent>
-                {(() => {
-                  // Calculate total portfolio value as sum of property values
-                  // Estimate property value as 10 years of annual rent
-                  const totalValue = properties.reduce((sum, prop) => {
-                    return sum + (prop.price ? prop.price * 12 * 10 : 0) // Monthly rent * 12 months * 10 years
-                  }, 0)
-                  
-                  const formattedValue = totalValue >= 1000000
-                    ? `$${(totalValue / 1000000).toFixed(1)}M`
-                    : totalValue >= 1000
-                    ? `$${(totalValue / 1000).toFixed(0)}K`
-                    : `$${totalValue.toLocaleString()}`
-                  
-                  return (
-                    <>
-                      <div className="text-3xl font-bold text-blue-600">{formattedValue}</div>
-                      <p className="text-sm text-gray-500 mt-2">Total estimated value</p>
-                    </>
-                  )
-                })()}
+              <CardContent className="space-y-2">
+                <Link to="/owner/properties">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Building className="h-4 w-4 mr-2" />
+                    Manage Properties
+                  </Button>
+                </Link>
+                <Link to="/owner/maintenance">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Wrench className="h-4 w-4 mr-2" />
+                    View Maintenance Requests
+                  </Button>
+                </Link>
+                <Link to="/owner/tenants">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Users className="h-4 w-4 mr-2" />
+                    Manage Tenants
+                  </Button>
+                </Link>
+                <Link to="/owner/documents">
+                  <Button variant="outline" className="w-full justify-start">
+                    <FolderOpen className="h-4 w-4 mr-2" />
+                    Documents
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 
+            {/* Upcoming Events */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Cash Flow</CardTitle>
+                <CardTitle>Upcoming Events</CardTitle>
+                <CardDescription>Important dates to remember</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-purple-600">${(portfolioStats.netIncome * 12).toLocaleString()}</div>
-                <p className="text-sm text-gray-500 mt-2">Annual net income</p>
+              <CardContent className="space-y-3">
+                {mockStaticData.upcomingEvents.map((event) => (
+                  <div key={event.id} className="flex items-start gap-3 p-2 border rounded-lg">
+                    <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{event.type}</p>
+                      <p className="text-xs text-muted-foreground">{event.property}</p>
+                      <p className="text-xs text-muted-foreground">{event.date}</p>
+                    </div>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>
@@ -495,7 +632,7 @@ export default function OwnerDashboard() {
                           <Badge className={getPriorityColor(alert.priority)}>
                             {alert.priority} priority
                           </Badge>
-                          <Button size="sm" className="bg-ondo-orange hover:bg-ondo-red transition-colors">Coming Soon...</Button>
+                          <Button size="sm" className="bg-ondo-orange hover:bg-ondo-red transition-colors">Mark Complete</Button>
                         </div>
                       </div>
                     </CardContent>

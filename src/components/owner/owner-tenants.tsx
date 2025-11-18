@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { 
   Users, 
   MapPin,
@@ -36,9 +38,20 @@ export default function OwnerTenants() {
   }
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Tenant Overview</h1>
+      <div className="mb-6">
+        <Breadcrumb items={[{ label: "Tenants", icon: Users }]} />
+      </div>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Users className="w-8 h-8 text-orange-400" />
+          <div>
+            <h1 className="text-3xl font-bold">Tenants</h1>
         <p className="text-gray-600 dark:text-gray-400">View tenant information across your properties</p>
+          </div>
+        </div>
+        <Button className="bg-orange-600 hover:bg-orange-700 text-white">
+          Add Tenant
+        </Button>
       </div>
 
       {/* Summary */}
@@ -112,84 +125,60 @@ export default function OwnerTenants() {
 
       {/* Tenant List */}
       {!loading && !error && (
-        <div className="space-y-4">
+        <div>
           {tenants.length === 0 ? (
             <div className="text-center py-8">
               <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Tenants Found</h3>
-              <p className="text-gray-600">You don't have any tenants assigned to your properties yet.</p>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Tenants Found</h3>
+              <p className="text-gray-600 dark:text-gray-400">You don't have any tenants assigned to your properties yet.</p>
             </div>
           ) : (
-            tenants.map((tenant) => (
-              <Card key={tenant.id}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {tenants.map((tenant) => (
+                <Card key={tenant.id} className="bg-gray-900 border border-gray-700 hover:border-orange-500 transition-all cursor-pointer">
                 <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={`/placeholder-avatar-${tenant.id}.jpg`} />
-                        <AvatarFallback>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
                           {tenant.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
+                      </div>
                       <div>
-                        <h3 className="text-lg font-semibold">{tenant.name}</h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
-                          <div className="flex items-center space-x-1">
-                            <MapPin className="h-4 w-4" />
-                            <span>{tenant.property} - {tenant.unit}</span>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          {tenant.email} {tenant.phone && `• ${tenant.phone}`}
-                        </div>
+                        <div className="text-white font-semibold">{tenant.name}</div>
+                        <div className="text-gray-400 text-sm">{tenant.property} - {tenant.unit}</div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold">${tenant.rent.toLocaleString()}/month</p>
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Rent:</span>
+                        <span className="text-white font-medium">${tenant.rent.toLocaleString()}/mo</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Status:</span>
                       <Badge 
-                        variant="outline" 
                         className={
                           tenant.paymentStatus === 'current' 
-                            ? "text-green-600" 
+                              ? "bg-green-600 text-white" 
                             : tenant.paymentStatus === 'overdue'
-                            ? "text-red-600"
-                            : "text-yellow-600"
+                              ? "bg-red-600 text-white"
+                              : "bg-yellow-600 text-white"
                         }
                       >
                         {tenant.paymentStatus}
                       </Badge>
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t">
-                    <div>
-                      <span className="text-sm text-gray-500">Lease Start:</span>
-                      <p className="font-medium">{new Date(tenant.leaseStart).toLocaleDateString()}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-gray-500">Lease End:</span>
-                      <p className="font-medium">{new Date(tenant.leaseEnd).toLocaleDateString()}</p>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Move-in:</span>
+                        <span className="text-white">{new Date(tenant.leaseStart).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
                     </div>
                   </div>
 
-                  {/* Additional Property Details */}
-                  <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t text-sm">
-                    <div>
-                      <span className="text-gray-500">Property Type:</span>
-                      <p className="font-medium capitalize">{tenant.propertyType}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Bedrooms:</span>
-                      <p className="font-medium">{tenant.bedrooms || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Bathrooms:</span>
-                      <p className="font-medium">{tenant.bathrooms || 'N/A'}</p>
-                    </div>
-                  </div>
+                    <Button className="w-full mt-4 bg-gray-800 hover:bg-gray-700 text-white py-2 rounded-lg text-sm">
+                      View Details
+                    </Button>
                 </CardContent>
               </Card>
-            ))
+              ))}
+            </div>
           )}
         </div>
       )}

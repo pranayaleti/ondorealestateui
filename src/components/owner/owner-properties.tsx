@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth-context"
 import { propertyApi, type Property } from "@/lib/api"
 import { ModernPropertyCard } from "./modern-property-card"
 import { PropertyDetailModal } from "@/components/property-detail-modal"
+import { Breadcrumb } from "@/components/ui/breadcrumb"
 
 export default function OwnerProperties() {
   const [properties, setProperties] = useState<Property[]>([])
@@ -91,6 +92,9 @@ export default function OwnerProperties() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <Breadcrumb items={[{ label: "Properties", icon: Building }]} />
+      </div>
       <div className="mb-8">
         <div className="flex justify-between items-center">
           <div>

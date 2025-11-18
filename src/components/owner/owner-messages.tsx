@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { MessageSquare, Send, Search, Plus, Reply, User, Building, Calendar, Phone } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -112,10 +113,16 @@ function MessagesList() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <Breadcrumb items={[{ label: "Messages", icon: MessageSquare }]} />
+      </div>
       <div className="flex justify-between items-center mb-8">
+        <div className="flex items-center gap-3">
+          <MessageSquare className="w-8 h-8 text-blue-400" />
         <div>
-          <h1 className="text-3xl font-bold">Tenant Communications</h1>
+            <h1 className="text-3xl font-bold">Messages</h1>
           <p className="text-gray-600 dark:text-gray-400">Direct communication with your tenants</p>
+          </div>
         </div>
         <Link to="/owner/messages/compose">
           <Button>
@@ -330,6 +337,12 @@ function ComposeMessage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <Breadcrumb items={[
+          { label: "Messages", href: "/owner/messages", icon: MessageSquare },
+          { label: "Compose", icon: Plus }
+        ]} />
+      </div>
       <div className="max-w-4xl mx-auto">
         <Card>
           <CardHeader>

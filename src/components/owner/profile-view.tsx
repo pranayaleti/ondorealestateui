@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { useNavigate } from "react-router-dom"
+import { AddressForm, type AddressFormValues } from "@/components/forms/address-form"
+import { parseAddressString, formatAddressFields } from "@/utils/address"
 
 // Mock user data
 const USER = {
@@ -62,6 +64,17 @@ export function ProfileView() {
   const [activeTab, setActiveTab] = useState("personal")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [userData, setUserData] = useState(USER)
+  const [addressFormValue, setAddressFormValue] = useState<AddressFormValues>(() => {
+    const parsed = parseAddressString(USER.address)
+    return {
+      addressType: "home",
+      addressLine1: parsed.line1,
+      addressLine2: parsed.line2,
+      city: parsed.city,
+      state: parsed.state,
+      postalCode: parsed.postalCode,
+    }
+  })
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -73,6 +86,20 @@ export function ProfileView() {
     setUserData((prev) => ({
       ...prev,
       [name]: value,
+    }))
+  }
+
+  const handleAddressFormChange = (value: AddressFormValues) => {
+    setAddressFormValue(value)
+    setUserData((prev) => ({
+      ...prev,
+      address: formatAddressFields({
+        line1: value.addressLine1,
+        line2: value.addressLine2,
+        city: value.city,
+        state: value.state,
+        postalCode: value.postalCode,
+      }),
     }))
   }
 
@@ -247,14 +274,11 @@ export function ProfileView() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Textarea
-                      id="address"
-                      name="address"
-                      placeholder="Your address"
-                      rows={3}
-                      value={userData.address}
-                      onChange={handlePersonalInfoChange}
+                    <Label htmlFor="owner-profile-view-address">Address</Label>
+                    <AddressForm
+                      value={addressFormValue}
+                      onChange={handleAddressFormChange}
+                      idPrefix="owner-profile-view"
                     />
                   </div>
                   <div className="space-y-2">

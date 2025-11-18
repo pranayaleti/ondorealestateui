@@ -7,10 +7,12 @@ import TenantDocuments from "@/components/tenant/tenant-documents"
 import TenantMessages from "@/components/tenant/tenant-messages"
 import TenantProfile from "@/components/tenant/tenant-profile"
 import TenantSettings from "@/components/tenant/tenant-settings"
+import { PortalSidebar } from "@/components/portal-sidebar"
 import Loading from "@/components/loading"
 
 export default function Tenant() {
   return (
+    <PortalSidebar>
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Suspense fallback={<Loading />}>
         <Routes>
@@ -24,5 +26,6 @@ export default function Tenant() {
         </Routes>
       </Suspense>
     </div>
+    </PortalSidebar>
   )
 }
