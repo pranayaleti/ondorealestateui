@@ -1,6 +1,6 @@
 export const companyInfo = {
   name: "Ondo Real Estate",
-  email: "info@ondorealestate.com",
+  email: "pranay1917@gmail.com",
   calendlyUrl: "https://calendly.com/scheduleondo",
   timezoneAbbr: "MST",
   timezoneIANA: "America/Denver",
@@ -9,21 +9,21 @@ export const companyInfo = {
   leadWebhookUrl: "",
 
   // E.164 formatted phone for links and structured data
-  phoneE164: "+15551234567",
+  phoneE164: "+14085380420",
 
   // Human-friendly phone for display
-  phoneDisplay: "(555) 123-4567",
+  phoneDisplay: "+1 (408) 538-0420",
 
   address: {
-    streetAddress: "123 Main Street, Suite 100",
-    addressLocality: "Salt Lake City",
+    streetAddress: "2701 N Thanksgiving Way",
+    addressLocality: "Lehi",
     addressRegion: "Utah",
-    postalCode: "84101",
+    postalCode: "84043",
     addressCountry: "US",
   },
 
   hours: [
-    { day: "Mon-Fri", opens: "09:00", closes: "17:00", timeZone: "America/Denver" },
+    { day: "Mon-Fri", opens: "09:00", closes: "18:00", timeZone: "America/Denver" },
     { day: "Sat", opens: "10:00", closes: "14:00", timeZone: "America/Denver" },
     { day: "Sun", closed: true },
   ],
@@ -44,27 +44,33 @@ export const companyInfo = {
 
   // Geographic coordinates
   coordinates: {
-    latitude: "40.7608",
-    longitude: "-111.8910",
+    latitude: "40.3916",
+    longitude: "-111.8508",
   },
 
-  // Geographic center of service area
+  // Geographic center of service area (US center for nationwide coverage)
   serviceAreaCenter: {
-    latitude: "40.7608",
-    longitude: "-111.8910",
-    radius: "31069", // 50-mile radius for Salt Lake City area
+    latitude: "39.8283",
+    longitude: "-98.5795",
+    radius: "2000000", // 2000km radius for nationwide coverage
   },
 
   // Social media handles
   social: {
     twitter: "@ondorealestate",
     twitterDomain: "ondorealestate.com",
+    github: "ondorealestate",
+    linkedin: "ondorealestate",
+    facebook: "ondorealestate",
+    instagram: "ondorealestate",
+    youtube: "@ondorealestate",
+    linktree: "ondorealestate",
   },
 
   // Location display strings
   location: {
-    full: "Salt Lake City, Utah, United States",
-    short: "Salt Lake City, Utah, USA",
+    full: "Lehi, Utah, United States",
+    short: "Lehi, Utah, USA",
     geoRegion: "US-UT",
     country: "United States",
     countryShort: "USA",
@@ -85,16 +91,16 @@ export const companyInfo = {
 
   // Ratings and reviews
   ratings: {
-    value: "4.8",
-    reviewCount: "124", // Primary review count
+    value: "4.9",
+    reviewCount: "127", // Primary review count
     reviewCountAlt: "500", // Alternative count for some schema
     bestRating: "5",
     worstRating: "1",
-    display: "4.8/5",
+    display: "4.9/5",
   },
 
   // Sales email (separate from contact email)
-  salesEmail: "sales@ondorealestate.com",
+  salesEmail: "pranay1917@gmail.com",
 
   // Form placeholders
   placeholders: {
@@ -203,12 +209,17 @@ export function getUserTimezone(): DetectedTimezone {
     return {
       iana: timeZone,
       abbreviation: tzAbbr || friendlyName,
-      display: `${friendlyName} (${timeZone})`,
+      display: tzAbbr || friendlyName,
       isFallback: false,
     };
   } catch (error) {
     console.warn("Failed to detect timezone:", error);
-    return companyTimezone;
+    return {
+      iana: companyInfo.timezoneIANA,
+      abbreviation: companyInfo.timezoneAbbr,
+      display: companyInfo.timezoneAbbr,
+      isFallback: true,
+    };
   }
 }
 

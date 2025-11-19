@@ -57,7 +57,60 @@ export default function TaxReport() {
             <p className="text-gray-600 dark:text-gray-400">Annual summary for tax year {mockTaxData.year}</p>
           </div>
         </div>
-        <ExportPDFButton fileName="tax-report-2025" />
+        <ExportPDFButton 
+          fileName="tax-report-2025"
+          content={{
+            title: "Tax Report",
+            subtitle: `Annual summary for tax year ${mockTaxData.year}`,
+            summary: [
+              { label: "Total Revenue", value: mockTaxData.summary.totalRevenue },
+              { label: "Total Deductions", value: mockTaxData.summary.totalExpenses },
+              { label: "Net Income", value: mockTaxData.summary.netIncome },
+              { label: "Depreciation", value: mockTaxData.summary.depreciation },
+              { label: "Taxable Income", value: mockTaxData.summary.taxableIncome },
+              { label: "Estimated Tax", value: mockTaxData.summary.estimatedTax }
+            ],
+            sections: [
+              {
+                title: "Revenue Summary",
+                items: [
+                  { label: "Rental Income", value: mockTaxData.revenue.rental },
+                  { label: "Other Income", value: mockTaxData.revenue.other },
+                  { label: "Total Revenue", value: mockTaxData.revenue.total }
+                ]
+              },
+              {
+                title: "Deductions & Expenses",
+                items: mockTaxData.deductions.map(d => ({
+                  label: d.category,
+                  value: d.amount
+                }))
+              },
+              {
+                title: "Depreciation Schedule",
+                items: [
+                  { label: "Depreciation Method", value: mockTaxData.depreciation.method },
+                  { label: "Useful Life", value: `${mockTaxData.depreciation.usefulLife} years` },
+                  { label: "Basis", value: mockTaxData.depreciation.basis },
+                  { label: "Annual Depreciation", value: mockTaxData.depreciation.total }
+                ]
+              }
+            ],
+            tables: [
+              {
+                title: "Quarterly Breakdown",
+                headers: ["Quarter", "Revenue", "Expenses", "Net Income", "Tax"],
+                rows: mockTaxData.quarterly.map(q => [
+                  q.quarter,
+                  `$${q.revenue.toLocaleString()}`,
+                  `$${q.expenses.toLocaleString()}`,
+                  `$${q.netIncome.toLocaleString()}`,
+                  `$${q.tax.toLocaleString()}`
+                ])
+              }
+            ]
+          }}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

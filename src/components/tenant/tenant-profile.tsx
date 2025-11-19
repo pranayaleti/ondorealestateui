@@ -7,13 +7,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ImageUploader } from "@/components/ui/image-uploader"
 import { ProfilePictureViewer } from "@/components/ui/profile-picture-viewer"
-import { User, Calendar, Edit, Save, Loader2, Upload, DollarSign, Home } from "lucide-react"
+import { Calendar, Edit, Save, Loader2, DollarSign, Home, Shield } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { propertyApi, authApi, type Property } from "@/lib/api"
 import { ProfileShell, ProfileSummaryCard, type SummaryMetric } from "@/components/portal/profile"
 import { AddressForm, type AddressFormValues } from "@/components/forms/address-form"
 import { parseAddressString, formatAddressFields } from "@/utils/address"
+import { ChangePasswordDialog } from "@/components/ui/change-password-dialog"
+import { PaymentMethods, type PaymentMethod } from "@/components/ui/payment-methods"
+import { Switch } from "@/components/ui/switch"
+import { Separator } from "@/components/ui/separator"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { TwoFactorAuthDialog } from "@/components/ui/two-factor-auth-dialog"
+import { US_TIMEZONES } from "@/constants"
+import { useUserTimezone } from "@/hooks/use-user-timezone"
 
 // Mock tenant profile data - will be replaced with real data from API
 const getInitialProfileData = (user: any) => ({
@@ -78,13 +86,53 @@ export default function TenantProfile() {
   const [addressFormValue, setAddressFormValue] = useState<AddressFormValues>(() => buildAddressFormValue(user?.address))
   const [assignedProperty, setAssignedProperty] = useState<Property | null>(null)
   const [loadingProperty, setLoadingProperty] = useState(true)
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
-  })
-  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
+  const [is2FADialogOpen, setIs2FADialogOpen] = useState(false)
   const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [settings, setSettings] = useState({
+    notifications: {
+      email: {
+        maintenance: true,
+        payments: true,
+        leaseUpdates: true,
+        announcements: false,
+      },
+      push: {
+        urgentMaintenance: true,
+        paymentReminders: true,
+        leaseReminders: true,
+      },
+    },
+    security: {
+      twoFactor: false,
+      sessionTimeout: "60",
+      timezone: "America/Denver",
+    },
+  })
+  const { displayTimezone, storageTimezone } = useUserTimezone()
+
+  const handleToggleChange = (category: string, subcategory: string, setting: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category as keyof typeof prev],
+        [subcategory]: {
+          ...(prev[category as keyof typeof prev] as any)[subcategory],
+          [setting]: !(prev[category as keyof typeof prev] as any)[subcategory][setting],
+        },
+      },
+    }))
+  }
+
+  const handleSettingChange = (category: string, subcategory: string, value: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category as keyof typeof prev],
+        [subcategory]: value,
+      },
+    }))
+  }
 
   useEffect(() => {
     setProfileData(getInitialProfileData(user))
@@ -194,53 +242,6 @@ export default function TenantProfile() {
     }
   }
 
-  const handlePasswordChange = async () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "New passwords do not match.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (passwordData.newPassword.length < 6) {
-      toast({
-        title: "Error",
-        description: "New password must be at least 6 characters long.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    try {
-      setIsChangingPassword(true)
-      await authApi.changePassword({
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword
-      })
-      
-      toast({
-        title: "Success",
-        description: "Password updated successfully.",
-      })
-      
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: ""
-      })
-    } catch (error: any) {
-      console.error("Error changing password:", error)
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update password.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsChangingPassword(false)
-    }
-  }
 
   const summaryMetrics: SummaryMetric[] = [
     {
@@ -280,9 +281,11 @@ export default function TenantProfile() {
       }
     >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="personal">Personal Info</TabsTrigger>
-              <TabsTrigger value="lease">Lease Details</TabsTrigger>
+              <TabsTrigger value="billing">Billing</TabsTrigger>
+              <TabsTrigger value="notifications">Notifications</TabsTrigger>
+              <TabsTrigger value="preferences">Preferences</TabsTrigger>
               <TabsTrigger value="security">Security</TabsTrigger>
             </TabsList>
 
@@ -400,131 +403,242 @@ export default function TenantProfile() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="lease" className="space-y-6">
+            <TabsContent value="billing" className="space-y-6">
+              <PaymentMethods
+                paymentMethods={[
+                  {
+                    id: "pm1",
+                    type: "credit_card",
+                    brand: "Visa",
+                    last4: "4242",
+                    expMonth: 12,
+                    expYear: 2026,
+                    isDefault: true,
+                  },
+                  {
+                    id: "pm2",
+                    type: "credit_card",
+                    brand: "Mastercard",
+                    last4: "5511",
+                    expMonth: 3,
+                    expYear: 2025,
+                    isDefault: false,
+                  },
+                  {
+                    id: "pm3",
+                    type: "digital_wallet",
+                    brand: "Apple Pay",
+                    handle: "tenant.apple",
+                    last4: "0025",
+                    isDefault: false,
+                  },
+                ]}
+                onAddPaymentMethod={() => {
+                  toast({
+                    title: "Add Payment Method",
+                    description: "Payment method dialog would open here.",
+                  })
+                }}
+                onSetDefault={(id) => {
+                  toast({
+                    title: "Default Updated",
+                    description: "Payment method set as default.",
+                  })
+                }}
+                onEdit={(id) => {
+                  toast({
+                    title: "Edit Payment Method",
+                    description: `Edit dialog would open for payment method ${id}.`,
+                  })
+                }}
+                onRemove={(id) => {
+                  toast({
+                    title: "Payment Method Removed",
+                    description: "Payment method has been removed.",
+                  })
+                }}
+              />
+            </TabsContent>
+            <TabsContent value="notifications" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Lease Information</CardTitle>
-                  <CardDescription>Your current lease details</CardDescription>
+                  <CardTitle>Email Notifications</CardTitle>
+                  <CardDescription>Choose what emails you'd like to receive</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  {loadingProperty ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-8 w-8 animate-spin" />
-                      <span className="ml-2">Loading property details...</span>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Maintenance Updates</Label>
+                        <p className="text-sm text-gray-500">Receive notifications about maintenance requests and updates</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.email.maintenance}
+                        onCheckedChange={() => handleToggleChange("notifications", "email", "maintenance")}
+                      />
                     </div>
-                  ) : assignedProperty ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Separator />
+                    <div className="flex items-center justify-between">
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Property Name</Label>
-                        <p className="text-lg font-medium">{assignedProperty.title}</p>
-                        <p className="text-sm text-gray-500">{assignedProperty.addressLine1}, {assignedProperty.city}, {assignedProperty.state} {assignedProperty.zipcode}</p>
+                        <Label>Payment Reminders</Label>
+                        <p className="text-sm text-gray-500">Get reminded when rent payments are due</p>
                       </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Monthly Rent</Label>
-                        <p className="text-lg font-medium">${assignedProperty.price || 0}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Lease Start Date</Label>
-                        <p className="text-lg font-medium">{new Date(assignedProperty.createdAt).toLocaleDateString()}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Lease End Date</Label>
-                        <p className="text-lg font-medium">
-                          {new Date(new Date(assignedProperty.createdAt).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Property Type</Label>
-                        <p className="text-lg font-medium capitalize">{assignedProperty.type}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Bedrooms/Bathrooms</Label>
-                        <p className="text-lg font-medium">{assignedProperty.bedrooms || 'N/A'} bed / {assignedProperty.bathrooms || 'N/A'} bath</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Square Footage</Label>
-                        <p className="text-lg font-medium">{assignedProperty.sqft || 'N/A'} sq ft</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Property Status</Label>
-                        <p className="text-lg font-medium capitalize">{assignedProperty.status}</p>
-                      </div>
+                      <Switch
+                        checked={settings.notifications.email.payments}
+                        onCheckedChange={() => handleToggleChange("notifications", "email", "payments")}
+                      />
                     </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500">No property assigned to your account.</p>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Lease Updates</Label>
+                        <p className="text-sm text-gray-500">Important updates about your lease agreement</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.email.leaseUpdates}
+                        onCheckedChange={() => handleToggleChange("notifications", "email", "leaseUpdates")}
+                      />
                     </div>
-                  )}
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Property Announcements</Label>
+                        <p className="text-sm text-gray-500">News and announcements from property management</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.email.announcements}
+                        onCheckedChange={() => handleToggleChange("notifications", "email", "announcements")}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                  <div className="border-t pt-6">
-                    <h4 className="font-medium mb-4">Lease Actions</h4>
-                    <div className="flex flex-wrap gap-4">
-                      <Button variant="outline">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Request Lease Renewal
-                        coming soon...
-                      </Button>
-                      <Button variant="outline">
-                        <User className="h-4 w-4 mr-2" />
-                        Add Occupant coming soon...
-                      </Button>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Push Notifications</CardTitle>
+                  <CardDescription>Configure push notifications for your devices</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Urgent Maintenance</Label>
+                        <p className="text-sm text-gray-500">Emergency maintenance notifications</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.push.urgentMaintenance}
+                        onCheckedChange={() => handleToggleChange("notifications", "push", "urgentMaintenance")}
+                      />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Payment Due Reminders</Label>
+                        <p className="text-sm text-gray-500">Notifications when rent is almost due</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.push.paymentReminders}
+                        onCheckedChange={() => handleToggleChange("notifications", "push", "paymentReminders")}
+                      />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Lease Reminders</Label>
+                        <p className="text-sm text-gray-500">Important lease-related notifications</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.push.leaseReminders}
+                        onCheckedChange={() => handleToggleChange("notifications", "push", "leaseReminders")}
+                      />
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
+
+            <TabsContent value="preferences" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>General Preferences</CardTitle>
+                  <CardDescription>Configure your general application preferences</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <p className="text-sm text-muted-foreground">No preferences available at this time.</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="security" className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Security Settings</CardTitle>
-                  <CardDescription>Manage your account security</CardDescription>
+                  <CardDescription>Manage your account security preferences</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div>
-                    <h4 className="font-medium mb-4">Change Password</h4>
-                    <div className="space-y-4 max-w-md">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <Label htmlFor="currentPassword">Current Password</Label>
-                        <Input 
-                          id="currentPassword" 
-                          type="password" 
-                          value={passwordData.currentPassword}
-                          onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                          disabled={isChangingPassword}
-                        />
+                        <Label>Two-Factor Authentication</Label>
+                        <p className="text-sm text-gray-500">Add an extra layer of security to your account</p>
                       </div>
+                      <Switch
+                        checked={settings.security.twoFactor}
+                        onCheckedChange={() => setIs2FADialogOpen(true)}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="newPassword">New Password</Label>
-                        <Input 
-                          id="newPassword" 
-                          type="password" 
-                          value={passwordData.newPassword}
-                          onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
-                          disabled={isChangingPassword}
-                        />
+                        <Label>Session Timeout (minutes)</Label>
+                        <Select
+                          value={settings.security.sessionTimeout}
+                          onValueChange={(value) => handleSettingChange("security", "sessionTimeout", value)}
+                        >
+                          <SelectTrigger className="max-w-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="15">15 minutes</SelectItem>
+                            <SelectItem value="30">30 minutes</SelectItem>
+                            <SelectItem value="60">1 hour</SelectItem>
+                            <SelectItem value="240">4 hours</SelectItem>
+                            <SelectItem value="480">8 hours</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <div>
-                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                        <Input 
-                          id="confirmPassword" 
-                          type="password" 
-                          value={passwordData.confirmPassword}
-                          onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                          disabled={isChangingPassword}
-                        />
+
+                      <div className="space-y-2">
+                        <Label>Timezone</Label>
+                        <Select
+                          value={settings.security.timezone}
+                          onValueChange={(value) => handleSettingChange("security", "timezone", value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder={displayTimezone.display} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {US_TIMEZONES.map((tz) => (
+                              <SelectItem key={tz.value} value={tz.value}>
+                                {tz.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Viewing times in {displayTimezone.display}. We store the canonical timezone as {storageTimezone.display}.
+                        </p>
                       </div>
-                      <Button 
-                        onClick={handlePasswordChange}
-                        disabled={isChangingPassword || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
-                      >
-                        {isChangingPassword ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Updating...
-                          </>
-                        ) : (
-                          "Update Password"
-                        )}
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-6">
+                    <h4 className="font-medium mb-4">Password & Access</h4>
+                    <div className="space-y-4">
+                      <Button variant="outline" onClick={() => setIsPasswordDialogOpen(true)}>
+                        <Shield className="h-4 w-4 mr-2" />
+                        Change Password
                       </Button>
                     </div>
                   </div>
@@ -532,6 +646,21 @@ export default function TenantProfile() {
               </Card>
             </TabsContent>
           </Tabs>
+      <ChangePasswordDialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen} />
+      <TwoFactorAuthDialog
+        open={is2FADialogOpen}
+        onOpenChange={setIs2FADialogOpen}
+        currentValue={settings.security.twoFactor}
+        onConfirm={(enabled) => {
+          setSettings((prev) => ({
+            ...prev,
+            security: {
+              ...prev.security,
+              twoFactor: enabled,
+            },
+          }))
+        }}
+      />
     </ProfileShell>
   )
 }

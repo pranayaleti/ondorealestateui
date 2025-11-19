@@ -45,7 +45,42 @@ export default function OwnerFinances() {
           <h1 className="text-3xl font-bold">Financial Overview</h1>
           <p className="text-gray-600 dark:text-gray-400">Track your investment performance and cash flow</p>
         </div>
-        <ExportPDFButton fileName="financial-overview" />
+        <ExportPDFButton 
+          fileName="financial-overview"
+          content={{
+            title: "Financial Overview",
+            subtitle: "Track your investment performance and cash flow",
+            summary: [
+              { label: "Total Revenue", value: mockFinancialData.summary.totalRevenue },
+              { label: "Total Expenses", value: mockFinancialData.summary.totalExpenses },
+              { label: "Net Income", value: mockFinancialData.summary.netIncome },
+              { label: "Annual ROI", value: `${mockFinancialData.summary.annualROI}%` },
+              { label: "Portfolio Value", value: mockFinancialData.summary.portfolioValue }
+            ],
+            tables: [
+              {
+                title: "Recent Transactions",
+                headers: ["Description", "Type", "Amount", "Date"],
+                rows: mockFinancialData.recentTransactions.map(t => [
+                  t.desc,
+                  t.type === 'income' ? 'Income' : 'Expense',
+                  t.amount,
+                  t.date
+                ])
+              },
+              {
+                title: "Monthly Breakdown",
+                headers: ["Month", "Revenue", "Expenses", "Net Income"],
+                rows: mockFinancialData.monthlyBreakdown.map(m => [
+                  m.month,
+                  `$${m.revenue.toLocaleString()}`,
+                  `$${m.expenses.toLocaleString()}`,
+                  `$${m.netIncome.toLocaleString()}`
+                ])
+              }
+            ]
+          }}
+        />
       </div>
 
       {/* Summary Cards */}

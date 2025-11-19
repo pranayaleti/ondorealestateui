@@ -11,6 +11,7 @@ import useApiRequest from "../hooks/useApiRequest";
 import { getLogoPath } from "@/lib/logo";
 import { ERROR_MESSAGES, REGEX_PATTERNS } from "@/constants";
 import { sanitize } from "@/utils/validation.utils";
+import { companyInfo } from "@/constants/companyInfo";
 
 const formSchema = z.object({
   name: z
@@ -59,9 +60,9 @@ export default function Register() {
     <div className="h-screen w-full flex items-center justify-center bg-white">
       <div className="flex flex-col items-center gap-5">
         <div className="flex items-center">
-          <img className="w-20 h-auto" src={getLogoPath()} alt="Ondo Real Estate logo" />
+          <img className="w-20 h-auto" src={getLogoPath()} alt={`${companyInfo.name} logo`} />
           <p className="text-6xl font-medium font-kanit bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-            Ondo Real Estate
+            {companyInfo.name}
           </p>
         </div>
 

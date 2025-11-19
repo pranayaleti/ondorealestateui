@@ -159,17 +159,6 @@ export default function TenantDashboard() {
           </Card>
         {/* </Link> */}
 
-        {/* <Link to="/tenant/settings">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="flex items-center p-4">
-              <Settings className="h-8 w-8 text-gray-500 mr-3" />
-              <div>
-                <p className="text-sm font-medium">Settings</p>
-                <p className="text-xs text-gray-500">Preferences</p>
-              </div>
-            </CardContent>
-          </Card>
-        </Link> */}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -180,8 +169,8 @@ export default function TenantDashboard() {
           <TabsTrigger value="payments">Payments</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <TabsContent value="overview" className="space-y-4 md:space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             {/* Rent Status */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -245,6 +234,100 @@ export default function TenantDashboard() {
                 <Link to="/tenant/maintenance/">
                   <Button variant="outline" className="w-full mt-3 border-ondo-orange text-ondo-orange hover:bg-ondo-orange hover:text-white" size="sm">
                     View All
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Property Status */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Property Status</CardTitle>
+                <Building className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {assignedProperty ? 'Occupied' : 'None'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {assignedProperty ? `${assignedProperty.type}` : 'No property assigned'}
+                </p>
+                {assignedProperty && (
+                  <Link to="/tenant/property">
+                    <Button variant="outline" className="w-full mt-3 border-ondo-orange text-ondo-orange hover:bg-ondo-orange hover:text-white" size="sm">
+                      View Property
+                    </Button>
+                  </Link>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Overview Sections */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            {/* Property Overview */}
+            {assignedProperty && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Property Overview</CardTitle>
+                  <CardDescription>Your rental property details</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium">Monthly Rent</p>
+                        <p className="text-xs text-muted-foreground">Current rate</p>
+                      </div>
+                      <div className="text-xl font-bold">${assignedProperty.price?.toLocaleString() || '0'}</div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium">Property Type</p>
+                        <p className="text-xs text-muted-foreground">Unit type</p>
+                      </div>
+                      <div className="text-lg font-semibold capitalize">{assignedProperty.type || 'N/A'}</div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium">Bedrooms</p>
+                        <p className="text-xs text-muted-foreground">Unit size</p>
+                      </div>
+                      <div className="text-lg font-semibold">{assignedProperty.bedrooms || 'N/A'} bed</div>
+                    </div>
+                  </div>
+                  <Link to="/tenant/property">
+                    <Button variant="outline" className="w-full">
+                      View Full Details
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Common tenant tasks</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Link to="/tenant/maintenance/">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Wrench className="h-4 w-4 mr-2" />
+                    Submit Maintenance Request
+                  </Button>
+                </Link>
+                <Link to="/tenant/payments">
+                  <Button variant="outline" className="w-full justify-start">
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Make Payment
+                  </Button>
+                </Link>
+                <Link to="/tenant/messages">
+                  <Button variant="outline" className="w-full justify-start">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    View Messages
                   </Button>
                 </Link>
               </CardContent>

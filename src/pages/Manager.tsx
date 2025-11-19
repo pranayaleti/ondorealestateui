@@ -7,7 +7,6 @@ import ManagerOwners from "@/components/manager/manager-owners"
 import ManagerMaintenance from "@/components/manager/manager-maintenance"
 import ManagerFinances from "@/components/manager/manager-finances"
 import ManagerReports from "@/components/manager/manager-reports"
-import ManagerSettings from "@/components/manager/manager-settings"
 import ManagerProfile from "@/components/manager/manager-profile"
 import { PortalSidebar } from "@/components/portal-sidebar"
 import Loading from "@/components/loading"
@@ -26,7 +25,6 @@ export default function Manager() {
             <Route path="/finances/*" element={<ManagerFinances />} />
             <Route path="/reports" element={<ManagerReports />} />
             <Route path="/profile" element={<ManagerProfile />} />
-            <Route path="/settings" element={<ManagerSettings />} />
           </Routes>
         </Suspense>
       </div>

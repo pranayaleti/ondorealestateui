@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { SearchForm } from "@/components/search-form"
 import { Home, Building, DollarSign, Shield, Star } from "lucide-react"
 import { PropertyDetailsModal } from "@/components/property-details-modal"
+import { companyInfo } from "@/constants/companyInfo"
 
 // Mock data for featured properties
 const featuredProperties = [
@@ -114,7 +115,7 @@ export default function LandingPage() {
             Find Your Perfect Rental Property
           </h1>
           <p className="mx-auto mb-8 max-w-2xl text-xl text-gray-300">
-            Ondo Real Estate helps you find the ideal rental home with professional property management services.
+            {companyInfo.name} helps you find the ideal rental home with professional property management services.
           </p>
           <div className="mx-auto max-w-md">
             <SearchForm />
@@ -125,7 +126,7 @@ export default function LandingPage() {
       {/* How It Works Section */}
       <section className="py-16 bg-white dark:bg-gray-900">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 dark:text-white">How Ondo Real Estate Works</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 dark:text-white">How {companyInfo.name} Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="flex flex-col items-center text-center">
               <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-full mb-4">
@@ -212,7 +213,7 @@ export default function LandingPage() {
             <div>
               <h2 className="text-3xl font-bold mb-6 dark:text-white">Property Owners</h2>
               <p className="text-lg mb-6 dark:text-gray-300">
-                Let Ondo Real Estate handle the day-to-day management of your rental property. We provide comprehensive
+                Let {companyInfo.name} handle the day-to-day management of your rental property. We provide comprehensive
                 property management services so you can enjoy passive income without the hassle.
               </p>
               <ul className="space-y-4 mb-8">
@@ -268,7 +269,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p className="text-gray-600 dark:text-gray-300">
-                  "Ondo Real Estate made finding my new apartment so easy. Their team was responsive and helped me find
+                  "{companyInfo.name} made finding my new apartment so easy. Their team was responsive and helped me find
                   exactly what I was looking for in my price range."
                 </p>
               </CardContent>
@@ -293,7 +294,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p className="text-gray-600 dark:text-gray-300">
-                  "Since hiring Ondo Real Estate to manage my rental properties, I've had zero stress. They handle
+                  "Since hiring {companyInfo.name} to manage my rental properties, I've had zero stress. They handle
                   everything professionally and my income has actually increased."
                 </p>
               </CardContent>
@@ -322,7 +323,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p className="text-gray-600 dark:text-gray-300">
-                  "The maintenance service through Ondo Real Estate is outstanding. Any issue I've had has been resolved
+                  "The maintenance service through {companyInfo.name} is outstanding. Any issue I've had has been resolved
                   within 24 hours. Best property management I've experienced."
                 </p>
               </CardContent>

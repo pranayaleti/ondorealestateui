@@ -10,6 +10,7 @@ import { useValidatedForm } from "@/hooks/useValidatedForm"
 import type { FormValidationSchema } from "@/utils/validation.utils"
 import { sanitize } from "@/utils/validation.utils"
 import { ERROR_MESSAGES, REGEX_PATTERNS, validationPresets } from "@/constants"
+import { companyInfo, getWeekdayHours } from "@/constants/companyInfo"
 
 export default function ContactPage() {
   const { toast } = useToast()
@@ -120,9 +121,9 @@ export default function ContactPage() {
                     <div>
                       <h3 className="font-semibold">Our Office</h3>
                       <p className="text-sm text-muted-foreground">
-                        123 Main Street, Suite 100
+                        {companyInfo.address.streetAddress}
                         <br />
-                        Salt Lake City, UT 84101
+                        {companyInfo.address.addressLocality}, {companyInfo.address.addressRegion} {companyInfo.address.postalCode}
                       </p>
                     </div>
                   </div>
@@ -130,14 +131,14 @@ export default function ContactPage() {
                     <Mail className="h-6 w-6 text-primary" />
                     <div>
                       <h3 className="font-semibold">Email</h3>
-                      <p className="text-sm text-muted-foreground">info@ondorealestate.com</p>
+                      <p className="text-sm text-muted-foreground">{companyInfo.email}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
                     <Phone className="h-6 w-6 text-primary" />
                     <div>
                       <h3 className="font-semibold">Phone</h3>
-                      <p className="text-sm text-muted-foreground">(555) 123-4567</p>
+                      <p className="text-sm text-muted-foreground">{companyInfo.phoneDisplay}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -145,11 +146,28 @@ export default function ContactPage() {
                     <div>
                       <h3 className="font-semibold">Business Hours</h3>
                       <p className="text-sm text-muted-foreground">
-                        Monday - Friday: 9am - 5pm
-                        <br />
-                        Saturday: 10am - 2pm
-                        <br />
-                        Sunday: Closed
+                        {(() => {
+                          const weekday = getWeekdayHours()
+                          const saturday = companyInfo.hours.find(h => h.day === "Sat")
+                          const sunday = companyInfo.hours.find(h => h.day === "Sun")
+                          const formatTime = (time: string) => {
+                            const [hour, min] = time.split(":").map(Number)
+                            return new Date(2000, 0, 1, hour, min).toLocaleTimeString('en-US', { 
+                              hour: 'numeric', 
+                              minute: '2-digit', 
+                              hour12: true 
+                            })
+                          }
+                          return (
+                            <>
+                              {weekday ? `Monday - Friday: ${formatTime(weekday.opens)} - ${formatTime(weekday.closes)}` : "Monday - Friday: 9am - 5pm"}
+                              <br />
+                              {saturday && !saturday.closed ? `Saturday: ${formatTime(saturday.opens)} - ${formatTime(saturday.closes)}` : "Saturday: 10am - 2pm"}
+                              <br />
+                              {sunday?.closed ? "Sunday: Closed" : "Sunday: Closed"}
+                            </>
+                          )
+                        })()}
                       </p>
                     </div>
                   </div>
@@ -218,7 +236,7 @@ export default function ContactPage() {
                       <Input
                         id="phone"
                         name="phone"
-                        placeholder="(555) 123-4567"
+                        placeholder={companyInfo.phoneDisplay}
                         type="tel"
                         value={values.phone}
                         maxLength={20}

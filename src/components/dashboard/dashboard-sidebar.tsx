@@ -19,7 +19,6 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
-  Settings,
   User,
   Users,
   Wrench,
@@ -73,11 +72,6 @@ export const navItems: NavItem[] = [
     href: "/dashboard/payments",
     icon: <DollarSign className="h-5 w-5" />,
   },
-  {
-    title: "Settings",
-    href: "/dashboard/settings",
-    icon: <Settings className="h-5 w-5" />,
-  },
 ]
 
 export function DashboardSidebar() {
@@ -130,12 +124,6 @@ export function DashboardSidebar() {
                 <Link to="/dashboard/profile" className="flex items-center">
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/dashboard/settings" className="flex items-center">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

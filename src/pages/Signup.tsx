@@ -15,6 +15,7 @@ import { formatters, sanitize, validators } from "@/utils/validation.utils"
 import { ERROR_MESSAGES, REGEX_PATTERNS, validationPresets } from "@/constants"
 import { AddressForm, type AddressFormValues } from "@/components/forms/address-form"
 import { parseAddressString, formatAddressFields } from "@/utils/address"
+import { companyInfo } from "@/constants/companyInfo"
 
 export default function Signup() {
   const { token } = useParams<{ token: string }>()
@@ -194,7 +195,7 @@ export default function Signup() {
       setIsSuccess(true)
       toast({
         title: "Account created successfully!",
-        description: "Welcome to Ondo Real Estate. You're now logged in.",
+        description: `Welcome to ${companyInfo.name}. You're now logged in.`,
       })
 
       // Auto-login after successful signup
@@ -277,7 +278,7 @@ export default function Signup() {
               </div>
               
               <h1 className="text-2xl font-medium mb-4 bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
-                Welcome to Ondo Real Estate!
+                Welcome to {companyInfo.name}!
               </h1>
               
               <p className="text-gray-600 dark:text-gray-400 mb-6">

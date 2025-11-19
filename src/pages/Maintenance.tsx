@@ -3,7 +3,6 @@ import { Suspense } from "react"
 import MaintenanceDashboard from "@/components/maintenance/maintenance-dashboard"
 import MaintenanceTickets from "@/components/maintenance/maintenance-tickets"
 import MaintenanceProfile from "@/components/maintenance/maintenance-profile"
-import MaintenanceSettings from "@/components/maintenance/maintenance-settings"
 import { PortalSidebar } from "@/components/portal-sidebar"
 import Loading from "@/components/loading"
 
@@ -16,7 +15,6 @@ export default function Maintenance() {
             <Route path="/" element={<MaintenanceDashboard />} />
             <Route path="/tickets/*" element={<MaintenanceTickets />} />
             <Route path="/profile" element={<MaintenanceProfile />} />
-            <Route path="/settings" element={<MaintenanceSettings />} />
           </Routes>
         </Suspense>
       </div>

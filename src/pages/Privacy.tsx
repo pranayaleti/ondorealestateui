@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { companyInfo } from "@/constants/companyInfo"
 
 const sections = [
   {
@@ -19,7 +20,7 @@ const sections = [
   {
     title: "State-Specific Privacy Rights",
     content:
-      "Residents of states with enacted privacy legislation (including Colorado, Connecticut, Utah, and Virginia) may exercise similar rights to access, correct, delete, or restrict the use of their personal information by contacting privacy@ondorealestate.com.",
+      `Residents of states with enacted privacy legislation (including Colorado, Connecticut, Utah, and Virginia) may exercise similar rights to access, correct, delete, or restrict the use of their personal information by contacting privacy@${companyInfo.social.twitterDomain}.`,
   },
   {
     title: "Data Retention",
@@ -29,7 +30,7 @@ const sections = [
   {
     title: "Contact & Requests",
     content:
-      "To submit a privacy request or appeal a decision, email privacy@ondorealestate.com or mail Ondo Real Estate Privacy, 123 Main Street, Suite 100, Salt Lake City, UT 84101. We respond within legally mandated timelines for US residents.",
+      `To submit a privacy request or appeal a decision, email privacy@${companyInfo.social.twitterDomain} or mail ${companyInfo.name} Privacy, ${companyInfo.address.streetAddress}, ${companyInfo.address.addressLocality}, ${companyInfo.address.addressRegion} ${companyInfo.address.postalCode}. We respond within legally mandated timelines for US residents.`,
   },
 ]
 
@@ -49,7 +50,7 @@ export default function PrivacyPage() {
           <CardHeader>
             <CardTitle>Commitment to US Privacy Regulations</CardTitle>
             <CardDescription>
-              Ondo Real Estate complies with CCPA, CPRA, and applicable state privacy statutes. We do not process data for
+              {companyInfo.name} complies with CCPA, CPRA, and applicable state privacy statutes. We do not process data for
               residents outside the United States.
             </CardDescription>
           </CardHeader>

@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { companyInfo } from "@/constants/companyInfo"
 
 const obligations = [
   "Compliance with federal, state, and municipal housing laws, including the Fair Housing Act and state landlord-tenant statutes.",
@@ -30,7 +31,7 @@ export default function TermsPage() {
           <CardHeader>
             <CardTitle>Scope & Eligibility</CardTitle>
             <CardDescription>
-              Ondo Real Estate serves property owners and residents located in the United States. Services are not offered
+              {companyInfo.name} serves property owners and residents located in the United States. Services are not offered
               outside US jurisdictions.
             </CardDescription>
           </CardHeader>

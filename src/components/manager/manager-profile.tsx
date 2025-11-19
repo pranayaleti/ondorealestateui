@@ -27,6 +27,14 @@ import { authApi, ApiError, type ManagerPortfolioStats, type InvitedUser } from 
 import { ProfileShell, ProfileSummaryCard, type SummaryMetric } from "@/components/portal/profile"
 import { AddressForm, type AddressFormValues } from "@/components/forms/address-form"
 import { parseAddressString, formatAddressFields, defaultAddressFields } from "@/utils/address"
+import { ChangePasswordDialog } from "@/components/ui/change-password-dialog"
+import { PaymentMethods, type PaymentMethod } from "@/components/ui/payment-methods"
+import { Switch } from "@/components/ui/switch"
+import { Separator } from "@/components/ui/separator"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { TwoFactorAuthDialog } from "@/components/ui/two-factor-auth-dialog"
+import { US_TIMEZONES } from "@/constants"
+import { useUserTimezone } from "@/hooks/use-user-timezone"
 
 export default function ManagerProfile() {
   const { user, refreshUser } = useAuth()
@@ -45,23 +53,67 @@ export default function ManagerProfile() {
     postalCode: initialAddress.postalCode,
   })
 
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  })
-
-  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
+  const [is2FADialogOpen, setIs2FADialogOpen] = useState(false)
   const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [settings, setSettings] = useState({
+    notifications: {
+      email: {
+        propertyAlerts: true,
+        maintenanceRequests: true,
+        tenantIssues: true,
+        financialReports: true,
+        leaseRenewals: true,
+        ownerCommunications: true,
+      },
+      push: {
+        urgentMaintenance: true,
+        tenantPayments: true,
+        leaseExpirations: false,
+        ownerMessages: true,
+      },
+    },
+    security: {
+      twoFactor: false,
+      sessionTimeout: "60",
+      loginAlerts: true,
+      timezone: "America/Denver",
+    },
+    business: {
+      defaultLeaseTerm: "12",
+      maintenanceResponseTime: "24",
+      autoBackup: true,
+      dataRetention: "7",
+    },
+  })
+  const { displayTimezone, storageTimezone } = useUserTimezone()
+
+  const handleToggleChange = (category: string, subcategory: string, setting: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category as keyof typeof prev],
+        [subcategory]: {
+          ...(prev[category as keyof typeof prev] as any)[subcategory],
+          [setting]: !(prev[category as keyof typeof prev] as any)[subcategory][setting],
+        },
+      },
+    }))
+  }
+
+  const handleSettingChange = (category: string, subcategory: string, value: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category as keyof typeof prev],
+        [subcategory]: value,
+      },
+    }))
+  }
   const [portfolioStats, setPortfolioStats] = useState<ManagerPortfolioStats | null>(null)
   const [isLoadingStats, setIsLoadingStats] = useState(true)
   const [invitedUsers, setInvitedUsers] = useState<InvitedUser[]>([])
   const [isLoadingInvited, setIsLoadingInvited] = useState(false)
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false
-  })
   
 
   // Update form data when user data changes
@@ -244,61 +296,6 @@ export default function ManagerProfile() {
     }
   }
 
-  const handlePasswordInputChange = (field: string, value: string) => {
-    setPasswordData(prev => ({ ...prev, [field]: value }))
-  }
-
-  const handlePasswordChange = async () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "New passwords do not match.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (passwordData.newPassword.length < 8) {
-      toast({
-        title: "Error", 
-        description: "New password must be at least 8 characters long.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setIsChangingPassword(true)
-    try {
-      await authApi.changePassword({
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword,
-      })
-
-      toast({
-        title: "Success",
-        description: "Password changed successfully.",
-      })
-
-      // Clear password fields
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      })
-    } catch (error) {
-      const errorMessage = error instanceof ApiError 
-        ? error.message 
-        : "Failed to change password. Please try again."
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      })
-    } finally {
-      setIsChangingPassword(false)
-    }
-  }
 
 
   const ownerCount = invitedUsers.filter(u => u.role === "owner" && u.isActive).length
@@ -357,10 +354,22 @@ export default function ManagerProfile() {
       }
     >
           <Tabs defaultValue="personal" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 h-11">
+            <TabsList className="grid w-full grid-cols-5 h-11">
               <TabsTrigger value="personal" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 Personal Info
+              </TabsTrigger>
+              <TabsTrigger value="billing" className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                Billing
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Notifications
+              </TabsTrigger>
+              <TabsTrigger value="business" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Business
               </TabsTrigger>
               <TabsTrigger value="security" className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
@@ -504,6 +513,273 @@ export default function ManagerProfile() {
               </Card>
             </TabsContent>
 
+            <TabsContent value="billing" className="space-y-6">
+              <PaymentMethods
+                paymentMethods={[
+                  {
+                    id: "pm1",
+                    type: "credit_card",
+                    brand: "Visa",
+                    last4: "4242",
+                    expMonth: 12,
+                    expYear: 2026,
+                    isDefault: true,
+                  },
+                  {
+                    id: "pm2",
+                    type: "credit_card",
+                    brand: "American Express",
+                    last4: "3005",
+                    expMonth: 8,
+                    expYear: 2027,
+                    isDefault: false,
+                  },
+                  {
+                    id: "pm3",
+                    type: "bank_account",
+                    bank: "Wells Fargo Business",
+                    last4: "9934",
+                    isDefault: false,
+                  },
+                ]}
+                onAddPaymentMethod={() => {
+                  toast({
+                    title: "Add Payment Method",
+                    description: "Payment method dialog would open here.",
+                  })
+                }}
+                onSetDefault={(id) => {
+                  toast({
+                    title: "Default Updated",
+                    description: "Payment method set as default.",
+                  })
+                }}
+                onEdit={(id) => {
+                  toast({
+                    title: "Edit Payment Method",
+                    description: `Edit dialog would open for payment method ${id}.`,
+                  })
+                }}
+                onRemove={(id) => {
+                  toast({
+                    title: "Payment Method Removed",
+                    description: "Payment method has been removed.",
+                  })
+                }}
+              />
+            </TabsContent>
+
+            <TabsContent value="notifications" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Email Notifications</CardTitle>
+                  <CardDescription>Choose what emails you'd like to receive</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Property Alerts</Label>
+                        <p className="text-sm text-gray-500">New property listings and updates</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.email.propertyAlerts}
+                        onCheckedChange={() => handleToggleChange("notifications", "email", "propertyAlerts")}
+                      />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Maintenance Requests</Label>
+                        <p className="text-sm text-gray-500">New maintenance requests from tenants</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.email.maintenanceRequests}
+                        onCheckedChange={() => handleToggleChange("notifications", "email", "maintenanceRequests")}
+                      />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Tenant Issues</Label>
+                        <p className="text-sm text-gray-500">Urgent tenant-related issues</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.email.tenantIssues}
+                        onCheckedChange={() => handleToggleChange("notifications", "email", "tenantIssues")}
+                      />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Financial Reports</Label>
+                        <p className="text-sm text-gray-500">Monthly and quarterly financial reports</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.email.financialReports}
+                        onCheckedChange={() => handleToggleChange("notifications", "email", "financialReports")}
+                      />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Lease Renewals</Label>
+                        <p className="text-sm text-gray-500">Lease renewal reminders and updates</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.email.leaseRenewals}
+                        onCheckedChange={() => handleToggleChange("notifications", "email", "leaseRenewals")}
+                      />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Owner Communications</Label>
+                        <p className="text-sm text-gray-500">Messages and updates from owners</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.email.ownerCommunications}
+                        onCheckedChange={() => handleToggleChange("notifications", "email", "ownerCommunications")}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Push Notifications</CardTitle>
+                  <CardDescription>Configure push notifications for your devices</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Urgent Maintenance</Label>
+                        <p className="text-sm text-gray-500">Emergency maintenance requests</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.push.urgentMaintenance}
+                        onCheckedChange={() => handleToggleChange("notifications", "push", "urgentMaintenance")}
+                      />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Tenant Payments</Label>
+                        <p className="text-sm text-gray-500">Payment received notifications</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.push.tenantPayments}
+                        onCheckedChange={() => handleToggleChange("notifications", "push", "tenantPayments")}
+                      />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Lease Expirations</Label>
+                        <p className="text-sm text-gray-500">Lease expiration warnings</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.push.leaseExpirations}
+                        onCheckedChange={() => handleToggleChange("notifications", "push", "leaseExpirations")}
+                      />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Owner Messages</Label>
+                        <p className="text-sm text-gray-500">Messages from property owners</p>
+                      </div>
+                      <Switch
+                        checked={settings.notifications.push.ownerMessages}
+                        onCheckedChange={() => handleToggleChange("notifications", "push", "ownerMessages")}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="business" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Business Settings</CardTitle>
+                  <CardDescription>Configure your business preferences and defaults</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label>Default Lease Term (months)</Label>
+                      <Select
+                        value={settings.business.defaultLeaseTerm}
+                        onValueChange={(value) => handleSettingChange("business", "defaultLeaseTerm", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="6">6 months</SelectItem>
+                          <SelectItem value="12">12 months</SelectItem>
+                          <SelectItem value="18">18 months</SelectItem>
+                          <SelectItem value="24">24 months</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Maintenance Response Time (hours)</Label>
+                      <Select
+                        value={settings.business.maintenanceResponseTime}
+                        onValueChange={(value) => handleSettingChange("business", "maintenanceResponseTime", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="4">4 hours</SelectItem>
+                          <SelectItem value="12">12 hours</SelectItem>
+                          <SelectItem value="24">24 hours</SelectItem>
+                          <SelectItem value="48">48 hours</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Data Retention (years)</Label>
+                      <Select
+                        value={settings.business.dataRetention}
+                        onValueChange={(value) => handleSettingChange("business", "dataRetention", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="3">3 years</SelectItem>
+                          <SelectItem value="5">5 years</SelectItem>
+                          <SelectItem value="7">7 years</SelectItem>
+                          <SelectItem value="10">10 years</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Automatic Data Backup</Label>
+                      <p className="text-sm text-gray-500">Automatically backup your data daily</p>
+                    </div>
+                    <Switch
+                      checked={settings.business.autoBackup}
+                      onCheckedChange={() => handleToggleChange("business", "autoBackup", "true")}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="security" className="space-y-6">
               <Card>
                 <CardHeader>
@@ -511,144 +787,110 @@ export default function ManagerProfile() {
                     <Shield className="h-5 w-5" />
                     Security Settings
                   </CardTitle>
-                  <CardDescription>Manage your account security and password</CardDescription>
+                  <CardDescription>Manage your account security preferences</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 pt-2">
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="font-semibold text-lg mb-1 flex items-center gap-2">
-                        <Lock className="h-4 w-4" />
-                        Change Password
-                      </h4>
-                      <p className="text-sm text-muted-foreground mb-6">
-                        Update your password to keep your account secure. Use a strong password with at least 8 characters.
-                      </p>
-                      <div className="space-y-5 max-w-lg">
-                        <div className="space-y-2">
-                          <Label htmlFor="currentPassword">Current Password</Label>
-                          <div className="relative">
-                            <Input 
-                              id="currentPassword" 
-                              type={showPasswords.current ? "text" : "password"}
-                              value={passwordData.currentPassword}
-                              onChange={(e) => handlePasswordInputChange("currentPassword", e.target.value)}
-                              disabled={isChangingPassword}
-                              placeholder="Enter your current password"
-                              className="pr-10"
-                            />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                              onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))}
-                              disabled={isChangingPassword}
-                            >
-                              {showPasswords.current ? (
-                                <EyeOff className="h-4 w-4 text-muted-foreground" />
-                              ) : (
-                                <Eye className="h-4 w-4 text-muted-foreground" />
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="newPassword">New Password</Label>
-                          <div className="relative">
-                            <Input 
-                              id="newPassword" 
-                              type={showPasswords.new ? "text" : "password"}
-                              value={passwordData.newPassword}
-                              onChange={(e) => handlePasswordInputChange("newPassword", e.target.value)}
-                              disabled={isChangingPassword}
-                              placeholder="Enter your new password"
-                              className="pr-10"
-                            />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                              onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
-                              disabled={isChangingPassword}
-                            >
-                              {showPasswords.new ? (
-                                <EyeOff className="h-4 w-4 text-muted-foreground" />
-                              ) : (
-                                <Eye className="h-4 w-4 text-muted-foreground" />
-                              )}
-                            </Button>
-                          </div>
-                          {passwordData.newPassword && passwordData.newPassword.length < 8 && (
-                            <p className="text-xs text-destructive">
-                              Password must be at least 8 characters long
-                            </p>
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                          <div className="relative">
-                            <Input 
-                              id="confirmPassword" 
-                              type={showPasswords.confirm ? "text" : "password"}
-                              value={passwordData.confirmPassword}
-                              onChange={(e) => handlePasswordInputChange("confirmPassword", e.target.value)}
-                              disabled={isChangingPassword}
-                              placeholder="Confirm your new password"
-                              className="pr-10"
-                            />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                              onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
-                              disabled={isChangingPassword}
-                            >
-                              {showPasswords.confirm ? (
-                                <EyeOff className="h-4 w-4 text-muted-foreground" />
-                              ) : (
-                                <Eye className="h-4 w-4 text-muted-foreground" />
-                              )}
-                            </Button>
-                          </div>
-                          {passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword && (
-                            <p className="text-xs text-destructive">
-                              Passwords do not match
-                            </p>
-                          )}
-                        </div>
-                        <Button 
-                          onClick={handlePasswordChange}
-                          disabled={
-                            isChangingPassword || 
-                            !passwordData.currentPassword || 
-                            !passwordData.newPassword || 
-                            !passwordData.confirmPassword ||
-                            passwordData.newPassword.length < 8 ||
-                            passwordData.newPassword !== passwordData.confirmPassword
-                          }
-                          className="gap-2"
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Two-Factor Authentication</Label>
+                        <p className="text-sm text-gray-500">Add an extra layer of security to your account</p>
+                      </div>
+                      <Switch
+                        checked={settings.security.twoFactor}
+                        onCheckedChange={() => setIs2FADialogOpen(true)}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Login Alerts</Label>
+                        <p className="text-sm text-gray-500">Get notified of new login attempts</p>
+                      </div>
+                      <Switch
+                        checked={settings.security.loginAlerts}
+                        onCheckedChange={() => handleToggleChange("security", "loginAlerts", "true")}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Session Timeout (minutes)</Label>
+                        <Select
+                          value={settings.security.sessionTimeout}
+                          onValueChange={(value) => handleSettingChange("security", "sessionTimeout", value)}
                         >
-                          {isChangingPassword ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Updating Password...
-                            </>
-                          ) : (
-                            <>
-                              <Lock className="h-4 w-4" />
-                              Update Password
-                            </>
-                          )}
-                        </Button>
+                          <SelectTrigger className="max-w-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="15">15 minutes</SelectItem>
+                            <SelectItem value="30">30 minutes</SelectItem>
+                            <SelectItem value="60">1 hour</SelectItem>
+                            <SelectItem value="240">4 hours</SelectItem>
+                            <SelectItem value="480">8 hours</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Timezone</Label>
+                        <Select
+                          value={settings.security.timezone}
+                          onValueChange={(value) => handleSettingChange("security", "timezone", value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder={displayTimezone.display} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {US_TIMEZONES.map((tz) => (
+                              <SelectItem key={tz.value} value={tz.value}>
+                                {tz.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Showing local time as {displayTimezone.display}. Records are saved using {storageTimezone.display}.
+                        </p>
                       </div>
                     </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <h4 className="font-semibold text-lg mb-1 flex items-center gap-2">
+                      <Lock className="h-4 w-4" />
+                      Password & Access
+                    </h4>
+                    <p className="text-sm text-muted-foreground mb-6">
+                      Update your password to keep your account secure. Use a strong password with at least 6 characters.
+                    </p>
+                    <Button variant="outline" onClick={() => setIsPasswordDialogOpen(true)}>
+                      <Shield className="h-4 w-4 mr-2" />
+                      Change Password
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
           </Tabs>
+      <ChangePasswordDialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen} />
+      <TwoFactorAuthDialog
+        open={is2FADialogOpen}
+        onOpenChange={setIs2FADialogOpen}
+        currentValue={settings.security.twoFactor}
+        onConfirm={(enabled) => {
+          setSettings((prev) => ({
+            ...prev,
+            security: {
+              ...prev.security,
+              twoFactor: enabled,
+            },
+          }))
+        }}
+      />
     </ProfileShell>
   )
 }

@@ -18,8 +18,10 @@ import {
   Building
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { ExportPDFButton } from "@/components/ui/export-pdf-button"
 import { US_STATE_SALES_TAX } from "@/constants"
 import { formatUSD, formatUSDate } from "@/lib/us-format"
+import { PaymentMethods, type PaymentMethod } from "@/components/ui/payment-methods"
 
 // Mock payment data
 const mockPaymentData = {
@@ -381,10 +383,36 @@ export default function TenantPayments() {
                 <CardTitle>Payment History</CardTitle>
                 <CardDescription>All your payment transactions</CardDescription>
               </div>
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
+              <ExportPDFButton 
+                fileName="payment-history"
+                size="default"
+                variant="outline"
+                content={{
+                  title: "Payment History",
+                  subtitle: "All your payment transactions",
+                  summary: [
+                    { label: "Current Rent", value: mockPaymentData.currentRent },
+                    { label: "Next Due Date", value: formatUSDate(mockPaymentData.nextDueDate) },
+                    { label: "Current Balance", value: mockPaymentData.balance },
+                    { label: "Total Payments", value: mockPaymentData.paymentHistory.length }
+                  ],
+                  tables: [
+                    {
+                      title: "Payment History",
+                      headers: ["Date", "Amount", "Type", "Status", "Method", "Reference", "Late Fee"],
+                      rows: mockPaymentData.paymentHistory.map(payment => [
+                        formatUSDate(payment.date),
+                        formatUSD(payment.amount),
+                        payment.type,
+                        payment.status.charAt(0).toUpperCase() + payment.status.slice(1),
+                        payment.method,
+                        payment.reference,
+                        payment.lateFee > 0 ? formatUSD(payment.lateFee) : "$0.00"
+                      ])
+                    }
+                  ]
+                }}
+              />
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -429,53 +457,41 @@ export default function TenantPayments() {
         </TabsContent>
 
         <TabsContent value="methods" className="space-y-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Payment Methods</CardTitle>
-                <CardDescription>Manage your saved payment methods</CardDescription>
-              </div>
-              <Button>
-                <CreditCard className="h-4 w-4 mr-2" />
-                Add Method
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockPaymentData.savedPaymentMethods.map((method) => (
-                  <div key={method.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full">
-                        {getPaymentMethodIcon(method.type)}
-                      </div>
-                      <div>
-                        <p className="font-medium">
-                          {method.type === "credit_card" 
-                            ? `${method.brand} •••• ${method.last4}`
-                            : `${method.bank} •••• ${method.last4}`
-                          }
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {method.type === "credit_card" ? "Credit Card" : "Bank Account"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {method.isDefault && (
-                        <Badge variant="outline">Default</Badge>
-                      )}
-                      <Button variant="outline" size="sm">
-                        Edit
-                      </Button>
-                      <Button variant="outline" size="sm" className="text-red-600">
-                        Remove
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <PaymentMethods
+            paymentMethods={mockPaymentData.savedPaymentMethods.map((method) => ({
+              id: method.id.toString(),
+              type: method.type as PaymentMethod["type"],
+              brand: method.brand,
+              last4: method.last4,
+              bank: method.bank,
+              handle: method.handle,
+              isDefault: method.isDefault,
+            }))}
+            onAddPaymentMethod={() => {
+              toast({
+                title: "Add Payment Method",
+                description: "Payment method dialog would open here.",
+              })
+            }}
+            onSetDefault={(id) => {
+              toast({
+                title: "Default Updated",
+                description: "Payment method set as default.",
+              })
+            }}
+            onEdit={(id) => {
+              toast({
+                title: "Edit Payment Method",
+                description: `Edit dialog would open for payment method ${id}.`,
+              })
+            }}
+            onRemove={(id) => {
+              toast({
+                title: "Payment Method Removed",
+                description: "Payment method has been removed.",
+              })
+            }}
+          />
         </TabsContent>
       </Tabs>
     </div>

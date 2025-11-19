@@ -29,7 +29,6 @@ interface AddPropertyFormState {
   addressLine2: string
   city: string
   state: string
-  country: string
   zipcode: string
   description: string
   price: string
@@ -92,7 +91,6 @@ export function AddPropertyForm() {
     addressLine2: "",
     city: "",
     state: "",
-    country: DEFAULT_US_COUNTRY,
     zipcode: "",
     description: "",
     
@@ -219,7 +217,7 @@ export function AddPropertyForm() {
       const propertyData = {
         ...formData,
         state: formData.state || undefined,
-        country: DEFAULT_US_COUNTRY,
+        country: DEFAULT_US_COUNTRY, // Always USA, not shown in UI
         // Convert numeric fields
         price: formData.price ? parseFloat(formData.price) : undefined,
         bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : undefined,
@@ -341,18 +339,6 @@ export function AddPropertyForm() {
                 disabled={isSubmitting || isUploading}
                 idPrefix="property"
               />
-
-              <div className="grid gap-2">
-                <Label htmlFor="country">Country</Label>
-                <Input
-                  id="country"
-                  name="country"
-                  value={DEFAULT_US_COUNTRY}
-                  readOnly
-                  aria-readonly
-                  className="bg-muted/50"
-                />
-              </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="description">Property Description</Label>

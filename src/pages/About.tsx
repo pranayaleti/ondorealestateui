@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { PageBanner } from "@/components/page-banner"
+import { companyInfo } from "@/constants/companyInfo"
 
 export default function AboutPage() {
   return (
     <main className="min-h-screen">
       <PageBanner
-        title="About Ondo Real Estate"
+        title={`About ${companyInfo.name}`}
         subtitle="Professional property management services connecting quality properties with qualified tenants"
       />
 
@@ -14,7 +15,7 @@ export default function AboutPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
             <p className="text-lg mb-8 dark:text-gray-300">
-              Ondo Real Estate is a professional property management company dedicated to connecting quality rental
+              {companyInfo.name} is a professional property management company dedicated to connecting quality rental
               properties with responsible tenants while providing exceptional management services to property owners.
             </p>
 
@@ -57,14 +58,13 @@ export default function AboutPage() {
             <h2 className="text-2xl font-semibold mb-4 dark:text-white">Our Team</h2>
             <p className="mb-8 dark:text-gray-300">
               Our team consists of experienced property management professionals who are dedicated to providing
-              exceptional service. From our property managers to our maintenance staff, everyone at Ondo Real Estate is
+              exceptional service. From our property managers to our maintenance staff, everyone at {companyInfo.name} is
               committed to creating positive rental experiences.
             </p>
 
             <h2 className="text-2xl font-semibold mb-4 dark:text-white">Our Coverage Area</h2>
             <p className="mb-8 dark:text-gray-300">
-              Ondo Real Estate currently serves the greater Salt Lake City area, including Salt Lake City, Holladay,
-              Midvale, Magna, and surrounding communities. We're continuously expanding to new areas to better serve our
+              {companyInfo.name} currently serves the {companyInfo.location.short} area and surrounding communities. We're continuously expanding to new areas to better serve our
               clients.
             </p>
 

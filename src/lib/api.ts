@@ -923,3 +923,18 @@ export const maintenanceApi = {
     });
   },
 };
+
+// Handoff API functions
+export const handoffApi = {
+  // Notify property manager about checklist completion
+  async notifyChecklistCompletion(propertyId: string, tenantName: string, propertyAddress: string): Promise<{ message: string }> {
+    return apiRequest<{ message: string }>('/handoff/checklist-completion', {
+      method: 'POST',
+      body: JSON.stringify({
+        propertyId,
+        tenantName,
+        propertyAddress,
+      }),
+    });
+  },
+};

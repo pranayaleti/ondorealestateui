@@ -23,7 +23,9 @@ import {
   ShieldOff,
   Calendar,
   DollarSign,
-  Heart
+  Heart,
+  MessageSquare,
+  Wrench
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { propertyApi, authApi, leadApi, ApiError, type Property, type InvitedUser, type Lead } from "@/lib/api"
@@ -327,9 +329,9 @@ export default function ManagerDashboard() {
     <div className="container mx-auto px-4 py-4 md:py-8">
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
 
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="overview" className="space-y-4 md:space-y-6">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             <Card 
               className="cursor-pointer hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/50 transition-all hover:border-primary/50 dark:hover:border-primary/30 dark:hover:bg-card/80"
               onClick={() => {
@@ -388,6 +390,100 @@ export default function ManagerDashboard() {
               <CardContent>
                 <div className="text-2xl font-bold">{stats.rejectedProperties}</div>
                 <p className="text-xs text-muted-foreground">Rejected submissions</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Overview Sections */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            {/* Property Status Overview */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Property Status Overview</CardTitle>
+                <CardDescription>Property approval status breakdown</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5 text-yellow-500" />
+                      <div>
+                        <p className="font-medium">Pending Review</p>
+                        <p className="text-xs text-muted-foreground">Awaiting approval</p>
+                      </div>
+                    </div>
+                    <div className="text-2xl font-bold">{stats.pendingReview}</div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <BarChart3 className="h-5 w-5 text-green-500" />
+                      <div>
+                        <p className="font-medium">Approved</p>
+                        <p className="text-xs text-muted-foreground">Active properties</p>
+                      </div>
+                    </div>
+                    <div className="text-2xl font-bold">{stats.approvedProperties}</div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <AlertTriangle className="h-5 w-5 text-red-500" />
+                      <div>
+                        <p className="font-medium">Rejected</p>
+                        <p className="text-xs text-muted-foreground">Rejected submissions</p>
+                      </div>
+                    </div>
+                    <div className="text-2xl font-bold">{stats.rejectedProperties}</div>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => handleTabChange("properties")}
+                >
+                  View All Properties
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Common manager tasks</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => handleTabChange("properties")}
+                >
+                  <Building className="h-4 w-4 mr-2" />
+                  Review Properties
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => handleTabChange("maintenance")}
+                >
+                  <Wrench className="h-4 w-4 mr-2" />
+                  Manage Maintenance
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => handleTabChange("user-management")}
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Invite Users
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => handleTabChange("leads")}
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  View Leads
+                </Button>
               </CardContent>
             </Card>
           </div>

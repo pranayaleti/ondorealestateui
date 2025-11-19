@@ -2,7 +2,7 @@ import type React from "react"
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
-import { Building, LayoutDashboard, Settings, Users } from "lucide-react"
+import { Building, LayoutDashboard, Users } from "lucide-react"
 
 interface NavItem {
   title: string
@@ -43,11 +43,6 @@ export const navItems: NavItem[] = [
     icon: <MessageSquare className="mr-2 h-4 w-4" />,
   },
   */
-  {
-    title: "Settings",
-    href: "/dashboard/settings",
-    icon: <Settings className="mr-2 h-4 w-4" />,
-  },
 ]
 
 export default function DashboardNav({ items }: DashboardNavProps) {

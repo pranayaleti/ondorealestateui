@@ -6,7 +6,7 @@ import TenantPayments from "@/components/tenant/tenant-payments"
 import TenantDocuments from "@/components/tenant/tenant-documents"
 import TenantMessages from "@/components/tenant/tenant-messages"
 import TenantProfile from "@/components/tenant/tenant-profile"
-import TenantSettings from "@/components/tenant/tenant-settings"
+import TenantLeaseDetails from "@/components/tenant/tenant-lease-details"
 import { PortalSidebar } from "@/components/portal-sidebar"
 import Loading from "@/components/loading"
 
@@ -17,12 +17,12 @@ export default function Tenant() {
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="/" element={<TenantDashboard />} />
+          <Route path="/lease-details" element={<TenantLeaseDetails />} />
           <Route path="/maintenance/*" element={<TenantMaintenance />} />
           <Route path="/payments" element={<TenantPayments />} />
           <Route path="/documents" element={<TenantDocuments />} />
           <Route path="/messages" element={<TenantMessages />} />
           <Route path="/profile" element={<TenantProfile />} />
-          <Route path="/settings" element={<TenantSettings />} />
         </Routes>
       </Suspense>
     </div>

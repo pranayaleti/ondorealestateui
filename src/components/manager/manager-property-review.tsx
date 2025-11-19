@@ -279,7 +279,6 @@ export default function ManagerPropertyReview() {
                               <p>{selectedProperty.addressLine1}</p>
                               {selectedProperty.addressLine2 && <p>{selectedProperty.addressLine2}</p>}
                               <p>{selectedProperty.city}, {selectedProperty.state} {selectedProperty.zipcode}</p>
-                              <p>{selectedProperty.country}</p>
                             </div>
                             
                             {selectedProperty.description && (

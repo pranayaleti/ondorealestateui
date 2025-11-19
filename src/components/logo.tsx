@@ -2,6 +2,7 @@ import { Link } from "react-router-dom"
 import { getLogoPath } from "@/lib/logo"
 import { useAuth } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
+import { companyInfo } from "@/constants/companyInfo"
 
 interface LogoProps {
   size?: "sm" | "md" | "lg" | "xl"
@@ -64,7 +65,7 @@ export function Logo({
     <div className={cn(currentVariant, currentSize.gap, className)}>
       <img 
         src={getLogoPath()}
-        alt="Ondo Real Estate logo" 
+        alt={`${companyInfo.name} logo`} 
         className={cn(
           currentSize.logo,
           "w-auto transition-all duration-300",

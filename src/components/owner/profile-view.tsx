@@ -28,6 +28,12 @@ import { useToast } from "@/hooks/use-toast"
 import { useNavigate } from "react-router-dom"
 import { AddressForm, type AddressFormValues } from "@/components/forms/address-form"
 import { parseAddressString, formatAddressFields } from "@/utils/address"
+import { ChangePasswordDialog } from "@/components/ui/change-password-dialog"
+import { TwoFactorAuthDialog } from "@/components/ui/two-factor-auth-dialog"
+import { PaymentMethods, type PaymentMethod } from "@/components/ui/payment-methods"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { US_TIMEZONES } from "@/constants/us"
+import { useUserTimezone } from "@/hooks/use-user-timezone"
 
 // Mock user data
 const USER = {
@@ -52,8 +58,24 @@ const USER = {
       last4: "4242",
       brand: "Visa",
       expMonth: 12,
-      expYear: 2024,
+      expYear: 2026,
       isDefault: true,
+    },
+    {
+      id: "pm2",
+      type: "credit_card",
+      last4: "1881",
+      brand: "Mastercard",
+      expMonth: 5,
+      expYear: 2025,
+      isDefault: false,
+    },
+    {
+      id: "pm3",
+      type: "bank_account",
+      last4: "6789",
+      bank: "Chase Operating",
+      isDefault: false,
     },
   ],
 }
@@ -75,11 +97,16 @@ export function ProfileView() {
       postalCode: parsed.postalCode,
     }
   })
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
+  const [is2FADialogOpen, setIs2FADialogOpen] = useState(false)
+  const [settings, setSettings] = useState({
+    security: {
+      sessionTimeout: "60",
+      loginAlerts: true,
+      timezone: "America/Denver",
+    },
   })
+  const { displayTimezone, storageTimezone } = useUserTimezone()
 
   const handlePersonalInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -113,27 +140,30 @@ export function ProfileView() {
     }))
   }
 
-  const handleTwoFactorChange = (checked: boolean) => {
-    setUserData((prev) => ({
-      ...prev,
-      twoFactorEnabled: checked,
-    }))
-
-    toast({
-      title: checked ? "Two-factor authentication enabled" : "Two-factor authentication disabled",
-      description: checked
-        ? "Your account is now more secure."
-        : "Two-factor authentication has been disabled for your account.",
-    })
+  const handleTwoFactorChange = () => {
+    setIs2FADialogOpen(true)
   }
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setPasswordData((prev) => ({
+  const handleSettingChange = (category: string, setting: string, value: string) => {
+    setSettings((prev) => ({
       ...prev,
-      [name]: value,
+      [category]: {
+        ...prev[category as keyof typeof prev],
+        [setting]: value,
+      },
     }))
   }
+
+  const handleToggleChange = (category: string, setting: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category as keyof typeof prev],
+        [setting]: !(prev[category as keyof typeof prev] as any)[setting],
+      },
+    }))
+  }
+
 
   const handleSavePersonalInfo = () => {
     setIsSubmitting(true)
@@ -148,32 +178,6 @@ export function ProfileView() {
     }, 1000)
   }
 
-  const handleSavePassword = () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast({
-        title: "Passwords don't match",
-        description: "New password and confirm password must match.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setIsSubmitting(true)
-
-    // In a real app, this would call an API to update the user's password
-    setTimeout(() => {
-      setIsSubmitting(false)
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      })
-      toast({
-        title: "Password updated",
-        description: "Your password has been successfully updated.",
-      })
-    }, 1000)
-  }
 
   const handleDeleteAccount = () => {
     // In a real app, this would call an API to delete the user's account
@@ -306,79 +310,84 @@ export function ProfileView() {
         <TabsContent value="security" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Change Password</CardTitle>
-              <CardDescription>Update your password</CardDescription>
+              <CardTitle>Security Settings</CardTitle>
+              <CardDescription>Manage your account security preferences</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
-                  <div className="relative">
-                    <Key className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="currentPassword"
-                      name="currentPassword"
-                      type="password"
-                      placeholder="Enter your current password"
-                      className="pl-8"
-                      value={passwordData.currentPassword}
-                      onChange={handlePasswordChange}
-                    />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium leading-none">Two-Factor Authentication</p>
+                    <p className="text-sm text-muted-foreground">
+                      Add an extra layer of security to your account by enabling two-factor authentication.
+                    </p>
                   </div>
+                  <Switch id="twoFactor" checked={userData.twoFactorEnabled} onCheckedChange={handleTwoFactorChange} />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
-                  <div className="relative">
-                    <Shield className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="newPassword"
-                      name="newPassword"
-                      type="password"
-                      placeholder="Enter your new password"
-                      className="pl-8"
-                      value={passwordData.newPassword}
-                      onChange={handlePasswordChange}
-                    />
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium leading-none">Login Alerts</p>
+                    <p className="text-sm text-muted-foreground">Get notified of new login attempts</p>
                   </div>
+                  <Switch
+                    checked={settings.security.loginAlerts}
+                    onCheckedChange={() => handleToggleChange("security", "loginAlerts")}
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <div className="relative">
-                    <Shield className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      placeholder="Confirm your new password"
-                      className="pl-8"
-                      value={passwordData.confirmPassword}
-                      onChange={handlePasswordChange}
-                    />
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Session Timeout (minutes)</Label>
+                    <Select
+                      value={settings.security.sessionTimeout}
+                      onValueChange={(value) => handleSettingChange("security", "sessionTimeout", value)}
+                    >
+                      <SelectTrigger className="max-w-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 minutes</SelectItem>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                        <SelectItem value="60">1 hour</SelectItem>
+                        <SelectItem value="240">4 hours</SelectItem>
+                        <SelectItem value="480">8 hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Timezone</Label>
+                    <Select
+                      value={settings.security.timezone}
+                      onValueChange={(value) => handleSettingChange("security", "timezone", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={displayTimezone.display} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {US_TIMEZONES.map((tz) => (
+                          <SelectItem key={tz.value} value={tz.value}>
+                            {tz.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Showing local time as {displayTimezone.display}. Records are saved using {storageTimezone.display}.
+                    </p>
                   </div>
                 </div>
               </div>
-            </CardContent>
-            <CardFooter className="justify-end">
-              <Button disabled={isSubmitting} onClick={handleSavePassword}>
-                {isSubmitting ? <>Saving...</> : "Save Password"}
-              </Button>
-            </CardFooter>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Two-Factor Authentication</CardTitle>
-              <CardDescription>Enable or disable two-factor authentication</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <p className="text-sm font-medium leading-none">Two-Factor Authentication</p>
-                  <p className="text-sm text-muted-foreground">
-                    Add an extra layer of security to your account by enabling two-factor authentication.
-                  </p>
+              <div className="border-t pt-6">
+                <h4 className="font-medium mb-4">Password & Access</h4>
+                <div className="space-y-4">
+                  <Button variant="outline" onClick={() => setIsPasswordDialogOpen(true)}>
+                    <Shield className="h-4 w-4 mr-2" />
+                    Change Password
+                  </Button>
                 </div>
-                <Switch id="twoFactor" checked={userData.twoFactorEnabled} onCheckedChange={handleTwoFactorChange} />
               </div>
             </CardContent>
           </Card>
@@ -460,40 +469,44 @@ export function ProfileView() {
         </TabsContent>
 
         <TabsContent value="billing" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Methods</CardTitle>
-              <CardDescription>Manage your payment methods</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {userData.paymentMethods.map((paymentMethod) => (
-                <div key={paymentMethod.id} className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-medium leading-none">
-                      {paymentMethod.brand} ending in {paymentMethod.last4}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Expires {paymentMethod.expMonth}/{paymentMethod.expYear}
-                    </p>
-                  </div>
-                  <div>
-                    {paymentMethod.isDefault ? (
-                      <Button variant="secondary" size="sm" disabled>
-                        Default
-                      </Button>
-                    ) : (
-                      <Button variant="outline" size="sm">
-                        Set as Default
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-            <CardFooter>
-              <Button>Add Payment Method</Button>
-            </CardFooter>
-          </Card>
+          <PaymentMethods
+            paymentMethods={userData.paymentMethods as PaymentMethod[]}
+            onAddPaymentMethod={() => {
+              toast({
+                title: "Add Payment Method",
+                description: "Payment method dialog would open here.",
+              })
+            }}
+            onSetDefault={(id) => {
+              setUserData((prev) => ({
+                ...prev,
+                paymentMethods: prev.paymentMethods.map((pm) => ({
+                  ...pm,
+                  isDefault: pm.id === id,
+                })),
+              }))
+              toast({
+                title: "Default Updated",
+                description: "Payment method set as default.",
+              })
+            }}
+            onEdit={(id) => {
+              toast({
+                title: "Edit Payment Method",
+                description: `Edit dialog would open for payment method ${id}.`,
+              })
+            }}
+            onRemove={(id) => {
+              setUserData((prev) => ({
+                ...prev,
+                paymentMethods: prev.paymentMethods.filter((pm) => pm.id !== id),
+              }))
+              toast({
+                title: "Payment Method Removed",
+                description: "Payment method has been removed.",
+              })
+            }}
+          />
 
           <Card>
             <CardHeader>
@@ -506,6 +519,18 @@ export function ProfileView() {
           </Card>
         </TabsContent>
       </Tabs>
+      <ChangePasswordDialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen} />
+      <TwoFactorAuthDialog
+        open={is2FADialogOpen}
+        onOpenChange={setIs2FADialogOpen}
+        currentValue={userData.twoFactorEnabled}
+        onConfirm={(enabled) => {
+          setUserData((prev) => ({
+            ...prev,
+            twoFactorEnabled: enabled,
+          }))
+        }}
+      />
     </div>
   )
 }

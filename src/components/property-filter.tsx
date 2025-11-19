@@ -1,9 +1,9 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { Filter } from "lucide-react"
+import { Filter, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 
@@ -46,6 +46,12 @@ export function PropertyFilter({ onFilterChange, initialFilters = defaultFilters
   const [priceDisplay, setPriceDisplay] = useState<[number, number]>(filters.priceRange)
   const [isOpen, setIsOpen] = useState(false)
 
+  // Sync filters when initialFilters prop changes
+  useEffect(() => {
+    setFilters(initialFilters)
+    setPriceDisplay(initialFilters.priceRange)
+  }, [initialFilters])
+
   const handlePriceChange = (value: number[]) => {
     setPriceDisplay([value[0], value[1]])
   }
@@ -79,6 +85,86 @@ export function PropertyFilter({ onFilterChange, initialFilters = defaultFilters
     onFilterChange(defaultFilters)
   }
 
+  const removeFilter = (filterType: string, value?: string) => {
+    const updatedFilters = { ...filters }
+    
+    switch (filterType) {
+      case "priceRange":
+        updatedFilters.priceRange = defaultFilters.priceRange
+        setPriceDisplay(defaultFilters.priceRange)
+        break
+      case "bedrooms":
+        updatedFilters.bedrooms = "any"
+        break
+      case "bathrooms":
+        updatedFilters.bathrooms = "any"
+        break
+      case "propertyType":
+        updatedFilters.propertyType = "any"
+        break
+      case "amenity":
+        if (value) {
+          updatedFilters.amenities = updatedFilters.amenities.filter((a) => a !== value)
+        }
+        break
+    }
+    
+    setFilters(updatedFilters)
+    onFilterChange(updatedFilters)
+  }
+
+  const getActiveFilters = () => {
+    const active: Array<{ type: string; label: string; value?: string }> = []
+    
+    if (
+      filters.priceRange[0] !== defaultFilters.priceRange[0] ||
+      filters.priceRange[1] !== defaultFilters.priceRange[1]
+    ) {
+      active.push({
+        type: "priceRange",
+        label: `Price: $${filters.priceRange[0]} - $${filters.priceRange[1]}`,
+      })
+    }
+    
+    if (filters.bedrooms !== "any") {
+      active.push({
+        type: "bedrooms",
+        label: `Bedrooms: ${filters.bedrooms === "4+" ? "4+" : filters.bedrooms}`,
+      })
+    }
+    
+    if (filters.bathrooms !== "any") {
+      active.push({
+        type: "bathrooms",
+        label: `Bathrooms: ${filters.bathrooms}`,
+      })
+    }
+    
+    if (filters.propertyType !== "any") {
+      const propertyTypeLabels: Record<string, string> = {
+        apartment: "Apartment",
+        house: "House",
+        townhouse: "Townhouse",
+        condo: "Condo",
+        studio: "Studio",
+      }
+      active.push({
+        type: "propertyType",
+        label: `Type: ${propertyTypeLabels[filters.propertyType] || filters.propertyType}`,
+      })
+    }
+    
+    filters.amenities.forEach((amenity) => {
+      active.push({
+        type: "amenity",
+        label: amenity,
+        value: amenity,
+      })
+    })
+    
+    return active
+  }
+
   const getActiveFilterCount = () => {
     let count = 0
     if (filters.bedrooms !== "any") count++
@@ -94,9 +180,10 @@ export function PropertyFilter({ onFilterChange, initialFilters = defaultFilters
   }
 
   const activeFilterCount = getActiveFilterCount()
+  const activeFilters = getActiveFilters()
 
   return (
-    <div>
+    <div className="space-y-3">
       <Button variant="outline" className="gap-2" onClick={() => setIsOpen(true)}>
         <Filter className="h-4 w-4" />
         Filter Properties
@@ -106,6 +193,36 @@ export function PropertyFilter({ onFilterChange, initialFilters = defaultFilters
           </Badge>
         )}
       </Button>
+
+      {activeFilters.length > 0 && (
+        <div className="flex flex-wrap gap-2 items-center">
+          <span className="text-sm text-muted-foreground font-medium">Active filters:</span>
+          {activeFilters.map((filter, index) => (
+            <Badge
+              key={`${filter.type}-${filter.value || index}`}
+              variant="secondary"
+              className="gap-1.5 px-2.5 py-1 pr-1.5 text-sm"
+            >
+              <span>{filter.label}</span>
+              <button
+                onClick={() => removeFilter(filter.type, filter.value)}
+                className="ml-1 rounded-full hover:bg-muted-foreground/20 p-0.5 transition-colors"
+                aria-label={`Remove ${filter.label} filter`}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={resetFilters}
+            className="h-7 text-xs text-muted-foreground hover:text-foreground"
+          >
+            Clear all
+          </Button>
+        </div>
+      )}
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent side="right" className="w-[400px] sm:max-w-none p-0 z-[9999]">

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
 import { useAuth } from "@/lib/auth-context"
+import { companyInfo } from "@/constants/companyInfo"
 
 export function Footer() {
   const { user } = useAuth()
@@ -11,7 +12,7 @@ export function Footer() {
         {shouldShowContent && (
           <div className="flex flex-col items-center justify-center gap-1 md:flex-row md:justify-between md:gap-4 text-center">
             <p className="text-xs text-muted-foreground order-1 md:order-1 leading-tight">
-              © 2025 Ondo Real Estate. All rights reserved.
+              © {new Date().getFullYear()} {companyInfo.name}. All rights reserved.
             </p>
             
             <div className="flex flex-col items-center gap-0.5 md:flex-row md:gap-1.5 order-2 md:order-2">

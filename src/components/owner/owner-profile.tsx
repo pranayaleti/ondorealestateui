@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ImageUploader } from "@/components/ui/image-uploader"
 import { ProfilePictureViewer } from "@/components/ui/profile-picture-viewer"
-import { Upload, User, Phone, Building, Mail, DollarSign } from "lucide-react"
+import { Upload, User, Phone, Building, Mail, DollarSign, Shield } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { useState, useEffect } from "react"
@@ -15,6 +15,14 @@ import { authApi, propertyApi, ApiError, type PortfolioStats } from "@/lib/api"
 import { ProfileShell, ProfileSummaryCard, type SummaryMetric } from "@/components/portal/profile"
 import { AddressForm, type AddressFormValues } from "@/components/forms/address-form"
 import { parseAddressString, formatAddressFields } from "@/utils/address"
+import { ChangePasswordDialog } from "@/components/ui/change-password-dialog"
+import { TwoFactorAuthDialog } from "@/components/ui/two-factor-auth-dialog"
+import { PaymentMethods, type PaymentMethod } from "@/components/ui/payment-methods"
+import { Switch } from "@/components/ui/switch"
+import { Separator } from "@/components/ui/separator"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { US_TIMEZONES } from "@/constants/us"
+import { useUserTimezone } from "@/hooks/use-user-timezone"
 
 const getInitialProfileData = (user: any) => ({
   personalInfo: {
@@ -91,14 +99,18 @@ export default function OwnerProfile() {
   const [profileData, setProfileData] = useState(() => getInitialProfileData(user))
   const [addressFormValue, setAddressFormValue] = useState<AddressFormValues>(() => buildAddressFormValue(user?.address))
 
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  })
-
-  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
+  const [is2FADialogOpen, setIs2FADialogOpen] = useState(false)
   const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [settings, setSettings] = useState({
+    security: {
+      twoFactor: false,
+      sessionTimeout: "60",
+      loginAlerts: true,
+      timezone: "America/Denver",
+    },
+  })
+  const { displayTimezone, storageTimezone } = useUserTimezone()
   const [portfolioStats, setPortfolioStats] = useState<PortfolioStats | null>({
     propertiesOwned: 0,
     activeTenants: 0,
@@ -194,6 +206,26 @@ export default function OwnerProfile() {
     }))
   }
 
+  const handleToggleChange = (category: string, setting: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category as keyof typeof prev],
+        [setting]: !(prev[category as keyof typeof prev] as any)[setting],
+      },
+    }))
+  }
+
+  const handleSettingChange = (category: string, setting: string, value: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category as keyof typeof prev],
+        [setting]: value,
+      },
+    }))
+  }
+
 
   const handleSave = async () => {
     if (!profileData.personalInfo.firstName.trim() || !profileData.personalInfo.lastName.trim()) {
@@ -268,61 +300,6 @@ export default function OwnerProfile() {
     }
   }
 
-  const handlePasswordInputChange = (field: string, value: string) => {
-    setPasswordData(prev => ({ ...prev, [field]: value }))
-  }
-
-  const handlePasswordChange = async () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "New passwords do not match.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (passwordData.newPassword.length < 8) {
-      toast({
-        title: "Error", 
-        description: "New password must be at least 8 characters long.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setIsChangingPassword(true)
-    try {
-      await authApi.changePassword({
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword,
-      })
-
-      toast({
-        title: "Success",
-        description: "Password changed successfully.",
-      })
-
-      // Clear password fields
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      })
-    } catch (error) {
-      const errorMessage = error instanceof ApiError 
-        ? error.message 
-        : "Failed to change password. Please try again."
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      })
-    } finally {
-      setIsChangingPassword(false)
-    }
-  }
 
   const summaryMetrics: SummaryMetric[] = [
     {
@@ -608,16 +585,60 @@ export default function OwnerProfile() {
                 </div>
               </div>
               <div className="border-t pt-6">
-                <h4 className="font-semibold mb-4 text-base">Payment Method</h4>
-                <div className="p-4 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-semibold capitalize text-lg">{profileData.billing.paymentMethod}</p>
-                      <p className="text-sm text-muted-foreground mt-1">•••• •••• •••• 4242</p>
-                    </div>
-                    <Button variant="outline" size="sm">Update</Button>
-                  </div>
-                </div>
+                <h4 className="font-semibold mb-4 text-base">Payment Methods</h4>
+                <PaymentMethods
+                  paymentMethods={[
+                    {
+                      id: "pm1",
+                      type: "credit_card",
+                      last4: "4242",
+                      brand: "Visa",
+                      expMonth: 12,
+                      expYear: 2026,
+                      isDefault: true,
+                    },
+                    {
+                      id: "pm2",
+                      type: "credit_card",
+                      last4: "1881",
+                      brand: "Mastercard",
+                      expMonth: 5,
+                      expYear: 2025,
+                      isDefault: false,
+                    },
+                    {
+                      id: "pm3",
+                      type: "bank_account",
+                      last4: "6789",
+                      bank: "Chase Operating",
+                      isDefault: false,
+                    },
+                  ]}
+                  onAddPaymentMethod={() => {
+                    toast({
+                      title: "Add Payment Method",
+                      description: "Payment method dialog would open here.",
+                    })
+                  }}
+                  onSetDefault={(id) => {
+                    toast({
+                      title: "Default Updated",
+                      description: "Payment method set as default.",
+                    })
+                  }}
+                  onEdit={(id) => {
+                    toast({
+                      title: "Edit Payment Method",
+                      description: `Edit dialog would open for payment method ${id}.`,
+                    })
+                  }}
+                  onRemove={(id) => {
+                    toast({
+                      title: "Payment Method Removed",
+                      description: "Payment method has been removed.",
+                    })
+                  }}
+                />
               </div>
               <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
                 <div className="flex-1">
@@ -652,47 +673,82 @@ export default function OwnerProfile() {
           <Card className="shadow-sm">
             <CardHeader className="pb-4">
               <CardTitle className="text-xl">Security Settings</CardTitle>
-              <CardDescription>Manage your account security</CardDescription>
+              <CardDescription>Manage your account security preferences</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div>
-                <h4 className="font-medium mb-4">Change Password</h4>
-                <div className="space-y-4 max-w-md">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="currentPassword">Current Password</Label>
-                    <Input 
-                      id="currentPassword" 
-                      type="password" 
-                      value={passwordData.currentPassword}
-                      onChange={(e) => handlePasswordInputChange("currentPassword", e.target.value)}
-                      disabled={isChangingPassword}
-                    />
+                    <Label>Two-Factor Authentication</Label>
+                    <p className="text-sm text-gray-500">Add an extra layer of security to your account</p>
                   </div>
+                  <Switch
+                    checked={settings.security.twoFactor}
+                    onCheckedChange={() => setIs2FADialogOpen(true)}
+                  />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <Input 
-                      id="newPassword" 
-                      type="password" 
-                      value={passwordData.newPassword}
-                      onChange={(e) => handlePasswordInputChange("newPassword", e.target.value)}
-                      disabled={isChangingPassword}
-                    />
+                    <Label>Login Alerts</Label>
+                    <p className="text-sm text-gray-500">Get notified of new login attempts</p>
                   </div>
+                  <Switch
+                    checked={settings.security.loginAlerts}
+                    onCheckedChange={() => handleToggleChange("security", "loginAlerts")}
+                  />
+                </div>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <Input 
-                      id="confirmPassword" 
-                      type="password" 
-                      value={passwordData.confirmPassword}
-                      onChange={(e) => handlePasswordInputChange("confirmPassword", e.target.value)}
-                      disabled={isChangingPassword}
-                    />
+                    <Label>Session Timeout (minutes)</Label>
+                    <Select
+                      value={settings.security.sessionTimeout}
+                      onValueChange={(value) => handleSettingChange("security", "sessionTimeout", value)}
+                    >
+                      <SelectTrigger className="max-w-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 minutes</SelectItem>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                        <SelectItem value="60">1 hour</SelectItem>
+                        <SelectItem value="240">4 hours</SelectItem>
+                        <SelectItem value="480">8 hours</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <Button 
-                    onClick={handlePasswordChange}
-                    disabled={isChangingPassword || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
-                  >
-                    {isChangingPassword ? "Updating..." : "Update Password"}
+
+                  <div className="space-y-2">
+                    <Label>Timezone</Label>
+                    <Select
+                      value={settings.security.timezone}
+                      onValueChange={(value) => handleSettingChange("security", "timezone", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={displayTimezone.display} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {US_TIMEZONES.map((tz) => (
+                          <SelectItem key={tz.value} value={tz.value}>
+                            {tz.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Showing local time as {displayTimezone.display}. Records are saved using {storageTimezone.display}.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-6">
+                <h4 className="font-medium mb-4">Password & Access</h4>
+                <div className="space-y-4">
+                  <Button variant="outline" onClick={() => setIsPasswordDialogOpen(true)}>
+                    <Shield className="h-4 w-4 mr-2" />
+                    Change Password
                   </Button>
                 </div>
               </div>
@@ -700,6 +756,21 @@ export default function OwnerProfile() {
           </Card>
         </TabsContent>
       </Tabs>
+      <ChangePasswordDialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen} />
+      <TwoFactorAuthDialog
+        open={is2FADialogOpen}
+        onOpenChange={setIs2FADialogOpen}
+        currentValue={settings.security.twoFactor}
+        onConfirm={(enabled) => {
+          setSettings((prev) => ({
+            ...prev,
+            security: {
+              ...prev.security,
+              twoFactor: enabled,
+            },
+          }))
+        }}
+      />
     </ProfileShell>
   )
 }

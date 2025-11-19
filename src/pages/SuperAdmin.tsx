@@ -9,7 +9,6 @@ import SuperAdminMaintenance from "@/components/super-admin/super-admin-maintena
 import SuperAdminProperties from "@/components/super-admin/super-admin-properties"
 import SuperAdminFinances from "@/components/super-admin/super-admin-finances"
 import SuperAdminReports from "@/components/super-admin/super-admin-reports"
-import SuperAdminSettings from "@/components/super-admin/super-admin-settings"
 import SuperAdminProfile from "@/components/super-admin/super-admin-profile"
 import { PortalSidebar } from "@/components/portal-sidebar"
 import Loading from "@/components/loading"
@@ -30,7 +29,6 @@ export default function SuperAdmin() {
             <Route path="/finances/*" element={<SuperAdminFinances />} />
             <Route path="/reports/*" element={<SuperAdminReports />} />
             <Route path="/profile" element={<SuperAdminProfile />} />
-            <Route path="/settings" element={<SuperAdminSettings />} />
           </Routes>
         </Suspense>
       </div>

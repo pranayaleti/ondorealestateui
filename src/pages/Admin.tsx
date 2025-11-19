@@ -8,7 +8,6 @@ import AdminMaintenance from "@/components/admin/admin-maintenance"
 import AdminProperties from "@/components/admin/admin-properties"
 import AdminFinances from "@/components/admin/admin-finances"
 import AdminReports from "@/components/admin/admin-reports"
-import AdminSettings from "@/components/admin/admin-settings"
 import AdminProfile from "@/components/admin/admin-profile"
 import { PortalSidebar } from "@/components/portal-sidebar"
 import Loading from "@/components/loading"
@@ -28,7 +27,6 @@ export default function Admin() {
             <Route path="/finances/*" element={<AdminFinances />} />
             <Route path="/reports/*" element={<AdminReports />} />
             <Route path="/profile" element={<AdminProfile />} />
-            <Route path="/settings" element={<AdminSettings />} />
           </Routes>
         </Suspense>
       </div>

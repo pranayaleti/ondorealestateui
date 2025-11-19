@@ -51,7 +51,42 @@ export default function MonthlySummaryReport() {
             <p className="text-gray-600 dark:text-gray-400">Income & expenses breakdown for {mockMonthlyData.month}</p>
           </div>
         </div>
-        <ExportPDFButton fileName="monthly-summary-report" />
+        <ExportPDFButton 
+          fileName="monthly-summary-report"
+          content={{
+            title: "Monthly Summary Report",
+            subtitle: `Income & expenses breakdown for ${mockMonthlyData.month}`,
+            summary: [
+              { label: "Total Revenue", value: mockMonthlyData.revenue.total },
+              { label: "Total Expenses", value: mockMonthlyData.expenses.total },
+              { label: "Net Income", value: mockMonthlyData.netIncome },
+              { label: "Profit Margin", value: `${((mockMonthlyData.netIncome / mockMonthlyData.revenue.total) * 100).toFixed(1)}%` },
+              { label: "Expense Ratio", value: `${((mockMonthlyData.expenses.total / mockMonthlyData.revenue.total) * 100).toFixed(1)}%` }
+            ],
+            sections: [
+              {
+                title: "Revenue Breakdown",
+                items: [
+                  ...mockMonthlyData.revenue.breakdown.map(item => ({
+                    label: item.source,
+                    value: item.amount
+                  })),
+                  { label: "Total Revenue", value: mockMonthlyData.revenue.total }
+                ]
+              },
+              {
+                title: "Expense Breakdown",
+                items: [
+                  ...mockMonthlyData.expenses.breakdown.map(item => ({
+                    label: item.category,
+                    value: item.amount
+                  })),
+                  { label: "Total Expenses", value: mockMonthlyData.expenses.total }
+                ]
+              }
+            ]
+          }}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">

@@ -28,17 +28,18 @@ const Maintenance = lazy(() => import('@/pages/Maintenance'))
 const PageNotFound = lazy(() => import('@/pages/PageNotFound'))
 const Privacy = lazy(() => import('@/pages/Privacy'))
 const Terms = lazy(() => import('@/pages/Terms'))
+const Handoff = lazy(() => import('@/pages/Handoff'))
 
 function App() {
   const location = useLocation()
   // Hide header on auth pages and portal pages (portals have their own navigation)
   const hideHeaderRoutes = [
     '/', '/login', '/signup', '/forgot-password', '/reset-password', '/verify',
-    '/super-admin', '/admin', '/dashboard', '/owner', '/tenant', '/maintenance'
+    '/super-admin', '/admin', '/dashboard', '/owner', '/tenant', '/maintenance', '/handoff'
   ]
   const hideFooterRoutes = [
     '/', '/login', '/signup', '/forgot-password', '/reset-password', '/verify',
-    '/super-admin', '/admin', '/dashboard', '/owner', '/tenant', '/maintenance'
+    '/super-admin', '/admin', '/dashboard', '/owner', '/tenant', '/maintenance', '/handoff'
   ]
   
   // Check if current path starts with any hide route
@@ -107,6 +108,11 @@ function App() {
                 <Route path="/search/*" element={
                   <ProtectedRoute>
                     <Search />
+                  </ProtectedRoute>
+                } />
+                <Route path="/handoff/:propertyId?" element={
+                  <ProtectedRoute>
+                    <Handoff />
                   </ProtectedRoute>
                 } />
                 

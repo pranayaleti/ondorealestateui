@@ -50,7 +50,58 @@ export default function OccupancyReport() {
             <p className="text-gray-600 dark:text-gray-400">Tenant analytics and occupancy metrics for {mockOccupancyData.period}</p>
           </div>
         </div>
-        <ExportPDFButton fileName="occupancy-report" />
+        <ExportPDFButton 
+          fileName="occupancy-report"
+          content={{
+            title: "Occupancy Report",
+            subtitle: `Tenant analytics and occupancy metrics for ${mockOccupancyData.period}`,
+            summary: [
+              { label: "Total Units", value: mockOccupancyData.summary.totalUnits },
+              { label: "Occupied Units", value: mockOccupancyData.summary.occupiedUnits },
+              { label: "Vacant Units", value: mockOccupancyData.summary.vacantUnits },
+              { label: "Occupancy Rate", value: `${mockOccupancyData.summary.occupancyRate}%` },
+              { label: "Average Rent", value: mockOccupancyData.summary.averageRent },
+              { label: "Monthly Revenue", value: mockOccupancyData.summary.totalMonthlyRevenue }
+            ],
+            tables: [
+              {
+                title: "Current Tenants",
+                headers: ["Name", "Unit", "Rent", "Move-in", "Lease End", "Status"],
+                rows: mockOccupancyData.tenants.map(t => [
+                  t.name,
+                  t.unit,
+                  `$${t.rent.toLocaleString()}`,
+                  t.moveIn,
+                  t.leaseEnd,
+                  t.status
+                ])
+              },
+              {
+                title: "Property Breakdown",
+                headers: ["Property", "Total Units", "Occupied", "Vacant", "Occupancy Rate"],
+                rows: mockOccupancyData.properties.map(p => [
+                  p.name,
+                  p.units.toString(),
+                  p.occupied.toString(),
+                  p.vacant.toString(),
+                  `${p.occupancyRate}%`
+                ])
+              }
+            ],
+            sections: [
+              {
+                title: "Occupancy Trends",
+                items: [
+                  { label: "Current Rate", value: `${mockOccupancyData.summary.occupancyRate}%` },
+                  { label: "Previous Month", value: `${mockOccupancyData.trends.previousMonth}%` },
+                  { label: "Change", value: `${mockOccupancyData.trends.change >= 0 ? '+' : ''}${mockOccupancyData.trends.change}%` },
+                  { label: "Average Tenancy", value: `${mockOccupancyData.trends.averageTenancy} months` },
+                  { label: "Turnover Rate", value: `${mockOccupancyData.trends.turnoverRate}%` }
+                ]
+              }
+            ]
+          }}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom"
 import { Card, CardContent } from "@/components/ui/card"
 import { CheckCircle, ArrowRight } from "lucide-react"
 import { Logo } from "@/components/logo"
+import { companyInfo } from "@/constants/companyInfo"
 
 export default function Verify() {
   return (
@@ -27,12 +28,12 @@ export default function Verify() {
             </h1>
             
             <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-sm mx-auto">
-              Your email has been successfully verified. You can now access your Ondo Real Estate account and start managing your properties.
+              Your email has been successfully verified. You can now access your {companyInfo.name} account and start managing your properties.
             </p>
             
             <Link to="/login">
               <button className="w-full bg-gradient-to-r from-orange-500 to-red-800 hover:from-orange-600 hover:to-red-900 text-white font-medium py-4 rounded-2xl text-xl transition-all duration-200 flex items-center justify-center gap-2">
-                Access Ondo Real Estate
+                Access {companyInfo.name}
                 <ArrowRight className="h-5 w-5" />
               </button>
             </Link>

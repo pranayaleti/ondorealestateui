@@ -8,6 +8,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { MessageSquare, Send, Search, Plus, Reply, Archive, Star, Paperclip, User } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { companyInfo } from "@/constants/companyInfo"
+
+// Email addresses based on company domain
+const getEmail = (prefix: string) => `${prefix}@${companyInfo.social.twitterDomain}`
 
 // Mock messages data
 const mockMessages = [
@@ -15,7 +19,7 @@ const mockMessages = [
     id: 1,
     subject: "Lease Renewal Notice",
     from: "Property Manager",
-    fromEmail: "manager@ondorealestate.com",
+    fromEmail: getEmail("manager"),
     to: "tenant@email.com",
     date: "2024-01-20",
     time: "10:30 AM",
@@ -30,7 +34,7 @@ const mockMessages = [
     id: 2,
     subject: "Scheduled Maintenance - HVAC Inspection",
     from: "Maintenance Team",
-    fromEmail: "maintenance@ondorealestate.com",
+    fromEmail: getEmail("maintenance"),
     to: "tenant@email.com",
     date: "2024-01-18",
     time: "2:15 PM",
@@ -60,7 +64,7 @@ const mockMessages = [
     id: 4,
     subject: "Rent Payment Confirmation",
     from: "Billing Department",
-    fromEmail: "billing@ondorealestate.com",
+    fromEmail: getEmail("billing"),
     to: "tenant@email.com",
     date: "2024-01-01",
     time: "11:45 AM",
@@ -80,7 +84,7 @@ export default function TenantMessages() {
   const [filterCategory, setFilterCategory] = useState("all")
   const [showCompose, setShowCompose] = useState(false)
   const [composeForm, setComposeForm] = useState({
-    to: "manager@ondorealestate.com",
+    to: getEmail("manager"),
     subject: "",
     category: "general",
     priority: "medium",
@@ -102,7 +106,7 @@ export default function TenantMessages() {
     })
     setShowCompose(false)
     setComposeForm({
-      to: "manager@ondorealestate.com",
+      to: getEmail("manager"),
       subject: "",
       category: "general",
       priority: "medium",
@@ -161,9 +165,9 @@ export default function TenantMessages() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="manager@ondorealestate.com">Property Manager</SelectItem>
-                      <SelectItem value="maintenance@ondorealestate.com">Maintenance Team</SelectItem>
-                      <SelectItem value="billing@ondorealestate.com">Billing Department</SelectItem>
+                      <SelectItem value={getEmail("manager")}>Property Manager</SelectItem>
+                      <SelectItem value={getEmail("maintenance")}>Maintenance Team</SelectItem>
+                      <SelectItem value={getEmail("billing")}>Billing Department</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

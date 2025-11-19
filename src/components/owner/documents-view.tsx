@@ -34,6 +34,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast"
 import { AddDocumentDialog } from "@/components/owner/add-document-dialog"
 import { CreateFolderDialog } from "@/components/owner/create-folder-dialog"
+import { ExportPDFButton } from "@/components/ui/export-pdf-button"
 
 // Mock folders data
 const FOLDERS = [
@@ -454,10 +455,35 @@ export function DocumentsView() {
             ) : (
               <AddDocumentDialog />
             )}
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Download
-            </Button>
+            <ExportPDFButton 
+              fileName="documents-list"
+              size="sm"
+              variant="outline"
+              content={{
+                title: "Documents List",
+                subtitle: `Total documents: ${filteredDocuments.length}`,
+                summary: [
+                  { label: "Total Documents", value: filteredDocuments.length },
+                  { label: "Total Folders", value: folders.length },
+                  { label: "Filter Applied", value: activeTab === "all" ? "All Documents" : activeTab.charAt(0).toUpperCase() + activeTab.slice(1) }
+                ],
+                tables: [
+                  {
+                    title: "Documents",
+                    headers: ["Name", "Type", "Category", "Property", "Size", "Folder", "Uploaded"],
+                    rows: filteredDocuments.map(doc => [
+                      doc.name,
+                      doc.type.toUpperCase(),
+                      doc.category.charAt(0).toUpperCase() + doc.category.slice(1),
+                      doc.property,
+                      doc.size,
+                      doc.folder,
+                      new Date(doc.uploadedAt).toLocaleDateString()
+                    ])
+                  }
+                ]
+              }}
+            />
           </div>
         </div>
 
