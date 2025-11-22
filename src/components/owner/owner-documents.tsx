@@ -1,7 +1,7 @@
-import { DocumentsPage } from "@/components/shared/documents-page"
+import { DocumentsPage, type Document } from "@/components/shared/documents-page"
 
 // Mock documents data matching the image
-const DOCUMENTS = [
+const DOCUMENTS: Document[] = [
   {
     id: "doc1",
     name: "Lease Agreement - 123 Main St Unit 1",

@@ -20,7 +20,7 @@ export default function MaintenanceSettings() {
     security: {
       twoFactor: false,
       sessionTimeout: "60",
-      timezone: storageTimezone || "America/Denver",
+      timezone: storageTimezone?.iana || "America/Denver",
     }
   })
 

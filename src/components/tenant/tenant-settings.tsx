@@ -21,7 +21,7 @@ export default function TenantSettings() {
     security: {
       twoFactor: false,
       sessionTimeout: "60",
-      timezone: storageTimezone || "America/Denver",
+      timezone: storageTimezone?.iana || "America/Denver",
     }
   })
 

@@ -19,6 +19,7 @@ import { TwoFactorAuthDialog } from "@/components/ui/two-factor-auth-dialog"
 import { US_TIMEZONES } from "@/constants/us"
 import { useUserTimezone } from "@/hooks/use-user-timezone"
 import { authApi, ApiError } from "@/lib/api"
+import { LoginHistory } from "@/components/shared/login-history"
 
 const buildAddressFormValue = (address?: string | null): AddressFormValues => {
   const parsed = parseAddressString(address)

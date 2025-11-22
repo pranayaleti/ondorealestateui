@@ -23,7 +23,7 @@ export default function SuperAdminSettings() {
       twoFactor: false,
       sessionTimeout: "60",
       loginAlerts: true,
-      timezone: storageTimezone || "America/Denver",
+      timezone: storageTimezone?.iana || "America/Denver",
     },
     system: {
       autoBackup: true,
