@@ -1,6 +1,8 @@
-import { Routes, Route } from "react-router-dom"
 import { Suspense } from "react"
-import SuperAdminDashboard from "@/components/super-admin/super-admin-dashboard"
+import { Routes, Route } from "react-router-dom"
+import { PortalSidebar } from "@/components/portal-sidebar"
+import Loading from "@/components/loading"
+import SuperAdminDashboard from "@/components/dashboard/portals/super-admin/SuperAdminDashboard.new"
 import SuperAdminManagers from "@/components/super-admin/super-admin-managers"
 import SuperAdminAdmins from "@/components/super-admin/super-admin-admins"
 import SuperAdminOwners from "@/components/super-admin/super-admin-owners"
@@ -10,8 +12,10 @@ import SuperAdminProperties from "@/components/super-admin/super-admin-propertie
 import SuperAdminFinances from "@/components/super-admin/super-admin-finances"
 import SuperAdminReports from "@/components/super-admin/super-admin-reports"
 import SuperAdminProfile from "@/components/super-admin/super-admin-profile"
-import { PortalSidebar } from "@/components/portal-sidebar"
-import Loading from "@/components/loading"
+import SuperAdminDocuments from "@/components/super-admin/super-admin-documents"
+import SuperAdminMessages from "@/components/super-admin/super-admin-messages"
+import SuperAdminCalendar from "@/components/super-admin/super-admin-calendar"
+import SuperAdminNotifications from "@/components/super-admin/super-admin-notifications"
 
 export default function SuperAdmin() {
   return (
@@ -28,6 +32,10 @@ export default function SuperAdmin() {
             <Route path="/properties/*" element={<SuperAdminProperties />} />
             <Route path="/finances/*" element={<SuperAdminFinances />} />
             <Route path="/reports/*" element={<SuperAdminReports />} />
+            <Route path="/messages/*" element={<SuperAdminMessages />} />
+            <Route path="/documents" element={<SuperAdminDocuments />} />
+            <Route path="/calendar" element={<SuperAdminCalendar />} />
+            <Route path="/notifications" element={<SuperAdminNotifications />} />
             <Route path="/profile" element={<SuperAdminProfile />} />
           </Routes>
         </Suspense>

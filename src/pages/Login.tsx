@@ -96,47 +96,43 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4">
+      <div className="w-full max-w-7xl mx-auto">
         {/* Ondo Real Estate Logo and Branding */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="mb-6">
+        <div className="flex flex-col items-center mb-4 sm:mb-8">
+          <div className="mb-3 sm:mb-6">
             <Logo size="xl" variant="centered" showText={true} linkTo="/" />
           </div>
-          <h1 className="text-2xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
+          <h1 className="text-xl sm:text-2xl font-medium bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
             Sign in
           </h1>
         </div>
 
         {/* Test Credentials */}
-        <div className="mb-6">
-          <h3 className="text-lg font-bold text-orange-500 dark:text-orange-400 mb-1 text-center">Test Credentials</h3>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 text-center">Use these credentials to sign in for testing purposes</p>
+        <div className="mb-4 sm:mb-6 w-full">
+          <h3 className="text-base sm:text-lg font-bold text-orange-500 dark:text-orange-400 mb-1 text-center">Test Credentials</h3>
+          <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4 text-center px-2">Use these credentials to sign in for testing purposes</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 mb-4 w-full">
             {/* Super Admin Account */}
-            <Card className="bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-base font-semibold text-gray-200 dark:text-gray-100">Super Admin</h4>
-                  <button
-                    type="button"
-                    onClick={() => handleFillCredentials('pharikrishnaeee@gmail.com', 'hari1234')}
-                    className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 text-sm font-medium transition-colors"
-                  >
-                    Fill
-                  </button>
+            <Card 
+              className="bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600 cursor-pointer hover:border-orange-500 dark:hover:border-orange-400 transition-colors"
+              onClick={() => handleFillCredentials('pharikrishnaeee@gmail.com', 'hari1234')}
+            >
+              <CardContent className="p-3 sm:p-4">
+                <div className="mb-2 sm:mb-3">
+                  <h4 className="text-sm sm:text-base font-semibold text-gray-200 dark:text-gray-100">Super Admin</h4>
                 </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex flex-col gap-1">
+                <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+                  <div className="flex flex-col gap-0.5 sm:gap-1">
                     <span className="text-gray-400 dark:text-gray-300">Email:</span>
-                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all">pharikrishnaeee@gmail.com</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all leading-tight sm:leading-normal">pharikrishnaeee@gmail.com</span>
                   </div>
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-0.5 sm:gap-1">
                     <span className="text-gray-400 dark:text-gray-300">Password:</span>
                     <span className="text-gray-200 dark:text-gray-100 font-medium">hari1234</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <span className="text-gray-400 dark:text-gray-300">Role:</span>
                     <span className="text-gray-200 dark:text-gray-100 font-medium">Super Admin</span>
                   </div>
@@ -144,29 +140,103 @@ export default function LoginPage() {
               </CardContent>
             </Card>
 
-            {/* Tenant Account */}
-            <Card className="bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-base font-semibold text-gray-200 dark:text-gray-100">Tenant</h4>
-                  <button
-                    type="button"
-                    onClick={() => handleFillCredentials('pranayreddyui@gmail.com', 'Test@123')}
-                    className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 text-sm font-medium transition-colors"
-                  >
-                    Fill
-                  </button>
+            {/* Admin Account */}
+            <Card 
+              className="bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600 cursor-pointer hover:border-orange-500 dark:hover:border-orange-400 transition-colors"
+              onClick={() => handleFillCredentials('pharikrishnaeee@gmail.com', 'hari1234')}
+            >
+              <CardContent className="p-3 sm:p-4">
+                <div className="mb-2 sm:mb-3">
+                  <h4 className="text-sm sm:text-base font-semibold text-gray-200 dark:text-gray-100">Admin</h4>
                 </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex flex-col gap-1">
+                <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+                  <div className="flex flex-col gap-0.5 sm:gap-1">
                     <span className="text-gray-400 dark:text-gray-300">Email:</span>
-                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all">pranayreddyui@gmail.com</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all leading-tight sm:leading-normal">pharikrishnaeee@gmail.com</span>
                   </div>
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-0.5 sm:gap-1">
+                    <span className="text-gray-400 dark:text-gray-300">Password:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium">hari1234</span>
+                  </div>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <span className="text-gray-400 dark:text-gray-300">Role:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium">Admin</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Manager Account */}
+            <Card 
+              className="bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600 cursor-pointer hover:border-orange-500 dark:hover:border-orange-400 transition-colors"
+              onClick={() => handleFillCredentials('manager@ondorealestate.com', 'Test@123')}
+            >
+              <CardContent className="p-3 sm:p-4">
+                <div className="mb-2 sm:mb-3">
+                  <h4 className="text-sm sm:text-base font-semibold text-gray-200 dark:text-gray-100">Manager</h4>
+                </div>
+                <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+                  <div className="flex flex-col gap-0.5 sm:gap-1">
+                    <span className="text-gray-400 dark:text-gray-300">Email:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all leading-tight sm:leading-normal">manager@ondorealestate.com</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5 sm:gap-1">
                     <span className="text-gray-400 dark:text-gray-300">Password:</span>
                     <span className="text-gray-200 dark:text-gray-100 font-medium">Test@123</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <span className="text-gray-400 dark:text-gray-300">Role:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium">Manager</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Owner Account */}
+            <Card 
+              className="bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600 cursor-pointer hover:border-orange-500 dark:hover:border-orange-400 transition-colors"
+              onClick={() => handleFillCredentials('mail2pranayreddy@gmail.com', 'Test@123')}
+            >
+              <CardContent className="p-3 sm:p-4">
+                <div className="mb-2 sm:mb-3">
+                  <h4 className="text-sm sm:text-base font-semibold text-gray-200 dark:text-gray-100">Owner</h4>
+                </div>
+                <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+                  <div className="flex flex-col gap-0.5 sm:gap-1">
+                    <span className="text-gray-400 dark:text-gray-300">Email:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all leading-tight sm:leading-normal">mail2pranayreddy@gmail.com</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5 sm:gap-1">
+                    <span className="text-gray-400 dark:text-gray-300">Password:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium">Test@123</span>
+                  </div>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <span className="text-gray-400 dark:text-gray-300">Role:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium">Owner</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tenant Account */}
+            <Card 
+              className="bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600 cursor-pointer hover:border-orange-500 dark:hover:border-orange-400 transition-colors"
+              onClick={() => handleFillCredentials('pranayreddyui@gmail.com', 'Test@123')}
+            >
+              <CardContent className="p-3 sm:p-4">
+                <div className="mb-2 sm:mb-3">
+                  <h4 className="text-sm sm:text-base font-semibold text-gray-200 dark:text-gray-100">Tenant</h4>
+                </div>
+                <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+                  <div className="flex flex-col gap-0.5 sm:gap-1">
+                    <span className="text-gray-400 dark:text-gray-300">Email:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all leading-tight sm:leading-normal">pranayreddyui@gmail.com</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5 sm:gap-1">
+                    <span className="text-gray-400 dark:text-gray-300">Password:</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium">Test@123</span>
+                  </div>
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <span className="text-gray-400 dark:text-gray-300">Role:</span>
                     <span className="text-gray-200 dark:text-gray-100 font-medium">Tenant</span>
                   </div>
@@ -174,31 +244,27 @@ export default function LoginPage() {
               </CardContent>
             </Card>
 
-            {/* Owner Account */}
-            <Card className="bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-base font-semibold text-gray-200 dark:text-gray-100">Owner</h4>
-                  <button
-                    type="button"
-                    onClick={() => handleFillCredentials('mail2pranayreddy@gmail.com', 'Test@123')}
-                    className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 text-sm font-medium transition-colors"
-                  >
-                    Fill
-                  </button>
+            {/* Maintenance Account */}
+            <Card 
+              className="bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600 cursor-pointer hover:border-orange-500 dark:hover:border-orange-400 transition-colors"
+              onClick={() => handleFillCredentials('maintenance@ondorealestate.com', 'Test@123')}
+            >
+              <CardContent className="p-3 sm:p-4">
+                <div className="mb-2 sm:mb-3">
+                  <h4 className="text-sm sm:text-base font-semibold text-gray-200 dark:text-gray-100">Maintenance</h4>
                 </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex flex-col gap-1">
+                <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+                  <div className="flex flex-col gap-0.5 sm:gap-1">
                     <span className="text-gray-400 dark:text-gray-300">Email:</span>
-                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all">mail2pranayreddy@gmail.com</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all leading-tight sm:leading-normal">maintenance@ondorealestate.com</span>
                   </div>
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-0.5 sm:gap-1">
                     <span className="text-gray-400 dark:text-gray-300">Password:</span>
                     <span className="text-gray-200 dark:text-gray-100 font-medium">Test@123</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <span className="text-gray-400 dark:text-gray-300">Role:</span>
-                    <span className="text-gray-200 dark:text-gray-100 font-medium">Owner</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium">Maintenance</span>
                   </div>
                 </div>
               </CardContent>
@@ -206,15 +272,15 @@ export default function LoginPage() {
           </div>
 
           {/* Note about other roles */}
-          <div className="text-xs text-gray-500 dark:text-gray-400 italic text-center">
+          <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 italic text-center px-2">
             <p>Note: Manager, Owner, and Tenant accounts can be created through the invitation system.</p>
           </div>
         </div>
 
         {/* Single Login Form */}
-        <Card className="border-none shadow-lg w-full max-w-md">
-          <CardContent className="pt-6">
-            <form onSubmit={handleLogin} className="space-y-5">
+        <Card className="border-none shadow-lg w-full max-w-md mx-auto">
+          <CardContent className="pt-4 sm:pt-6 px-4 sm:px-6">
+            <form onSubmit={handleLogin} className="space-y-4 sm:space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Company Email</Label>
                 <Input
@@ -263,17 +329,17 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-orange-500 to-red-800 hover:from-orange-600 hover:to-red-900 text-white font-medium py-4 rounded-2xl text-xl transition-all duration-200 flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-orange-500 to-red-800 hover:from-orange-600 hover:to-red-900 text-white font-medium py-3 sm:py-4 rounded-2xl text-lg sm:text-xl transition-all duration-200 flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="animate-spin h-5 w-5" />
-                    Signing in...
+                    <Loader2 className="animate-spin h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="text-sm sm:text-base">Signing in...</span>
                   </>
                 ) : (
                   <>
-                    Submit
-                    <ArrowRight className="h-5 w-5" />
+                    <span className="text-sm sm:text-base">Submit</span>
+                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
                   </>
                 )}
               </button>
@@ -281,13 +347,13 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <div className="mt-6 text-center space-y-3">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="mt-4 sm:mt-6 text-center space-y-2 sm:space-y-3 px-2">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
             <Link to="/forgot-password" className="text-orange-600 hover:underline font-medium">
               Forgot your password?
             </Link>
           </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
             Need help?{" "}
             <Link to="/contact" className="text-orange-600 hover:underline font-medium">
               Contact support

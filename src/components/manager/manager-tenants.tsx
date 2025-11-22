@@ -59,6 +59,15 @@ function TenantsList() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [paymentFilter, setPaymentFilter] = useState("all")
+  const [cardFilter, setCardFilter] = useState<string | null>(null)
+
+  // Helper function to check if lease is expiring soon (within 60 days)
+  const isLeaseExpiring = (leaseEnd: string) => {
+    const endDate = new Date(leaseEnd)
+    const today = new Date()
+    const daysUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+    return daysUntilExpiry > 0 && daysUntilExpiry <= 60
+  }
 
   const filteredTenants = mockTenants.filter(tenant => {
     const matchesSearch = tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -66,8 +75,41 @@ function TenantsList() {
                          tenant.property.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === "all" || tenant.status === statusFilter
     const matchesPayment = paymentFilter === "all" || tenant.paymentStatus === paymentFilter
-    return matchesSearch && matchesStatus && matchesPayment
+    
+    // Apply card filter
+    let matchesCard = true
+    if (cardFilter === "current") {
+      matchesCard = tenant.paymentStatus === "current"
+    } else if (cardFilter === "overdue") {
+      matchesCard = tenant.paymentStatus === "overdue"
+    } else if (cardFilter === "expiring") {
+      matchesCard = isLeaseExpiring(tenant.leaseEnd)
+    } else if (cardFilter === "total") {
+      matchesCard = true // Show all for total
+    }
+    
+    return matchesSearch && matchesStatus && matchesPayment && matchesCard
   })
+
+  const handleCardClick = (filter: string) => {
+    if (cardFilter === filter) {
+      // If clicking the same card, clear the filter
+      setCardFilter(null)
+      if (filter === "current" || filter === "overdue") {
+        setPaymentFilter("all")
+      }
+    } else {
+      setCardFilter(filter)
+      // Sync payment filter when clicking payment-related cards
+      if (filter === "current") {
+        setPaymentFilter("current")
+      } else if (filter === "overdue") {
+        setPaymentFilter("overdue")
+      } else if (filter === "total") {
+        setPaymentFilter("all")
+      }
+    }
+  }
 
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
@@ -99,7 +141,12 @@ function TenantsList() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-lg ${
+            cardFilter === "total" ? "ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950" : ""
+          }`}
+          onClick={() => handleCardClick("total")}
+        >
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -110,7 +157,12 @@ function TenantsList() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-lg ${
+            cardFilter === "current" ? "ring-2 ring-green-500 bg-green-50 dark:bg-green-950" : ""
+          }`}
+          onClick={() => handleCardClick("current")}
+        >
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -121,7 +173,12 @@ function TenantsList() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-lg ${
+            cardFilter === "overdue" ? "ring-2 ring-red-500 bg-red-50 dark:bg-red-950" : ""
+          }`}
+          onClick={() => handleCardClick("overdue")}
+        >
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -132,12 +189,17 @@ function TenantsList() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-lg ${
+            cardFilter === "expiring" ? "ring-2 ring-orange-500 bg-orange-50 dark:bg-orange-950" : ""
+          }`}
+          onClick={() => handleCardClick("expiring")}
+        >
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Expiring Leases</p>
-                <p className="text-2xl font-bold">2</p>
+                <p className="text-2xl font-bold">{mockTenants.filter(t => isLeaseExpiring(t.leaseEnd)).length}</p>
               </div>
               <Calendar className="h-8 w-8 text-orange-500" />
             </div>
@@ -169,7 +231,22 @@ function TenantsList() {
                 <SelectItem value="terminated">Terminated</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+            <Select 
+              value={paymentFilter} 
+              onValueChange={(value) => {
+                setPaymentFilter(value)
+                // Sync card filter when payment filter changes
+                if (value === "current") {
+                  setCardFilter("current")
+                } else if (value === "overdue") {
+                  setCardFilter("overdue")
+                } else if (value === "all") {
+                  if (cardFilter === "current" || cardFilter === "overdue") {
+                    setCardFilter(null)
+                  }
+                }
+              }}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Payment Status" />
               </SelectTrigger>

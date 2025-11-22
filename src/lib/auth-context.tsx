@@ -67,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     setIsLoading(true)
 
+    // All logins go through the API to use backend data
     try {
       const response = await authApi.login({ email, password })
       

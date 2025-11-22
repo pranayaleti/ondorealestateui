@@ -22,7 +22,7 @@ interface PropertyImageCarouselProps {
 }
 
 // Single placeholder image for properties without photos
-const PLACEHOLDER_IMAGE = "/property-placeholder.svg"
+const PLACEHOLDER_IMAGE = `${import.meta.env.BASE_URL}property-placeholder.svg`
 
 export function PropertyImageCarousel({
   photos = [],

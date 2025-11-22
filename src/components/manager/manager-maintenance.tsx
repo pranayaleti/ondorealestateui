@@ -7,12 +7,16 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Search, CheckCircle, Clock, AlertCircle, Wrench, Calendar, MessageSquare, User, Building, Loader2, Edit } from "lucide-react"
+import { Search, CheckCircle, Clock, AlertCircle, Wrench, Calendar, MessageSquare, User, Building, Loader2, Edit, Plus } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { maintenanceApi, type MaintenanceRequest } from "@/lib/api"
+import { maintenanceApi, propertyApi, type MaintenanceRequest, type Property } from "@/lib/api"
+import { NewMaintenanceRequestDialog } from "@/components/maintenance/new-maintenance-request-dialog"
+import { useAuth } from "@/lib/auth-context"
 
 export default function ManagerMaintenance() {
+  const { user } = useAuth()
   const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>([])
+  const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
@@ -21,6 +25,7 @@ export default function ManagerMaintenance() {
   const [selectedRequest, setSelectedRequest] = useState<MaintenanceRequest | null>(null)
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false)
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false)
+  const [isNewRequestDialogOpen, setIsNewRequestDialogOpen] = useState(false)
   const [updateData, setUpdateData] = useState({
     status: "",
     assignedTo: "",
@@ -28,9 +33,10 @@ export default function ManagerMaintenance() {
   })
   const { toast } = useToast()
 
-  // Fetch maintenance requests from API
+  // Fetch maintenance requests and properties from API
   useEffect(() => {
     fetchMaintenanceRequests()
+    fetchProperties()
   }, [])
 
   const fetchMaintenanceRequests = async () => {
@@ -49,6 +55,16 @@ export default function ManagerMaintenance() {
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchProperties = async () => {
+    try {
+      const allProperties = await propertyApi.getProperties()
+      // Managers see all properties
+      setProperties(allProperties)
+    } catch (err: any) {
+      console.error("Error fetching properties:", err)
     }
   }
 
@@ -175,10 +191,16 @@ export default function ManagerMaintenance() {
           <h2 className="text-2xl font-bold">Maintenance Management</h2>
           <p className="text-gray-600 dark:text-gray-400">Manage tenant maintenance requests</p>
         </div>
-        <Button onClick={fetchMaintenanceRequests} variant="outline">
-          <Wrench className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setIsNewRequestDialogOpen(true)} className="bg-ondo-orange hover:bg-ondo-red">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Ticket
+          </Button>
+          <Button onClick={fetchMaintenanceRequests} variant="outline">
+            <Wrench className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -490,6 +512,37 @@ export default function ManagerMaintenance() {
           ))
         )}
       </div>
+
+      {/* New Maintenance Request Dialog */}
+      <NewMaintenanceRequestDialog
+        open={isNewRequestDialogOpen}
+        onOpenChange={setIsNewRequestDialogOpen}
+        onSubmit={async (data) => {
+          try {
+            await maintenanceApi.createMaintenanceRequest({
+              title: data.title,
+              description: data.description,
+              category: data.category as any,
+              priority: data.priority as any,
+              photos: [] // TODO: Handle photo uploads
+            })
+
+            toast({
+              title: "Request Created",
+              description: "Maintenance ticket has been created successfully.",
+            })
+
+            fetchMaintenanceRequests()
+            setIsNewRequestDialogOpen(false)
+          } catch (error: any) {
+            console.error("Error creating maintenance request:", error)
+            throw error // Re-throw to let dialog handle the error display
+          }
+        }}
+        showPropertyField={true}
+        showTenantField={true}
+        properties={properties}
+      />
     </div>
   )
 }

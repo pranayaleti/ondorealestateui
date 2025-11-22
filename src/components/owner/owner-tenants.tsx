@@ -11,6 +11,7 @@ import {
   DollarSign
 } from "lucide-react"
 import { propertyApi, type Tenant, type OwnerTenantsSummary } from "@/lib/api"
+import { AddTenantDialog } from "@/components/owner/add-tenant-dialog"
 
 export default function OwnerTenants() {
   const [tenants, setTenants] = useState<Tenant[]>([])
@@ -49,9 +50,7 @@ export default function OwnerTenants() {
         <p className="text-gray-600 dark:text-gray-400">View tenant information across your properties</p>
           </div>
         </div>
-        <Button className="bg-orange-600 hover:bg-orange-700 text-white">
-          Add Tenant
-        </Button>
+        <AddTenantDialog />
       </div>
 
       {/* Summary */}

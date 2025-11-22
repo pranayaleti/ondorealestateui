@@ -1,6 +1,8 @@
-import { Routes, Route } from "react-router-dom"
 import { Suspense } from "react"
-import OwnerDashboard from "@/components/owner/owner-dashboard"
+import { Routes, Route } from "react-router-dom"
+import { PortalSidebar } from "@/components/portal-sidebar"
+import Loading from "@/components/loading"
+import OwnerDashboard from "@/components/dashboard/portals/owner/OwnerDashboard.new"
 import OwnerProperties from "@/components/owner/owner-properties"
 import OwnerFinances from "@/components/owner/owner-finances"
 import OwnerReports from "@/components/owner/owner-reports"
@@ -10,8 +12,8 @@ import OwnerMessages from "@/components/owner/owner-messages"
 import OwnerDocuments from "@/components/owner/owner-documents"
 import { AddPropertyForm } from "@/components/owner/add-property-form"
 import { OwnerMaintenanceManagement } from "@/components/owner/maintenance-management"
-import { PortalSidebar } from "@/components/portal-sidebar"
-import Loading from "@/components/loading"
+import OwnerCalendar from "@/components/owner/owner-calendar"
+import OwnerNotifications from "@/components/owner/owner-notifications"
 
 export default function Owner() {
   return (
@@ -30,6 +32,8 @@ export default function Owner() {
             <Route path="/maintenance/*" element={<OwnerMaintenanceManagement />} />
             <Route path="/messages/*" element={<OwnerMessages />} />
             <Route path="/documents/*" element={<OwnerDocuments />} />
+            <Route path="/calendar" element={<OwnerCalendar />} />
+            <Route path="/notifications" element={<OwnerNotifications />} />
             <Route path="/profile" element={<OwnerProfile />} />
           </Routes>
         </Suspense>

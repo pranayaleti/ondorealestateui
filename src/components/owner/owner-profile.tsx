@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ImageUploader } from "@/components/ui/image-uploader"
 import { ProfilePictureViewer } from "@/components/ui/profile-picture-viewer"
-import { Upload, User, Phone, Building, Mail, DollarSign, Shield } from "lucide-react"
+import { Upload, User, Phone, Building, Mail, DollarSign, Shield, Bell, ExternalLink } from "lucide-react"
+import { Link } from "react-router-dom"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { useState, useEffect } from "react"
@@ -23,6 +24,7 @@ import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { US_TIMEZONES } from "@/constants/us"
 import { useUserTimezone } from "@/hooks/use-user-timezone"
+import { LoginHistory } from "@/components/shared/login-history"
 
 const getInitialProfileData = (user: any) => ({
   personalInfo: {
@@ -498,68 +500,92 @@ export default function OwnerProfile() {
         <TabsContent value="notifications" className="space-y-6">
           <Card className="shadow-sm">
             <CardHeader className="pb-4">
-              <CardTitle className="text-xl">Notification Preferences</CardTitle>
-              <CardDescription>Manage how you receive notifications</CardDescription>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Notifications
+              </CardTitle>
+              <CardDescription>View and manage all your notifications</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div>
-                <h4 className="font-semibold mb-4 text-base">Email Notifications</h4>
-                <div className="space-y-3 pl-1">
-                  {Object.entries(profileData.notifications.email).map(([key, value]) => (
-                    <div key={key} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                      <Label className="font-normal capitalize cursor-pointer flex-1">{key.replace(/([A-Z])/g, ' $1').trim()}</Label>
-                      <input
-                        type="checkbox"
-                        checked={value}
-                        onChange={(e) => {
-                          setProfileData(prev => ({
-                            ...prev,
-                            notifications: {
-                              ...prev.notifications,
-                              email: {
-                                ...prev.notifications.email,
-                                [key]: e.target.checked
-                              }
-                            }
-                          }))
-                        }}
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                    </div>
-                  ))}
-                </div>
+              <div className="text-center py-12">
+                <Bell className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">View All Notifications</h3>
+                <p className="text-sm text-gray-500 mb-6">
+                  Access your detailed notifications page to see all alerts, updates, and important messages
+                </p>
+                <Link to="/owner/notifications">
+                  <Button size="lg" className="gap-2">
+                    Go to Notifications
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </Link>
               </div>
+              
               <div className="border-t pt-6">
-                <h4 className="font-semibold mb-4 text-base">Push Notifications</h4>
-                <div className="space-y-3 pl-1">
-                  {Object.entries(profileData.notifications.push).map(([key, value]) => (
-                    <div key={key} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                      <Label className="font-normal capitalize cursor-pointer flex-1">{key.replace(/([A-Z])/g, ' $1').trim()}</Label>
-                      <input
-                        type="checkbox"
-                        checked={value}
-                        onChange={(e) => {
-                          setProfileData(prev => ({
-                            ...prev,
-                            notifications: {
-                              ...prev.notifications,
-                              push: {
-                                ...prev.notifications.push,
-                                [key]: e.target.checked
-                              }
-                            }
-                          }))
-                        }}
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
+                <h4 className="font-semibold mb-4 text-base">Notification Preferences</h4>
+                <Card className="bg-muted/30">
+                  <CardContent className="p-4 space-y-4">
+                    <div>
+                      <h5 className="text-sm font-medium mb-3">Email Notifications</h5>
+                      <div className="space-y-2">
+                        {Object.entries(profileData.notifications.email).map(([key, value]) => (
+                          <div key={key} className="flex items-center justify-between">
+                            <Label className="text-sm capitalize cursor-pointer">{key.replace(/([A-Z])/g, ' $1').trim()}</Label>
+                            <input
+                              type="checkbox"
+                              checked={value}
+                              onChange={(e) => {
+                                setProfileData(prev => ({
+                                  ...prev,
+                                  notifications: {
+                                    ...prev.notifications,
+                                    email: {
+                                      ...prev.notifications.email,
+                                      [key]: e.target.checked
+                                    }
+                                  }
+                                }))
+                              }}
+                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
+                    <div className="border-t pt-4">
+                      <h5 className="text-sm font-medium mb-3">Push Notifications</h5>
+                      <div className="space-y-2">
+                        {Object.entries(profileData.notifications.push).map(([key, value]) => (
+                          <div key={key} className="flex items-center justify-between">
+                            <Label className="text-sm capitalize cursor-pointer">{key.replace(/([A-Z])/g, ' $1').trim()}</Label>
+                            <input
+                              type="checkbox"
+                              checked={value}
+                              onChange={(e) => {
+                                setProfileData(prev => ({
+                                  ...prev,
+                                  notifications: {
+                                    ...prev.notifications,
+                                    push: {
+                                      ...prev.notifications.push,
+                                      [key]: e.target.checked
+                                    }
+                                  }
+                                }))
+                              }}
+                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <div className="flex justify-end pt-4">
+                  <Button onClick={handleSave} disabled={isSavingProfile} size="sm" variant="outline">
+                    {isSavingProfile ? "Saving..." : "Save Preferences"}
+                  </Button>
                 </div>
-              </div>
-              <div className="flex justify-end pt-4 border-t">
-                <Button onClick={handleSave} disabled={isSavingProfile} className="shadow-sm">
-                  {isSavingProfile ? "Saving..." : "Save Changes"}
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -754,6 +780,9 @@ export default function OwnerProfile() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Login History */}
+          <LoginHistory />
         </TabsContent>
       </Tabs>
       <ChangePasswordDialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen} />

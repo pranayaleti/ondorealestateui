@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useState, type FormEvent, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from "@/hooks/use-toast"
 import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react"
 import { MAINTENANCE_PRIORITIES, MAINTENANCE_CATEGORIES, getCategoryLabel, getPriorityLabel } from "@/constants/maintenance.constants"
+import { type Property } from "@/lib/api"
 
 interface NewMaintenanceRequestDialogProps {
   open: boolean
@@ -27,6 +28,7 @@ interface NewMaintenanceRequestDialogProps {
   defaultTenant?: string
   showPropertyField?: boolean
   showTenantField?: boolean
+  properties?: Property[]
 }
 
 export function NewMaintenanceRequestDialog({
@@ -37,6 +39,7 @@ export function NewMaintenanceRequestDialog({
   defaultTenant,
   showPropertyField = false,
   showTenantField = false,
+  properties = [],
 }: NewMaintenanceRequestDialogProps) {
   const { toast } = useToast()
   const [formData, setFormData] = useState({
@@ -49,6 +52,19 @@ export function NewMaintenanceRequestDialog({
     photos: [] as File[],
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Update tenant when property is selected
+  useEffect(() => {
+    if (formData.property && properties.length > 0) {
+      const selectedProperty = properties.find(p => p.id === formData.property)
+      if (selectedProperty?.tenant) {
+        const tenantName = `${selectedProperty.tenant.firstName} ${selectedProperty.tenant.lastName}`
+        setFormData(prev => ({ ...prev, tenant: tenantName }))
+      } else {
+        setFormData(prev => ({ ...prev, tenant: "" }))
+      }
+    }
+  }, [formData.property, properties])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -135,6 +151,13 @@ export function NewMaintenanceRequestDialog({
         tenant: defaultTenant || "",
         photos: [],
       })
+    } else if (newOpen) {
+      // Reset property/tenant when dialog opens
+      setFormData(prev => ({
+        ...prev,
+        property: defaultProperty || "",
+        tenant: defaultTenant || "",
+      }))
     }
     onOpenChange(newOpen)
   }
@@ -162,13 +185,38 @@ export function NewMaintenanceRequestDialog({
           {showPropertyField && (
             <div>
               <Label htmlFor="property">Property *</Label>
-              <Input
-                id="property"
-                value={formData.property}
-                onChange={(e) => setFormData((prev) => ({ ...prev, property: e.target.value }))}
-                placeholder="123 Main St, Apt 4B"
-                required={showPropertyField}
-              />
+              {properties.length > 0 ? (
+                <Select
+                  value={formData.property}
+                  onValueChange={(value) => setFormData((prev) => ({ ...prev, property: value }))}
+                  required={showPropertyField}
+                >
+                  <SelectTrigger id="property">
+                    <SelectValue placeholder="Select a property" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {properties.map((property) => (
+                      <SelectItem key={property.id} value={property.id}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{property.title}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {property.addressLine1}, {property.city}
+                            {property.state && `, ${property.state}`}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id="property"
+                  value={formData.property}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, property: e.target.value }))}
+                  placeholder="123 Main St, Apt 4B"
+                  required={showPropertyField}
+                />
+              )}
             </div>
           )}
 
@@ -181,7 +229,13 @@ export function NewMaintenanceRequestDialog({
                 onChange={(e) => setFormData((prev) => ({ ...prev, tenant: e.target.value }))}
                 placeholder="John Smith"
                 required={showTenantField}
+                disabled={formData.property && properties.find(p => p.id === formData.property)?.tenant ? true : false}
               />
+              {formData.property && properties.find(p => p.id === formData.property)?.tenant && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tenant auto-filled from selected property
+                </p>
+              )}
             </div>
           )}
 

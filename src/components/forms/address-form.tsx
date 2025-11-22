@@ -1,4 +1,4 @@
-import { Home, Building2, Mail } from "lucide-react"
+import { Home, Building2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { US_STATES } from "@/constants"
 
-export type AddressUsageType = "home" | "office" | "po_box"
+export type AddressUsageType = "home" | "office"
 
 export interface AddressFormValues {
   addressType?: AddressUsageType
@@ -39,7 +39,6 @@ export interface AddressFormProps {
 const ADDRESS_TYPE_OPTIONS: { value: AddressUsageType; label: string; icon: typeof Home }[] = [
   { value: "home", label: "Home", icon: Home },
   { value: "office", label: "Office", icon: Building2 },
-  { value: "po_box", label: "PO Box", icon: Mail },
 ]
 
 const postalCodeFormatter = (value: string) => value.replace(/[^\d-]/g, "").slice(0, 10)
@@ -71,6 +70,19 @@ export function AddressForm({
       field === "postalCode"
         ? (postalCodeFormatter(String(fieldValue)) as AddressFormValues[T])
         : fieldValue
+
+    // When switching address type, clear all address fields to differentiate between home and office
+    if (field === "addressType" && safeValue.addressType !== fieldValue) {
+      onChange({
+        addressType: nextValue as AddressUsageType,
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        state: "",
+        postalCode: "",
+      })
+      return
+    }
 
     onChange({
       ...safeValue,

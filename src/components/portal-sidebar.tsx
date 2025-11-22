@@ -28,6 +28,9 @@ import {
   Moon,
   Sun,
   Laptop,
+  Bell,
+  Calendar,
+  UserPlus,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -68,6 +71,10 @@ const getNavItems = (role: UserRole): NavItem[] => {
         { title: "Handoff", href: `/handoff`, icon: <ClipboardList className="h-5 w-5" /> },
         { title: "Finances", href: `${basePath}/finances`, icon: <DollarSign className="h-5 w-5" /> },
         { title: "Reports", href: `${basePath}/reports`, icon: <BarChart3 className="h-5 w-5" /> },
+        { title: "Messages", href: `${basePath}/messages`, icon: <MessageSquare className="h-5 w-5" /> },
+        { title: "Documents", href: `${basePath}/documents`, icon: <FolderOpen className="h-5 w-5" /> },
+        { title: "Calendar", href: `${basePath}/calendar`, icon: <Calendar className="h-5 w-5" /> },
+        { title: "Notifications", href: `${basePath}/notifications`, icon: <Bell className="h-5 w-5" /> },
         { title: "Profile", href: `${basePath}/profile`, icon: <User className="h-5 w-5" /> },
       ]
     
@@ -82,6 +89,9 @@ const getNavItems = (role: UserRole): NavItem[] => {
         { title: "Handoff", href: `/handoff`, icon: <ClipboardList className="h-5 w-5" /> },
         { title: "Finances", href: `${basePath}/finances`, icon: <DollarSign className="h-5 w-5" /> },
         { title: "Reports", href: `${basePath}/reports`, icon: <BarChart3 className="h-5 w-5" /> },
+        { title: "Messages", href: `${basePath}/messages`, icon: <MessageSquare className="h-5 w-5" /> },
+        { title: "Documents", href: `${basePath}/documents`, icon: <FolderOpen className="h-5 w-5" /> },
+        { title: "Settings", href: `${basePath}/settings`, icon: <Settings className="h-5 w-5" /> },
         { title: "Profile", href: `${basePath}/profile`, icon: <User className="h-5 w-5" /> },
       ]
     
@@ -89,12 +99,17 @@ const getNavItems = (role: UserRole): NavItem[] => {
       return [
         { title: "Dashboard", href: `${basePath}`, icon: <LayoutDashboard className="h-5 w-5" /> },
         { title: "Properties", href: `${basePath}/properties`, icon: <Building className="h-5 w-5" /> },
+        { title: "Leads", href: `${basePath}/leads`, icon: <UserPlus className="h-5 w-5" /> },
         { title: "Owners", href: `${basePath}/owners`, icon: <Users className="h-5 w-5" /> },
         { title: "Tenants", href: `${basePath}/tenants`, icon: <Users className="h-5 w-5" /> },
         { title: "Maintenance", href: `${basePath}/maintenance`, icon: <Wrench className="h-5 w-5" /> },
         { title: "Handoff", href: `/handoff`, icon: <ClipboardList className="h-5 w-5" /> },
         { title: "Finances", href: `${basePath}/finances`, icon: <DollarSign className="h-5 w-5" /> },
         { title: "Reports", href: `${basePath}/reports`, icon: <BarChart3 className="h-5 w-5" /> },
+        { title: "Messages", href: `${basePath}/messages`, icon: <MessageSquare className="h-5 w-5" /> },
+        { title: "Documents", href: `${basePath}/documents`, icon: <FolderOpen className="h-5 w-5" /> },
+        { title: "Calendar", href: `${basePath}/calendar`, icon: <Calendar className="h-5 w-5" /> },
+        { title: "Notifications", href: `${basePath}/notifications`, icon: <Bell className="h-5 w-5" /> },
         { title: "Profile", href: `${basePath}/profile`, icon: <User className="h-5 w-5" /> },
       ]
     
@@ -109,6 +124,8 @@ const getNavItems = (role: UserRole): NavItem[] => {
         { title: "Handoff", href: `/handoff`, icon: <ClipboardList className="h-5 w-5" /> },
         { title: "Messages", href: `${basePath}/messages`, icon: <MessageSquare className="h-5 w-5" /> },
         { title: "Documents", href: `${basePath}/documents`, icon: <FolderOpen className="h-5 w-5" /> },
+        { title: "Calendar", href: `${basePath}/calendar`, icon: <Calendar className="h-5 w-5" /> },
+        { title: "Notifications", href: `${basePath}/notifications`, icon: <Bell className="h-5 w-5" /> },
         { title: "Profile", href: `${basePath}/profile`, icon: <User className="h-5 w-5" /> },
       ]
     
@@ -121,6 +138,8 @@ const getNavItems = (role: UserRole): NavItem[] => {
         { title: "Payments", href: `${basePath}/payments`, icon: <DollarSign className="h-5 w-5" /> },
         { title: "Documents", href: `${basePath}/documents`, icon: <FileText className="h-5 w-5" /> },
         { title: "Messages", href: `${basePath}/messages`, icon: <MessageSquare className="h-5 w-5" /> },
+        { title: "Calendar", href: `${basePath}/calendar`, icon: <Calendar className="h-5 w-5" /> },
+        { title: "Settings", href: `${basePath}/settings`, icon: <Settings className="h-5 w-5" /> },
         { title: "Profile", href: `${basePath}/profile`, icon: <User className="h-5 w-5" /> },
       ]
     
@@ -129,6 +148,9 @@ const getNavItems = (role: UserRole): NavItem[] => {
         { title: "Dashboard", href: `${basePath}`, icon: <LayoutDashboard className="h-5 w-5" /> },
         { title: "Tickets", href: `${basePath}/tickets`, icon: <Wrench className="h-5 w-5" /> },
         { title: "Property Handoff", href: `/handoff`, icon: <ClipboardList className="h-5 w-5" /> },
+        { title: "Calendar", href: `${basePath}/calendar`, icon: <Calendar className="h-5 w-5" /> },
+        { title: "Documents", href: `${basePath}/documents`, icon: <FolderOpen className="h-5 w-5" /> },
+        { title: "Settings", href: `${basePath}/settings`, icon: <Settings className="h-5 w-5" /> },
         { title: "Profile", href: `${basePath}/profile`, icon: <User className="h-5 w-5" /> },
       ]
     
@@ -175,7 +197,7 @@ function SidebarLayout({
         <SidebarHeader className="flex justify-between items-center p-4">
           <Logo 
             size="lg" 
-            showText={expanded}
+            showText={false}
             linkTo={basePath}
             variant="default"
             textColor="default"

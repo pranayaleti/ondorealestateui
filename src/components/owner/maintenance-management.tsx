@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -27,6 +27,8 @@ import { ScheduleServiceDialog } from "@/components/maintenance/schedule-service
 import { useToast } from "@/hooks/use-toast"
 import { CheckCircle, Clock, PenToolIcon as Tool, Search, Calendar, Home, AlertCircle, Wrench, PlusCircle, Info, AlertTriangle, FileText, MoreVertical, LayoutGrid, List, ChevronLeft, ChevronRight, ChevronDown, Filter, X } from "lucide-react"
 import { MAINTENANCE_STATUSES, MAINTENANCE_PRIORITIES, MAINTENANCE_CATEGORIES } from "@/constants/maintenance.constants"
+import { propertyApi, type Property } from "@/lib/api"
+import { useAuth } from "@/lib/auth-context"
 
 // Mock data for maintenance requests
 const MOCK_REQUESTS = [
@@ -166,7 +168,9 @@ type MaintenanceRequest = (typeof MOCK_REQUESTS)[0]
 
 export function OwnerMaintenanceManagement() {
   const { toast } = useToast()
+  const { user } = useAuth()
   const [requests, setRequests] = useState<MaintenanceRequest[]>(MOCK_REQUESTS)
+  const [properties, setProperties] = useState<Property[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [filterProperty, setFilterProperty] = useState<string[]>([])
   const [filterCategory, setFilterCategory] = useState("")
@@ -185,6 +189,22 @@ export function OwnerMaintenanceManagement() {
   const [currentPage, setCurrentPage] = useState(1)
   const [activeFilter, setActiveFilter] = useState<string>("all")
   const itemsPerPage = 5
+
+  useEffect(() => {
+    fetchProperties()
+  }, [])
+
+  const fetchProperties = async () => {
+    if (!user?.id) return
+    try {
+      const allProperties = await propertyApi.getProperties()
+      // Owners see only their properties
+      const ownerProperties = allProperties.filter(p => p.ownerId === user.id)
+      setProperties(ownerProperties)
+    } catch (err: any) {
+      console.error("Error fetching properties:", err)
+    }
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -1339,6 +1359,7 @@ export function OwnerMaintenanceManagement() {
         onSubmit={handleNewRequestSubmit}
         showPropertyField={true}
         showTenantField={true}
+        properties={properties}
       />
 
       {/* Update Status Dialog */}

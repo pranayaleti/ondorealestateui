@@ -11,9 +11,11 @@ import { ProfileShell, ProfileSummaryCard } from "@/components/portal/profile"
 import { PaymentMethods, type PaymentMethod } from "@/components/ui/payment-methods"
 import { ChangePasswordDialog } from "@/components/ui/change-password-dialog"
 import { TwoFactorAuthDialog } from "@/components/ui/two-factor-auth-dialog"
-import { Shield } from "lucide-react"
+import { Shield, Bell, ExternalLink } from "lucide-react"
+import { Link } from "react-router-dom"
 import { US_TIMEZONES } from "@/constants"
 import { useUserTimezone } from "@/hooks/use-user-timezone"
+import { LoginHistory } from "@/components/shared/login-history"
 
 export default function AdminProfile() {
   const { user } = useAuth()
@@ -60,9 +62,10 @@ export default function AdminProfile() {
       summary={<ProfileSummaryCard roleLabel="Admin" />}
     >
       <Tabs defaultValue="account" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="billing">Billing</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
 
@@ -145,6 +148,33 @@ export default function AdminProfile() {
               })
             }}
           />
+        </TabsContent>
+
+        <TabsContent value="notifications" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Notifications
+              </CardTitle>
+              <CardDescription>View and manage all your notifications</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-center py-12">
+                <Bell className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">View All Notifications</h3>
+                <p className="text-sm text-gray-500 mb-6">
+                  Access your detailed notifications page to see all alerts, updates, and important messages
+                </p>
+                <Link to="/admin/notifications">
+                  <Button size="lg" className="gap-2">
+                    Go to Notifications
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="security" className="space-y-6">
@@ -232,6 +262,9 @@ export default function AdminProfile() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Login History */}
+          <LoginHistory />
         </TabsContent>
       </Tabs>
       <ChangePasswordDialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen} />

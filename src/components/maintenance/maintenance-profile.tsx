@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Shield, User, Mail, Phone } from "lucide-react"
+import { Shield, User, Mail, Phone, Bell, ExternalLink } from "lucide-react"
+import { Link } from "react-router-dom"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { ProfileShell, ProfileSummaryCard } from "@/components/portal/profile"
@@ -274,6 +275,35 @@ export default function MaintenanceProfile() {
         <TabsContent value="notifications" className="space-y-6">
           <Card className="shadow-sm">
             <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Notifications
+              </CardTitle>
+              <CardDescription>View and manage all your notifications</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-center py-12">
+                <Bell className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">View All Notifications</h3>
+                <p className="text-sm text-gray-500 mb-6">
+                  Access your detailed notifications page to see all alerts, updates, and important messages
+                </p>
+                <Link to="/maintenance/notifications">
+                  <Button size="lg" className="gap-2">
+                    Go to Notifications
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+              
+              <div className="border-t pt-6">
+                <h4 className="font-semibold mb-4 text-base">Notification Preferences</h4>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="shadow-sm">
+            <CardHeader className="pb-4">
               <CardTitle className="text-xl">Notification Preferences</CardTitle>
               <CardDescription>Manage how you receive notifications</CardDescription>
             </CardHeader>
@@ -457,6 +487,9 @@ export default function MaintenanceProfile() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Login History */}
+          <LoginHistory />
         </TabsContent>
 
         <TabsContent value="preferences" className="space-y-6">

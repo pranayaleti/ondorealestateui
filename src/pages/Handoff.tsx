@@ -318,7 +318,11 @@ export default function Handoff() {
   // Fetch handoff data when property is selected
   useEffect(() => {
     if (!selectedPropertyId) {
-      setLoading(false)
+      // Don't set loading to false if we're still loading properties
+      // This prevents showing "Handoff Not Found" before properties are loaded
+      if (!loadingProperties) {
+        setLoading(false)
+      }
       return
     }
 
@@ -758,39 +762,13 @@ export default function Handoff() {
     }
   }, [checklistItems, handoffData, isTenant, hasNotifiedCompletion, selectedPropertyId, user, toast])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading handoff information...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!handoffData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Handoff Not Found</CardTitle>
-            <CardDescription>No handoff information available for this property.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => navigate(-1)}>Go Back</Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
   // Handle property selection change
   const handlePropertyChange = (newPropertyId: string) => {
     setSelectedPropertyId(newPropertyId)
     navigate(`/handoff/${newPropertyId}`)
   }
 
+  // Show loading state for properties first
   if (loadingProperties) {
     return (
       <PortalSidebar>
@@ -799,6 +777,40 @@ export default function Handoff() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
             <p className="text-muted-foreground">Loading properties...</p>
           </div>
+        </div>
+      </PortalSidebar>
+    )
+  }
+
+  // Show loading state for handoff data
+  if (loading) {
+    return (
+      <PortalSidebar>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading handoff information...</p>
+          </div>
+        </div>
+      </PortalSidebar>
+    )
+  }
+
+  // Only show "Not Found" if we're not loading and have no data
+  // This prevents the flash of error before data loads
+  if (!handoffData && !loading && !loadingProperties) {
+    return (
+      <PortalSidebar>
+        <div className="min-h-screen flex items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Handoff Not Found</CardTitle>
+              <CardDescription>No handoff information available for this property.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => navigate(-1)}>Go Back</Button>
+            </CardContent>
+          </Card>
         </div>
       </PortalSidebar>
     )
