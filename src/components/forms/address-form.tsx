@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { US_STATES } from "@/constants"
+import { companyInfo } from "@/constants/companyInfo"
 
 export type AddressUsageType = "home" | "office"
 
@@ -138,7 +139,7 @@ export function AddressForm({
           </Label>
           <Input
             id={`${idPrefix}-addressLine1`}
-            placeholder="8572 Winding Creek Boulevard"
+            placeholder={companyInfo.address.streetAddress}
             value={safeValue.addressLine1}
             onChange={(event) => handleFieldChange("addressLine1", event.target.value)}
             disabled={disabled}

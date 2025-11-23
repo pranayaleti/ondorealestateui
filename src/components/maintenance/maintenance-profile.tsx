@@ -155,6 +155,7 @@ export default function MaintenanceProfile() {
       toast({
         title: "Profile Updated",
         description: "Your profile information has been saved successfully.",
+        duration: 3000,
       })
       
       await refreshUser()

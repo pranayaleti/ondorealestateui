@@ -37,6 +37,7 @@ export default function OwnerSettings() {
     toast({
       title: "Settings Updated",
       description: "Your settings have been saved successfully.",
+      duration: 3000,
     })
   }
 
@@ -51,6 +52,7 @@ export default function OwnerSettings() {
     toast({
       title: "Settings Updated",
       description: "Your settings have been saved successfully.",
+      duration: 3000,
     })
   }
 

@@ -1,11 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { ExportPDFButton } from "@/components/ui/export-pdf-button"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { TrendingUp, Users, Building, Calendar, DollarSign, BarChart3 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
-const mockOccupancyData = {
+export const mockOccupancyData = {
   period: "November 2025",
   summary: {
     totalUnits: 6,
@@ -51,8 +50,8 @@ export default function OccupancyReport() {
           </div>
         </div>
         <ExportPDFButton 
-          fileName="occupancy-report"
-          content={{
+            fileName="occupancy-report"
+            content={{
             title: "Occupancy Report",
             subtitle: `Tenant analytics and occupancy metrics for ${mockOccupancyData.period}`,
             summary: [

@@ -35,6 +35,7 @@ export default function MaintenanceSettings() {
     toast({
       title: "Settings Updated",
       description: "Your settings have been saved successfully.",
+      duration: 3000,
     })
   }
 
@@ -49,6 +50,7 @@ export default function MaintenanceSettings() {
     toast({
       title: "Settings Updated",
       description: "Your settings have been saved successfully.",
+      duration: 3000,
     })
   }
 

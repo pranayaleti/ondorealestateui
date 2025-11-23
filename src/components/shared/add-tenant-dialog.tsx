@@ -102,6 +102,7 @@ export function AddTenantDialog({ trigger, buttonClassName }: AddTenantDialogPro
         toast({
           title: "Invitations Sent!",
           description: `Successfully sent ${successful} invitation${successful > 1 ? "s" : ""}${failed > 0 ? `. ${failed} failed.` : ""}`,
+          duration: 3000,
         })
       }
 

@@ -11,6 +11,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { MessageSquare, Send, Search, Plus, Reply, User, Shield, Users, Building, Calendar } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { companyInfo } from "@/constants/companyInfo"
+
+// Helper function to generate email addresses based on company domain
+const getEmail = (prefix: string) => `${prefix}@${companyInfo.social.twitterDomain}`
 
 // Mock messages data for super admin
 const mockSuperAdminMessages = [
@@ -18,7 +22,7 @@ const mockSuperAdminMessages = [
     id: 1,
     subject: "System Maintenance Scheduled",
     from: "System Administrator",
-    fromEmail: "system@ondorealestate.com",
+    fromEmail: getEmail("system"),
     fromRole: "system",
     date: "2024-01-20",
     time: "2:30 PM",
@@ -31,7 +35,7 @@ const mockSuperAdminMessages = [
     id: 2,
     subject: "New Admin Account Request",
     from: "John Manager",
-    fromEmail: "john.manager@ondorealestate.com",
+    fromEmail: getEmail("john.manager"),
     fromRole: "manager",
     date: "2024-01-18",
     time: "10:15 AM",
@@ -44,7 +48,7 @@ const mockSuperAdminMessages = [
     id: 3,
     subject: "Security Alert - Multiple Failed Login Attempts",
     from: "Security System",
-    fromEmail: "security@ondorealestate.com",
+    fromEmail: getEmail("security"),
     fromRole: "system",
     date: "2024-01-15",
     time: "4:45 PM",
@@ -57,7 +61,7 @@ const mockSuperAdminMessages = [
     id: 4,
     subject: "Monthly System Report",
     from: "Analytics Team",
-    fromEmail: "analytics@ondorealestate.com",
+    fromEmail: getEmail("analytics"),
     fromRole: "system",
     date: "2024-01-12",
     time: "11:20 AM",
@@ -332,6 +336,7 @@ function ComposeMessage() {
     toast({
       title: "Message Sent",
       description: "Your message has been sent successfully.",
+      duration: 3000,
     })
   }
 

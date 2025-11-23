@@ -117,6 +117,7 @@ export default function ManagerMaintenance() {
       toast({
         title: "Request Updated",
         description: "Maintenance request has been updated successfully.",
+        duration: 3000,
       })
 
       setIsUpdateDialogOpen(false)

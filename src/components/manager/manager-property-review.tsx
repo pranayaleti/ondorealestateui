@@ -110,6 +110,7 @@ export default function ManagerPropertyReview() {
       toast({
         title: "Property Updated",
         description: `Property has been ${status}`,
+        duration: 3000,
       })
 
       // Remove the property from the list

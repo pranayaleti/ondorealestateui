@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,7 @@ import { Wrench, CreditCard, FileText, MessageSquare, Calendar, DollarSign, Cloc
 import { useAuth } from "@/lib/auth-context"
 import { propertyApi, maintenanceApi, type Property, type MaintenanceRequest } from "@/lib/api"
 import { useWelcomeToast } from "@/hooks/use-welcome-toast"
+import { formatUSDate } from "@/lib/us-format"
 
 export default function TenantDashboard() {
   const { user } = useAuth()
@@ -88,9 +89,111 @@ export default function TenantDashboard() {
   const formatRentDueDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { 
       month: 'long', 
-      day: 'numeric' 
+      day: 'numeric',
+      year: 'numeric'
     })
   }
+
+  // Calculate lease expiration (12 months from property creation)
+  const getLeaseExpiration = useMemo(() => {
+    if (!assignedProperty?.createdAt) return null
+    
+    const leaseStart = new Date(assignedProperty.createdAt)
+    const leaseEnd = new Date(leaseStart)
+    leaseEnd.setMonth(leaseEnd.getMonth() + 12)
+    
+    return {
+      date: leaseEnd,
+      monthsRemaining: Math.max(0, Math.ceil((leaseEnd.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24 * 30)))
+    }
+  }, [assignedProperty])
+
+  // Mock data for messages and documents (matching the actual components)
+  const unreadMessagesCount = 2 // From tenant-messages.tsx mock data
+  const documentsCount = 8 // From tenant-documents.tsx mock data
+  const recentPaymentsCount = 5 // From tenant-payments.tsx mock data
+
+  // Calculate additional statistics
+  const completedMaintenance = maintenanceRequests.filter(r => r.status === 'completed').length
+  const totalMaintenance = maintenanceRequests.length
+  const maintenanceCompletionRate = totalMaintenance > 0 
+    ? Math.round((completedMaintenance / totalMaintenance) * 100) 
+    : 0
+
+  // Calculate lease progress
+  const leaseProgress = useMemo(() => {
+    if (!assignedProperty?.createdAt || !getLeaseExpiration()) return 0
+    const leaseStart = new Date(assignedProperty.createdAt)
+    const leaseEnd = getLeaseExpiration()!
+    const now = new Date()
+    const totalDays = (leaseEnd.getTime() - leaseStart.getTime()) / (1000 * 60 * 60 * 24)
+    const daysElapsed = (now.getTime() - leaseStart.getTime()) / (1000 * 60 * 60 * 24)
+    return Math.min(Math.max((daysElapsed / totalDays) * 100, 0), 100)
+  }, [assignedProperty])
+
+  // Calculate days at property
+  const daysAtProperty = useMemo(() => {
+    if (!assignedProperty?.createdAt) return 0
+    const moveInDate = new Date(assignedProperty.createdAt)
+    const now = new Date()
+    return Math.floor((now.getTime() - moveInDate.getTime()) / (1000 * 60 * 60 * 24))
+  }, [assignedProperty])
+
+  // Payment statistics (from mock data in tenant-payments.tsx)
+  const paymentStats = {
+    totalPaidThisYear: 9250,
+    totalPayments: 5,
+    onTimePayments: 4,
+    onTimeRate: 80,
+    averagePayment: 1850
+  }
+
+  // Generate recent activity from available data
+  const recentActivity = useMemo(() => {
+    const activities: Array<{
+      id: string
+      type: 'maintenance' | 'payment' | 'message' | 'document'
+      message: string
+      time: string
+      href: string
+    }> = []
+
+    // Add maintenance activities
+    maintenanceRequests.slice(0, 3).forEach((request) => {
+      activities.push({
+        id: `maint-${request.id}`,
+        type: 'maintenance',
+        message: `Maintenance request "${request.title}" ${request.status === 'completed' ? 'completed' : 'updated'}`,
+        time: formatUSDate(request.updatedAt),
+        href: '/tenant/maintenance/'
+      })
+    })
+
+    // Add mock payment activity
+    if (recentPaymentsCount > 0) {
+      activities.push({
+        id: 'payment-1',
+        type: 'payment',
+        message: 'Rent payment processed successfully',
+        time: '2 days ago',
+        href: '/tenant/payments'
+      })
+    }
+
+    // Add mock message activity
+    if (unreadMessagesCount > 0) {
+      activities.push({
+        id: 'message-1',
+        type: 'message',
+        message: `You have ${unreadMessagesCount} new message${unreadMessagesCount > 1 ? 's' : ''}`,
+        time: '1 day ago',
+        href: '/tenant/messages'
+      })
+    }
+
+    // Sort by time (most recent first) - simplified for mock data
+    return activities.slice(0, 5)
+  }, [maintenanceRequests, unreadMessagesCount, recentPaymentsCount])
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -118,46 +221,43 @@ export default function TenantDashboard() {
           </Card>
         </Link>
 
-        {/* <Link to="/tenant/payments"> */}
+        <Link to="/tenant/payments">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
               <CreditCard className="h-8 w-8 text-green-500 mr-3" />
               <div>
                 <p className="text-sm font-medium">Payments</p>
-                {/* <p className="text-xs text-gray-500">View History</p> */}
-                <p className="text-xs text-gray-500">Coming Soon...</p>
+                <p className="text-xs text-gray-500">View History</p>
               </div>
             </CardContent>
           </Card>
-        {/* </Link> */}
+        </Link>
 
-        {/* <Link to="/tenant/documents"> */}
+        <Link to="/tenant/documents">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
               <FileText className="h-8 w-8 text-purple-500 mr-3" />
               <div>
                 <p className="text-sm font-medium">Documents</p>
-                {/* <p className="text-xs text-gray-500">Lease & More</p> */}
-                <p className="text-xs text-gray-500">Coming Soon...</p>
+                <p className="text-xs text-gray-500">{documentsCount} Documents</p>
               </div>
             </CardContent>
           </Card>
-        {/* </Link> */}
+        </Link>
 
-        {/* <Link to="/tenant/messages"> */}
+        <Link to="/tenant/messages">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center p-4">
               <MessageSquare className="h-8 w-8 text-orange-500 mr-3" />
               <div>
                 <p className="text-sm font-medium">Messages</p>
-                {/* <p className="text-xs text-gray-500">
-                  0 New
-                </p> */}
-                <p className="text-xs text-gray-500">Coming Soon...</p>
+                <p className="text-xs text-gray-500">
+                  {unreadMessagesCount > 0 ? `${unreadMessagesCount} New` : 'View Messages'}
+                </p>
               </div>
             </CardContent>
           </Card>
-        {/* </Link> */}
+        </Link>
 
       </div>
 
@@ -184,9 +284,11 @@ export default function TenantDashboard() {
                 <p className="text-xs text-muted-foreground">
                   Due {getNextRentDueDate() ? formatRentDueDate(getNextRentDueDate()!) : 'N/A'}
                 </p>
-                <Button className="w-full mt-3 bg-ondo-orange hover:bg-ondo-red transition-colors" size="sm">
-                  Pay Now
-                </Button>
+                <Link to="/tenant/payments">
+                  <Button className="w-full mt-3 bg-ondo-orange hover:bg-ondo-red transition-colors" size="sm">
+                    Pay Now
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 
@@ -197,11 +299,24 @@ export default function TenantDashboard() {
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">Dec x</div>
-                <p className="text-xs text-muted-foreground">Year</p>
-                <Badge variant="outline" className="mt-3">
-                  x months left
-                </Badge>
+                {getLeaseExpiration ? (
+                  <>
+                    <div className="text-2xl font-bold">
+                      {getLeaseExpiration.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {getLeaseExpiration.date.toLocaleDateString('en-US', { year: 'numeric' })}
+                    </p>
+                    <Badge variant="outline" className="mt-3">
+                      {getLeaseExpiration.monthsRemaining} {getLeaseExpiration.monthsRemaining === 1 ? 'month' : 'months'} left
+                    </Badge>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold">N/A</div>
+                    <p className="text-xs text-muted-foreground">No lease data</p>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -250,7 +365,11 @@ export default function TenantDashboard() {
                   {assignedProperty ? 'Occupied' : 'None'}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {assignedProperty ? `${assignedProperty.type}` : 'No property assigned'}
+                  {assignedProperty 
+                    ? assignedProperty.addressLine1 
+                      ? `${assignedProperty.addressLine1}${assignedProperty.city ? `, ${assignedProperty.city}` : ''}`
+                      : `${assignedProperty.type}`
+                    : 'No property assigned'}
                 </p>
                 {assignedProperty && (
                   <Link to="/tenant/property">
@@ -295,10 +414,130 @@ export default function TenantDashboard() {
                       </div>
                       <div className="text-lg font-semibold">{assignedProperty.bedrooms || 'N/A'} bed</div>
                     </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium">Days at Property</p>
+                        <p className="text-xs text-muted-foreground">Since move-in</p>
+                      </div>
+                      <div className="text-lg font-semibold">{daysAtProperty} days</div>
+                    </div>
                   </div>
                   <Link to="/tenant/property">
                     <Button variant="outline" className="w-full">
                       View Full Details
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Payment Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment Summary</CardTitle>
+                <CardDescription>Your payment statistics</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Paid (YTD)</p>
+                    <p className="text-xl font-semibold">${paymentStats.totalPaidThisYear.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">On-Time Rate</p>
+                    <p className="text-xl font-semibold">{paymentStats.onTimeRate}%</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Payments</p>
+                    <p className="text-lg font-semibold">{paymentStats.totalPayments}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Average Payment</p>
+                    <p className="text-lg font-semibold">${paymentStats.averagePayment.toLocaleString()}</p>
+                  </div>
+                </div>
+                <Link to="/tenant/payments">
+                  <Button variant="outline" className="w-full">
+                    View Payment History
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Maintenance Summary */}
+            {totalMaintenance > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Maintenance Summary</CardTitle>
+                  <CardDescription>Your maintenance request statistics</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total Requests</p>
+                      <p className="text-xl font-semibold">{totalMaintenance}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Completed</p>
+                      <p className="text-xl font-semibold text-green-600">{completedMaintenance}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Completion Rate</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div 
+                          className="bg-green-600 h-2 rounded-full transition-all"
+                          style={{ width: `${maintenanceCompletionRate}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-semibold">{maintenanceCompletionRate}%</span>
+                    </div>
+                  </div>
+                  <Link to="/tenant/maintenance/">
+                    <Button variant="outline" className="w-full">
+                      View All Requests
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Lease Progress */}
+            {getLeaseExpiration() && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Lease Progress</CardTitle>
+                  <CardDescription>Your lease timeline</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Lease Completion</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                        <div 
+                          className="bg-blue-600 h-3 rounded-full transition-all"
+                          style={{ width: `${leaseProgress}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-semibold">{Math.round(leaseProgress)}%</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Days at Property</p>
+                      <p className="font-semibold">{daysAtProperty} days</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Months Remaining</p>
+                      <p className="font-semibold">{getLeaseExpiration() ? Math.ceil((getLeaseExpiration()!.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24 * 30)) : 0} months</p>
+                    </div>
+                  </div>
+                  <Link to="/tenant/lease-details">
+                    <Button variant="outline" className="w-full">
+                      View Lease Details
                     </Button>
                   </Link>
                 </CardContent>
@@ -395,19 +634,51 @@ export default function TenantDashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Recent Messages</CardTitle>
-                <CardDescription>Latest communications</CardDescription>
+                <CardTitle>Recent Activity</CardTitle>
+                <CardDescription>Latest system activities</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="text-center py-4">
-                  <MessageSquare className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">No messages yet</p>
+                {recentActivity.length === 0 ? (
+                  <div className="text-center py-4">
+                    <Clock className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">No recent activity</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {recentActivity.map((activity) => (
+                      <Link key={activity.id} to={activity.href}>
+                        <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{activity.message}</p>
+                            <p className="text-xs text-gray-500">{activity.time}</p>
+                          </div>
+                          <Badge 
+                            variant={
+                              activity.type === 'maintenance' ? 'secondary' :
+                              activity.type === 'payment' ? 'default' :
+                              activity.type === 'message' ? 'outline' : 'outline'
+                            }
+                            className="ml-2"
+                          >
+                            {activity.type}
+                          </Badge>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Link to="/tenant/messages" className="flex-1">
+                    <Button variant="outline" className="w-full border-ondo-orange text-ondo-orange hover:bg-ondo-orange hover:text-white">
+                      View Messages
+                    </Button>
+                  </Link>
+                  <Link to="/tenant/payments" className="flex-1">
+                    <Button variant="outline" className="w-full border-ondo-orange text-ondo-orange hover:bg-ondo-orange hover:text-white">
+                      View Payments
+                    </Button>
+                  </Link>
                 </div>
-                <Link to="/tenant/messages">
-                  <Button variant="outline" className="w-full border-ondo-orange text-ondo-orange hover:bg-ondo-orange hover:text-white">
-                    View All Messages
-                  </Button>
-                </Link>
               </CardContent>
             </Card>
           </div>
@@ -542,11 +813,15 @@ export default function TenantDashboard() {
               <div className="space-y-4">
                 <div className="text-center py-8">
                   <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Payment History</h3>
-                  <p className="text-gray-600 mb-4">Your payment history will appear here once you make payments.</p>
-                  <Button className="bg-ondo-orange hover:bg-ondo-red text-white">
-                    Coming Soon... {/* Make Payment */}
-                  </Button>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Payment Management</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    View your payment history, make payments, and manage payment methods.
+                  </p>
+                  <Link to="/tenant/payments">
+                    <Button className="bg-ondo-orange hover:bg-ondo-red text-white">
+                      Go to Payments
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </CardContent>

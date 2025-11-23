@@ -11,7 +11,7 @@ import { Upload, User, Phone, Building, Mail, DollarSign, Shield, Bell, External
 import { Link } from "react-router-dom"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { authApi, propertyApi, ApiError, type PortfolioStats } from "@/lib/api"
 import { ProfileShell, ProfileSummaryCard, type SummaryMetric } from "@/components/portal/profile"
 import { AddressForm, type AddressFormValues } from "@/components/forms/address-form"
@@ -251,6 +251,7 @@ export default function OwnerProfile() {
       toast({
         title: "Profile Updated",
         description: "Your profile information has been saved successfully.",
+        duration: 3000,
       })
       
       await refreshUser()
@@ -270,16 +271,23 @@ export default function OwnerProfile() {
   }
 
 
-  const handleProfilePictureUpdate = async (profilePictureUrl: string) => {
+  // Use ref to access current profileData without causing re-renders
+  const profileDataRef = useRef(profileData)
+  useEffect(() => {
+    profileDataRef.current = profileData
+  }, [profileData])
+
+  const handleProfilePictureUpdate = useCallback(async (profilePictureUrl: string) => {
     try {
       setIsSavingProfile(true)
       
+      const currentData = profileDataRef.current
       // Update profile picture in the backend
       await authApi.updateProfile({
-        firstName: profileData.personalInfo.firstName,
-        lastName: profileData.personalInfo.lastName,
-        phone: profileData.personalInfo.phone,
-        address: profileData.personalInfo.address,
+        firstName: currentData.personalInfo.firstName,
+        lastName: currentData.personalInfo.lastName,
+        phone: currentData.personalInfo.phone,
+        address: currentData.personalInfo.address,
         profilePicture: profilePictureUrl,
       })
 
@@ -289,6 +297,7 @@ export default function OwnerProfile() {
       toast({
         title: "Profile picture updated",
         description: "Your profile picture has been updated successfully.",
+        duration: 3000,
       })
     } catch (error: any) {
       console.error('Error updating profile picture:', error)
@@ -300,15 +309,20 @@ export default function OwnerProfile() {
     } finally {
       setIsSavingProfile(false)
     }
-  }
+  }, [refreshUser, toast])
 
 
-  const summaryMetrics: SummaryMetric[] = [
+  // Memoize icons to prevent recreation on every render
+  const propertiesIcon = useMemo(() => <Building className="h-4 w-4" />, [])
+  const tenantsIcon = useMemo(() => <User className="h-4 w-4" />, [])
+  const valueIcon = useMemo(() => <DollarSign className="h-4 w-4" />, [])
+
+  const summaryMetrics: SummaryMetric[] = useMemo(() => [
     {
       id: "properties",
       label: "Properties Owned",
       value: portfolioStats?.propertiesOwned || 0,
-      icon: <Building className="h-4 w-4" />,
+      icon: propertiesIcon,
       href: "/owner/properties",
       loading: isLoadingStats,
     },
@@ -316,7 +330,7 @@ export default function OwnerProfile() {
       id: "tenants",
       label: "Active Tenants",
       value: portfolioStats?.activeTenants || 0,
-      icon: <User className="h-4 w-4" />,
+      icon: tenantsIcon,
       href: "/owner/tenants",
       loading: isLoadingStats,
     },
@@ -324,24 +338,27 @@ export default function OwnerProfile() {
       id: "value",
       label: "Portfolio Value",
       value: <span className="text-primary">{portfolioStats?.formattedPortfolioValue || "$0K"}</span>,
-      icon: <DollarSign className="h-4 w-4" />,
+      icon: valueIcon,
       href: "/owner/finances",
       loading: isLoadingStats,
     },
-  ]
+  ], [portfolioStats?.propertiesOwned, portfolioStats?.activeTenants, portfolioStats?.formattedPortfolioValue, isLoadingStats, propertiesIcon, tenantsIcon, valueIcon])
+
+  // Memoize the summary card to prevent re-renders when form fields change
+  const summaryCard = useMemo(() => (
+    <ProfileSummaryCard
+      roleLabel="Property Owner"
+      metrics={summaryMetrics}
+      onAvatarChange={handleProfilePictureUpdate}
+      isAvatarUpdating={isSavingProfile}
+    />
+  ), [summaryMetrics, handleProfilePictureUpdate, isSavingProfile])
 
   return (
     <ProfileShell
       title="My Profile"
       description="Manage your personal information and account settings"
-      summary={
-        <ProfileSummaryCard
-          roleLabel="Property Owner"
-          metrics={summaryMetrics}
-          onAvatarChange={handleProfilePictureUpdate}
-          isAvatarUpdating={isSavingProfile}
-        />
-      }
+      summary={summaryCard}
     >
       <Tabs defaultValue="personal" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4 h-auto">
@@ -650,6 +667,7 @@ export default function OwnerProfile() {
                     toast({
                       title: "Default Updated",
                       description: "Payment method set as default.",
+                      duration: 3000,
                     })
                   }}
                   onEdit={(id) => {

@@ -7,16 +7,21 @@ import { Switch } from "@/components/ui/switch"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { CreditCard, Building, Wallet, ArrowLeft } from "lucide-react"
+import { formatCardNumber, formatExpiration, formatExpirationInput, parseExpirationInput, getPaymentMethodDisplayText } from "@/utils/payment.utils"
 
 export interface PaymentMethod {
   id: string
   type?: "credit_card" | "bank_account" | "ach" | "digital_wallet"
   brand?: string
   last4: string
+  cardNumber?: string // Full card number (stored for reuse)
   expMonth?: number
   expYear?: number
+  cvv?: string // CVV code (stored for reuse)
   bank?: string
+  routingNumber?: string // 9-digit routing number for ACH/bank accounts
+  accountNumber?: string // Full account number for ACH/bank accounts
   handle?: string
   nickname?: string
   isDefault: boolean
@@ -32,11 +37,12 @@ const PAYMENT_TYPE_OPTIONS: Array<{
   value: Required<PaymentMethod["type"]>
   label: string
   description: string
+  icon: React.ReactNode
 }> = [
-  { value: "credit_card", label: "Credit Card", description: "Visa, MasterCard, AmEx" },
-  { value: "bank_account", label: "Bank Account", description: "Checking or savings" },
-  { value: "ach", label: "ACH", description: "Direct debit routing" },
-  { value: "digital_wallet", label: "Digital Wallet", description: "Apple Pay, Venmo, etc." },
+  { value: "credit_card", label: "Credit Card", description: "Visa, MasterCard, AmEx", icon: <CreditCard className="h-5 w-5" /> },
+  { value: "bank_account", label: "Bank Account", description: "Checking or savings", icon: <Building className="h-5 w-5" /> },
+  { value: "ach", label: "ACH", description: "Direct debit routing", icon: <Building className="h-5 w-5" /> },
+  { value: "digital_wallet", label: "Digital Wallet", description: "Apple Pay, Venmo, etc.", icon: <Wallet className="h-5 w-5" /> },
 ]
 
 interface PaymentMethodsProps {
@@ -58,59 +64,16 @@ export function PaymentMethods({
   const [methodForm, setMethodForm] = useState<MethodFormState | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false)
   const [pendingRemovalId, setPendingRemovalId] = useState<string | null>(null)
 
   useEffect(() => {
     setLocalMethods(paymentMethods)
   }, [paymentMethods])
 
-  const formatExpiration = (month?: number, year?: number) => {
-    if (!month || !year) return ""
-    return `${String(month).padStart(2, "0")}/${year}`
-  }
-
-  const toShortYear = (year: number) => String(year).slice(-2)
-
-  const formatExpirationInput = (month?: number, year?: number) => {
-    if (!month || !year) return ""
-    return `${String(month).padStart(2, "0")}/${toShortYear(year)}`
-  }
-
-  const parseExpirationInput = (value?: string) => {
-    if (!value) return { expMonth: undefined, expYear: undefined }
-    const match = value.match(/^(\d{1,2})\s*\/\s*(\d{2,4})$/)
-    if (!match) return { expMonth: undefined, expYear: undefined }
-    const month = Number(match[1])
-    if (month < 1 || month > 12) return { expMonth: undefined, expYear: undefined }
-    let year = Number(match[2])
-    if (year < 100) {
-      const currentCentury = Math.floor(new Date().getFullYear() / 100) * 100
-      year += currentCentury
-    }
-    return { expMonth: month, expYear: year }
-  }
-
-  const formatCardNumberInput = (value: string) => {
-    const digits = value.replace(/\D/g, "").slice(0, 16)
-    return digits.replace(/(.{4})/g, "$1 ").trim()
-  }
-
-  const getDisplayText = (method: PaymentMethod) => {
-    let descriptor = ""
-    if (method.type === "credit_card") {
-      descriptor = `Card ending in ${method.last4}`
-    } else if (method.type === "digital_wallet" && method.brand) {
-      descriptor = `${method.brand}${method.handle ? ` ${method.handle}` : ""}`
-    } else if (method.bank) {
-      descriptor = `${method.bank} ending in ${method.last4}`
-    } else if (method.brand) {
-      descriptor = `${method.brand} ending in ${method.last4}`
-    } else {
-      descriptor = `•••• ${method.last4}`
-    }
-
-    return method.nickname ? `${method.nickname} • ${descriptor}` : descriptor
-  }
+  // Use utility functions from payment.utils.ts
+  const formatCardNumberInput = (value: string) => formatCardNumber(value)
+  const getDisplayText = (method: PaymentMethod) => getPaymentMethodDisplayText(method)
 
   const normalizedMethods = useMemo(() => {
     if (localMethods.length === 0) return []
@@ -128,6 +91,8 @@ export function PaymentMethods({
       type: defaultType,
       brand: "",
       bank: "",
+      routingNumber: "",
+      accountNumber: "",
       handle: "",
       last4: "",
       expMonth: undefined,
@@ -141,16 +106,25 @@ export function PaymentMethods({
 
   const handleOpenAddDialog = (type: PaymentMethod["type"] = "credit_card") => {
     setMethodForm(initializeForm(undefined, type))
+    setIsTypeSelectionOpen(false)
     setIsAddDialogOpen(true)
+  }
+
+  const handleOpenTypeSelection = () => {
+    setIsTypeSelectionOpen(true)
   }
 
   const handleOpenEditDialog = (method: PaymentMethod) => {
     const expiration = method.type === "credit_card" ? formatExpirationInput(method.expMonth, method.expYear) : ""
+    // Pre-fill card information if available
+    const cardNumber = method.type === "credit_card" && method.cardNumber 
+      ? formatCardNumberInput(method.cardNumber) 
+      : ""
     setMethodForm({
       ...method,
       expiration,
-      cardNumber: "",
-      cvv: "",
+      cardNumber,
+      cvv: method.type === "credit_card" ? method.cvv || "" : "",
     })
     setIsEditDialogOpen(true)
   }
@@ -158,6 +132,7 @@ export function PaymentMethods({
   const handleCloseDialog = () => {
     setIsAddDialogOpen(false)
     setIsEditDialogOpen(false)
+    setIsTypeSelectionOpen(false)
     setMethodForm(null)
   }
 
@@ -169,6 +144,15 @@ export function PaymentMethods({
       }
       if (key === "last4") {
         return { ...prev, last4: typeof value === "string" ? value.replace(/\D/g, "").slice(0, 4) : "" }
+      }
+      if (key === "routingNumber" && typeof value === "string") {
+        const digits = value.replace(/\D/g, "").slice(0, 9)
+        return { ...prev, routingNumber: digits }
+      }
+      if (key === "accountNumber" && typeof value === "string") {
+        const digits = value.replace(/\D/g, "")
+        const last4 = digits.slice(-4)
+        return { ...prev, accountNumber: digits, last4: last4 || prev.last4 }
       }
       if (key === "cardNumber" && typeof value === "string") {
         const formatted = formatCardNumberInput(value)
@@ -202,7 +186,7 @@ export function PaymentMethods({
   const handleSubmitForm = () => {
     if (!methodForm) return
     const isEdit = Boolean(methodForm.id && localMethods.some((method) => method.id === methodForm.id))
-    const { cardNumber, expiration, cvv: _cvv, ...base } = methodForm
+    const { cardNumber, expiration, cvv, ...base } = methodForm
     const digits = (cardNumber ?? "").replace(/\D/g, "")
     const last4 = digits.slice(-4) || base.last4 || "0000"
     const { expMonth, expYear } =
@@ -212,8 +196,12 @@ export function PaymentMethods({
       id: methodForm.id || `pm-${Date.now()}`,
       nickname: base.nickname?.trim() || undefined,
       last4,
+      cardNumber: base.type === "credit_card" ? digits : undefined, // Store full card number for credit cards
       expMonth,
       expYear,
+      cvv: base.type === "credit_card" ? cvv : undefined, // Store CVV for credit cards
+      routingNumber: (base.type === "ach" || base.type === "bank_account") ? base.routingNumber : undefined,
+      accountNumber: (base.type === "ach" || base.type === "bank_account") ? base.accountNumber : undefined,
       isDefault: !!methodForm.isDefault,
     }
 
@@ -263,7 +251,7 @@ export function PaymentMethods({
       <div className="space-y-2">
         <Label>Payment Method Type</Label>
         <Select value={methodForm?.type ?? "credit_card"} onValueChange={(value) => handleFormChange("type", value)}>
-          <SelectTrigger>
+          <SelectTrigger className="focus:border-orange-500 focus:ring-orange-500">
             <SelectValue placeholder="Select type" />
           </SelectTrigger>
           <SelectContent>
@@ -284,6 +272,7 @@ export function PaymentMethods({
               placeholder="Company Visa, Personal Card..."
               value={methodForm?.nickname ?? ""}
               onChange={(e) => handleFormChange("nickname", e.target.value)}
+              className="focus:border-orange-500 focus:ring-orange-500"
             />
           </div>
           <div className="space-y-2">
@@ -294,6 +283,7 @@ export function PaymentMethods({
               value={methodForm?.cardNumber ?? ""}
               maxLength={19}
               onChange={(e) => handleFormChange("cardNumber", e.target.value)}
+              className="focus:border-orange-500 focus:ring-orange-500"
             />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
@@ -305,6 +295,7 @@ export function PaymentMethods({
                 value={methodForm?.expiration ?? ""}
                 maxLength={5}
                 onChange={(e) => handleFormChange("expiration", e.target.value)}
+                className="focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
             <div className="space-y-2">
@@ -315,40 +306,71 @@ export function PaymentMethods({
                 value={methodForm?.cvv ?? ""}
                 maxLength={4}
                 onChange={(e) => handleFormChange("cvv", e.target.value)}
+                className="focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
           </div>
         </div>
-      ) : (
+      ) : methodForm?.type === "digital_wallet" ? (
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label>{methodForm?.type === "digital_wallet" ? "Wallet Name" : "Bank Name"}</Label>
+            <Label>Wallet Name</Label>
             <Input
-              placeholder={methodForm?.type === "digital_wallet" ? "Venmo, PayPal..." : "Chase, Wells Fargo..."}
-              value={methodForm?.type === "digital_wallet" ? methodForm?.brand ?? "" : methodForm?.bank ?? ""}
-              onChange={(e) => {
-                if (!methodForm) return
-                if (methodForm.type === "digital_wallet") {
-                  handleFormChange("brand", e.target.value)
-                } else {
-                  handleFormChange("bank", e.target.value)
-                }
-              }}
+              placeholder="Venmo, PayPal..."
+              value={methodForm?.brand ?? ""}
+              onChange={(e) => handleFormChange("brand", e.target.value)}
+              className="focus:border-orange-500 focus:ring-orange-500"
             />
           </div>
           <div className="space-y-2">
-            <Label>{methodForm?.type === "digital_wallet" ? "Handle" : "Last 4 Digits"}</Label>
+            <Label>Handle</Label>
             <Input
-              placeholder={methodForm?.type === "digital_wallet" ? "@handle" : "1234"}
-              value={methodForm?.type === "digital_wallet" ? methodForm?.handle ?? "" : methodForm?.last4 ?? ""}
-              onChange={(e) => {
-                if (methodForm?.type === "digital_wallet") {
-                  handleFormChange("handle", e.target.value)
-                } else {
-                  handleFormChange("last4", e.target.value)
-                }
-              }}
+              placeholder="@handle"
+              value={methodForm?.handle ?? ""}
+              onChange={(e) => handleFormChange("handle", e.target.value)}
+              className="focus:border-orange-500 focus:ring-orange-500"
             />
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Bank Name</Label>
+            <Input
+              placeholder="Chase, Wells Fargo..."
+              value={methodForm?.bank ?? ""}
+              onChange={(e) => handleFormChange("bank", e.target.value)}
+              className="focus:border-orange-500 focus:ring-orange-500"
+            />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Routing Number</Label>
+              <Input
+                inputMode="numeric"
+                placeholder="123456789"
+                value={methodForm?.routingNumber ?? ""}
+                maxLength={9}
+                onChange={(e) => handleFormChange("routingNumber", e.target.value)}
+                className="focus:border-orange-500 focus:ring-orange-500"
+              />
+              <p className="text-xs text-muted-foreground">9-digit routing number</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Account Number</Label>
+              <Input
+                inputMode="numeric"
+                placeholder="Account number"
+                value={methodForm?.accountNumber ?? ""}
+                onChange={(e) => handleFormChange("accountNumber", e.target.value)}
+                className="focus:border-orange-500 focus:ring-orange-500"
+              />
+              {methodForm?.accountNumber && methodForm.accountNumber.length >= 4 && (
+                <p className="text-xs text-muted-foreground">
+                  Last 4 digits: {methodForm.accountNumber.slice(-4)}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -363,11 +385,53 @@ export function PaymentMethods({
     </div>
   )
 
+  const renderTypeSelectionDialog = () => (
+    <Dialog open={isTypeSelectionOpen} onOpenChange={(open) => {
+      if (!open) setIsTypeSelectionOpen(false)
+    }}>
+      <DialogContent className="sm:max-w-2xl border-2 border-orange-500">
+        <DialogHeader>
+          <DialogTitle>Select Payment Type</DialogTitle>
+          <DialogDescription>
+            Choose the type of payment method you'd like to add
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
+          {PAYMENT_TYPE_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => handleOpenAddDialog(option.value)}
+              className="flex items-start gap-4 p-5 border-2 rounded-lg hover:bg-accent hover:border-primary transition-all text-left group cursor-pointer"
+            >
+              <div className="p-3 bg-primary/10 rounded-lg text-primary group-hover:bg-primary/20 transition-colors">
+                {option.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-base mb-1">{option.label}</p>
+                <p className="text-sm text-muted-foreground">{option.description}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => setIsTypeSelectionOpen(false)}>
+            Cancel
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+
+  const handleBackToTypeSelection = () => {
+    setIsAddDialogOpen(false)
+    setIsTypeSelectionOpen(true)
+  }
+
   const renderDialog = () => (
     <Dialog open={isAddDialogOpen || isEditDialogOpen} onOpenChange={(open) => {
       if (!open) handleCloseDialog()
     }}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg border-2 border-orange-500">
         <DialogHeader>
           <DialogTitle>{isEditDialogOpen ? "Edit Payment Method" : "Add Payment Method"}</DialogTitle>
           <DialogDescription>
@@ -378,6 +442,12 @@ export function PaymentMethods({
         </DialogHeader>
         {renderFormFields()}
         <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          {isAddDialogOpen && (
+            <Button type="button" variant="outline" onClick={handleBackToTypeSelection} className="sm:mr-auto">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+          )}
           <Button type="button" variant="outline" onClick={handleCloseDialog}>
             Cancel
           </Button>
@@ -425,10 +495,19 @@ export function PaymentMethods({
               <div key={paymentMethod.id} className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="space-y-1">
                   <p className="text-sm font-semibold leading-none">{getDisplayText(paymentMethod)}</p>
-                  {paymentMethod.expMonth && paymentMethod.expYear && (
-                    <p className="text-sm text-muted-foreground">
-                      Expires {formatExpiration(paymentMethod.expMonth, paymentMethod.expYear)}
-                    </p>
+                  {paymentMethod.type === "credit_card" && (
+                    <div className="space-y-0.5">
+                      {paymentMethod.expMonth && paymentMethod.expYear && (
+                        <p className="text-sm text-muted-foreground">
+                          Expires {formatExpiration(paymentMethod.expMonth, paymentMethod.expYear)}
+                        </p>
+                      )}
+                      {paymentMethod.cvv && (
+                        <p className="text-xs text-muted-foreground">
+                          CVV: {paymentMethod.cvv}
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -457,25 +536,12 @@ export function PaymentMethods({
           )}
         </CardContent>
         <CardFooter>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button>
-              Add Payment Method
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64">
-            <DropdownMenuLabel>Select payment type</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {PAYMENT_TYPE_OPTIONS.map((option) => (
-              <DropdownMenuItem key={option.value} className="flex flex-col items-start gap-1" onClick={() => handleOpenAddDialog(option.value)}>
-                <span className="text-sm font-medium">{option.label}</span>
-                <span className="text-xs text-muted-foreground">{option.description}</span>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          <Button onClick={handleOpenTypeSelection} className="w-full sm:w-auto">
+            Add Payment Method
+          </Button>
         </CardFooter>
       </Card>
+      {renderTypeSelectionDialog()}
       {renderDialog()}
       {renderRemoveDialog()}
     </>

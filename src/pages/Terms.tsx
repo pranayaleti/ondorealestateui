@@ -12,7 +12,7 @@ const obligations = [
 
 const paymentTerms = [
   "All charges are denominated in US Dollars (USD). International payments are not accepted.",
-  "Rent, management fees, and maintenance invoices may include state-specific sales tax as required.",
+  "Management fees and maintenance invoices may include state-specific sales tax as required.",
   "Approved payment methods include ACH, major US credit/debit cards, certified checks, and domestic digital wallets (e.g., Venmo, Zelle).",
   "Late fees, security deposits, and prorated rent follow the applicable state statutes for the property location.",
 ]

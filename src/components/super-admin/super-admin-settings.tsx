@@ -43,6 +43,7 @@ export default function SuperAdminSettings() {
     toast({
       title: "Settings Updated",
       description: "Your settings have been saved successfully.",
+      duration: 3000,
     })
   }
 
@@ -57,6 +58,7 @@ export default function SuperAdminSettings() {
     toast({
       title: "Settings Updated",
       description: "Your settings have been saved successfully.",
+      duration: 3000,
     })
   }
 

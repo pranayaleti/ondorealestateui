@@ -174,6 +174,7 @@ export function ProfileView() {
       toast({
         title: "Profile updated",
         description: "Your profile information has been successfully updated.",
+        duration: 3000,
       })
     }, 1000)
   }
@@ -488,6 +489,7 @@ export function ProfileView() {
               toast({
                 title: "Default Updated",
                 description: "Payment method set as default.",
+                duration: 3000,
               })
             }}
             onEdit={(id) => {

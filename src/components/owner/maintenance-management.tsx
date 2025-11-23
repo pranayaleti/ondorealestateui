@@ -428,6 +428,7 @@ export function OwnerMaintenanceManagement() {
     toast({
       title: "Status Updated",
       description: `Status updated to ${data.status}.`,
+      duration: 3000,
     })
   }
 

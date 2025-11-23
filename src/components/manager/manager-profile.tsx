@@ -120,25 +120,46 @@ export default function ManagerProfile() {
   const [isLoadingInvited, setIsLoadingInvited] = useState(false)
   
 
-  // Update form data when user data changes
+  // Update form data when user data changes (only when not editing to avoid overwriting user input)
   useEffect(() => {
-    console.log("Manager Profile - User data changed:", user)
-    if (user) {
+    if (user && !isEditing) {
       const parsedAddress = parseAddressString(user.address)
-      setFormData(prev => ({
-        ...prev,
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        addressLine1: parsedAddress.line1,
-        addressLine2: parsedAddress.line2,
-        city: parsedAddress.city,
-        state: parsedAddress.state,
-        postalCode: parsedAddress.postalCode,
-      }))
+      setFormData(prev => {
+        // Only update if values actually changed to prevent unnecessary re-renders
+        const newFirstName = user.firstName || ""
+        const newLastName = user.lastName || ""
+        const newEmail = user.email || ""
+        const newPhone = user.phone || ""
+        
+        if (
+          prev.firstName === newFirstName &&
+          prev.lastName === newLastName &&
+          prev.email === newEmail &&
+          prev.phone === newPhone &&
+          prev.addressLine1 === parsedAddress.line1 &&
+          prev.addressLine2 === parsedAddress.line2 &&
+          prev.city === parsedAddress.city &&
+          prev.state === parsedAddress.state &&
+          prev.postalCode === parsedAddress.postalCode
+        ) {
+          return prev // No changes, return previous state
+        }
+        
+        return {
+          ...prev,
+          firstName: newFirstName,
+          lastName: newLastName,
+          email: newEmail,
+          phone: newPhone,
+          addressLine1: parsedAddress.line1,
+          addressLine2: parsedAddress.line2,
+          city: parsedAddress.city,
+          state: parsedAddress.state,
+          postalCode: parsedAddress.postalCode,
+        }
+      })
     }
-  }, [user])
+  }, [user?.firstName, user?.lastName, user?.email, user?.phone, user?.address, isEditing])
 
   // Fetch portfolio statistics
   useEffect(() => {
@@ -229,6 +250,7 @@ export default function ManagerProfile() {
       toast({
         title: "Profile Updated",
         description: "Your profile information has been saved successfully.",
+        duration: 3000, // Show for 3 seconds
       })
       
       await refreshUser()
@@ -287,6 +309,7 @@ export default function ManagerProfile() {
       toast({
         title: "Profile picture updated",
         description: "Your profile picture has been updated successfully.",
+        duration: 3000,
       })
     } catch (error: any) {
       console.error('Error updating profile picture:', error)
@@ -556,6 +579,7 @@ export default function ManagerProfile() {
                   toast({
                     title: "Default Updated",
                     description: "Payment method set as default.",
+                    duration: 3000,
                   })
                 }}
                 onEdit={(id) => {

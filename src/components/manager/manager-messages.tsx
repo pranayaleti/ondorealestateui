@@ -274,6 +274,7 @@ function ComposeMessage() {
     toast({
       title: "Message Sent",
       description: "Your message has been sent successfully.",
+      duration: 3000,
     })
   }
 

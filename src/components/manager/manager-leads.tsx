@@ -55,6 +55,7 @@ export default function ManagerLeads() {
       toast({
         title: "Success",
         description: "Lead status updated successfully.",
+        duration: 3000,
       })
       fetchLeads()
     } catch (error) {
@@ -75,6 +76,7 @@ export default function ManagerLeads() {
       })
       toast({
         title: "Invitation Sent",
+        duration: 3000,
         description: `Invitation sent to ${lead.tenantEmail}.`,
       })
     } catch (error: any) {

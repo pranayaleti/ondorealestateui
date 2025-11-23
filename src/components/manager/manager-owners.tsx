@@ -398,6 +398,7 @@ function AddOwner() {
       toast({
         title: "Invitation Sent!",
         description: `Invitation sent to ${formData.email}. They will receive an email with signup instructions.`,
+        duration: 3000,
       })
       
       // Show the invitation URL for testing

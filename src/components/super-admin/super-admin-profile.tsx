@@ -133,6 +133,7 @@ export default function SuperAdminProfile() {
               toast({
                 title: "Default Updated",
                 description: "Payment method set as default.",
+                duration: 3000,
               })
             }}
             onEdit={(id) => {

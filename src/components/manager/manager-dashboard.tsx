@@ -228,7 +228,7 @@ export default function ManagerDashboard() {
     try {
       setIsSendingInvite(true)
       const res = await authApi.invite({ email: inviteModalData.email, role: inviteModalData.role })
-      toast({ title: "Invitation Sent", description: `Invitation sent to ${inviteModalData.email}.` })
+      toast({ title: "Invitation Sent", description: `Invitation sent to ${inviteModalData.email}.`, duration: 3000 })
       console.log("Invitation URL:", (res as any)?.inviteUrl)
       setShowInviteModal(false)
       setInviteModalData({ email: "", role: "tenant" })
@@ -288,7 +288,7 @@ export default function ManagerDashboard() {
       toast({
         title: "Invitation Sent",
         description: `Invitation sent to ${inviteData.email} as ${inviteData.role}.`,
-        duration: 5000, // 5 seconds for successful invitations
+        duration: 3000,
       })
 
       // Clear invite form and refresh users

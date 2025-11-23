@@ -19,9 +19,10 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { ExportPDFButton } from "@/components/ui/export-pdf-button"
-import { US_STATE_SALES_TAX } from "@/constants"
 import { formatUSD, formatUSDate } from "@/lib/us-format"
 import { PaymentMethods, type PaymentMethod } from "@/components/ui/payment-methods"
+import { companyInfo } from "@/constants/companyInfo"
+import { useAuth } from "@/lib/auth-context"
 
 // Mock payment data
 const mockPaymentData = {
@@ -79,6 +80,106 @@ const mockPaymentData = {
       method: "Bank Transfer",
       reference: "DEP-2023-001",
       lateFee: 0
+    },
+    {
+      id: 6,
+      date: "2023-09-01",
+      amount: 1850,
+      type: "Rent",
+      status: "paid",
+      method: "Credit Card",
+      reference: "PAY-2023-009",
+      lateFee: 0
+    },
+    {
+      id: 7,
+      date: "2023-08-01",
+      amount: 1850,
+      type: "Rent",
+      status: "paid",
+      method: "Bank Transfer",
+      reference: "PAY-2023-008",
+      lateFee: 0
+    },
+    {
+      id: 8,
+      date: "2023-07-01",
+      amount: 1850,
+      type: "Rent",
+      status: "paid",
+      method: "Credit Card",
+      reference: "PAY-2023-007",
+      lateFee: 0
+    },
+    {
+      id: 9,
+      date: "2023-06-01",
+      amount: 1850,
+      type: "Rent",
+      status: "paid",
+      method: "Credit Card",
+      reference: "PAY-2023-006",
+      lateFee: 0
+    },
+    {
+      id: 10,
+      date: "2023-05-01",
+      amount: 1850,
+      type: "Rent",
+      status: "paid",
+      method: "Bank Transfer",
+      reference: "PAY-2023-005",
+      lateFee: 0
+    },
+    {
+      id: 11,
+      date: "2023-04-01",
+      amount: 1850,
+      type: "Rent",
+      status: "paid",
+      method: "Credit Card",
+      reference: "PAY-2023-004",
+      lateFee: 0
+    },
+    {
+      id: 12,
+      date: "2023-03-01",
+      amount: 1850,
+      type: "Rent",
+      status: "paid",
+      method: "Credit Card",
+      reference: "PAY-2023-003",
+      lateFee: 0
+    },
+    {
+      id: 13,
+      date: "2023-02-01",
+      amount: 1850,
+      type: "Rent",
+      status: "paid",
+      method: "Bank Transfer",
+      reference: "PAY-2023-002",
+      lateFee: 0
+    },
+    {
+      id: 14,
+      date: "2023-01-01",
+      amount: 1850,
+      type: "Rent",
+      status: "paid",
+      method: "Credit Card",
+      reference: "PAY-2023-001",
+      lateFee: 0
+    },
+    {
+      id: 15,
+      date: "2022-12-01",
+      amount: 1800,
+      type: "Rent",
+      status: "paid",
+      method: "Credit Card",
+      reference: "PAY-2022-012",
+      lateFee: 0
     }
   ],
   savedPaymentMethods: [
@@ -107,7 +208,7 @@ const mockPaymentData = {
       id: 4,
       type: "digital_wallet",
       brand: "Venmo",
-      handle: "@ondorealestate",
+      handle: companyInfo.social.twitter,
       isDefault: false
     }
   ]
@@ -115,18 +216,25 @@ const mockPaymentData = {
 
 export default function TenantPayments() {
   const { toast } = useToast()
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState("overview")
   const [paymentAmount, setPaymentAmount] = useState(mockPaymentData.currentRent.toString())
   const [paymentMethod, setPaymentMethod] = useState("1")
-  const stateTaxRate = US_STATE_SALES_TAX[mockPaymentData.state as keyof typeof US_STATE_SALES_TAX] ?? 0
+  const [showAllPayments, setShowAllPayments] = useState(false)
   const paymentAmountNumber = Number(paymentAmount) || 0
-  const salesTaxAmount = Number((paymentAmountNumber * stateTaxRate).toFixed(2))
-  const totalDue = paymentAmountNumber + salesTaxAmount
+  const totalDue = paymentAmountNumber
+
+  // Display limited payments initially, all when "View All" is clicked
+  const INITIAL_PAYMENT_DISPLAY = 5
+  const displayedPayments = showAllPayments 
+    ? mockPaymentData.paymentHistory 
+    : mockPaymentData.paymentHistory.slice(0, INITIAL_PAYMENT_DISPLAY)
 
   const handlePayment = () => {
     toast({
       title: "Payment Processed",
       description: `Payment of ${formatUSD(totalDue)} has been processed successfully.`,
+      duration: 3000,
     })
   }
 
@@ -345,10 +453,6 @@ export default function TenantPayments() {
                       <span>{formatUSD(paymentAmountNumber)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>State Sales Tax ({(stateTaxRate * 100).toFixed(2)}% - {mockPaymentData.state}):</span>
-                      <span>{formatUSD(salesTaxAmount)}</span>
-                    </div>
-                    <div className="flex justify-between">
                       <span>Processing Fee:</span>
                       <span>{formatUSD(0)}</span>
                     </div>
@@ -359,9 +463,6 @@ export default function TenantPayments() {
                   </div>
                 </div>
 
-                <p className="text-xs text-gray-500">
-                  Sales tax calculated per {mockPaymentData.state} requirements. Total reflects any applicable state and local taxes.
-                </p>
 
                 <Button className="w-full" onClick={handlePayment}>
                   <CreditCard className="h-4 w-4 mr-2" />
@@ -390,6 +491,7 @@ export default function TenantPayments() {
                 content={{
                   title: "Payment History",
                   subtitle: "All your payment transactions",
+                  userEmail: user?.email,
                   summary: [
                     { label: "Current Rent", value: mockPaymentData.currentRent },
                     { label: "Next Due Date", value: formatUSDate(mockPaymentData.nextDueDate) },
@@ -416,7 +518,7 @@ export default function TenantPayments() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockPaymentData.paymentHistory.map((payment) => (
+                {displayedPayments.map((payment) => (
                   <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center space-x-4">
                       <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full">
@@ -452,6 +554,25 @@ export default function TenantPayments() {
                   </div>
                 ))}
               </div>
+              {mockPaymentData.paymentHistory.length > INITIAL_PAYMENT_DISPLAY && (
+                <div className="mt-6 flex justify-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAllPayments(!showAllPayments)}
+                    className="w-full sm:w-auto"
+                  >
+                    {showAllPayments ? (
+                      <>
+                        Show Less
+                      </>
+                    ) : (
+                      <>
+                        View All ({mockPaymentData.paymentHistory.length} transactions)
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -477,6 +598,7 @@ export default function TenantPayments() {
               toast({
                 title: "Default Updated",
                 description: "Payment method set as default.",
+                duration: 3000,
               })
             }}
             onEdit={(id) => {

@@ -32,6 +32,7 @@ import {
   Calendar,
   UserPlus,
   Settings,
+  HelpCircle,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -295,6 +296,23 @@ function SidebarLayout({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <div className="relative">
+            <Link
+              to="/contact"
+              className={cn(
+                "flex items-center gap-2 text-sm text-slate-400 hover:text-white hover:bg-slate-700/30 dark:hover:bg-slate-800/30 rounded-md px-3 py-2 transition-colors group",
+                expanded ? "justify-start w-full" : "justify-center w-full"
+              )}
+            >
+              <HelpCircle className="h-4 w-4" />
+              {expanded && <span>Need help? Contact support</span>}
+            </Link>
+            {!expanded && (
+              <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 rounded-md bg-slate-800 dark:bg-slate-950 text-white text-xs shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                Need help? Contact support
+              </div>
+            )}
+          </div>
           <Button
             variant="ghost"
             onClick={logout}

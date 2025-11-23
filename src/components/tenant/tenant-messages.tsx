@@ -49,7 +49,7 @@ const mockMessages = [
     id: 3,
     subject: "Welcome to Your New Home!",
     from: "Property Manager",
-    fromEmail: "manager@ondorealestate.com",
+    fromEmail: getEmail("manager"),
     to: "tenant@email.com",
     date: "2023-09-15",
     time: "9:00 AM",
@@ -103,6 +103,7 @@ export default function TenantMessages() {
     toast({
       title: "Message Sent",
       description: "Your message has been sent successfully.",
+      duration: 3000,
     })
     setShowCompose(false)
     setComposeForm({

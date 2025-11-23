@@ -184,6 +184,7 @@ export default function TenantProfile() {
       toast({
         title: "Profile Updated",
         description: "Your profile information has been saved successfully.",
+        duration: 3000,
       })
       setIsEditing(false)
     } catch (error: any) {
@@ -231,6 +232,7 @@ export default function TenantProfile() {
       toast({
         title: "Profile picture updated",
         description: "Your profile picture has been updated successfully.",
+        duration: 3000,
       })
     } catch (error: any) {
       console.error('Error updating profile picture:', error)
@@ -445,6 +447,7 @@ export default function TenantProfile() {
                   toast({
                     title: "Default Updated",
                     description: "Payment method set as default.",
+                    duration: 3000,
                   })
                 }}
                 onEdit={(id) => {

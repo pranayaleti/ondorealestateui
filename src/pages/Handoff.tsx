@@ -70,6 +70,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -80,6 +81,7 @@ export default function Handoff() {
   const { user } = useAuth()
   const { toast } = useToast()
   const [handoffData, setHandoffData] = useState<PropertyHandoff | null>(null)
+  const [originalHandoffData, setOriginalHandoffData] = useState<PropertyHandoff | null>(null)
   const [checklistItems, setChecklistItems] = useState<Record<string, boolean>>({})
   const [loading, setLoading] = useState(true)
   const [isEditMode, setIsEditMode] = useState(false)
@@ -154,9 +156,11 @@ export default function Handoff() {
   }
 
   // Format date
-  const formatDocumentDate = (date?: Date) => {
+  const formatDocumentDate = (date?: Date | string) => {
     if (!date) return "Unknown date"
-    return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })
+    const dateObj = date instanceof Date ? date : new Date(date)
+    if (isNaN(dateObj.getTime())) return "Invalid date"
+    return dateObj.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })
   }
 
   // Handle document actions
@@ -206,6 +210,7 @@ export default function Handoff() {
           toast({
             title: "Shared successfully",
             description: `${doc.name} has been shared.`,
+            duration: 3000,
           })
         } catch (error) {
           // User cancelled or error occurred
@@ -1054,9 +1059,10 @@ export default function Handoff() {
                 <>
                   <Button variant="outline" onClick={() => {
                     setIsEditMode(false)
-                    // Reset owner notes if cancelled
-                    if (handoffData) {
-                      setOwnerNotes(handoffData.ownerNotes || "")
+                    // Reset to original data if cancelled
+                    if (originalHandoffData) {
+                      setHandoffData(originalHandoffData)
+                      setOwnerNotes(originalHandoffData.ownerNotes || "")
                     }
                   }}>
                     <X className="h-4 w-4 mr-2" />
@@ -1078,7 +1084,13 @@ export default function Handoff() {
                   </Button>
                 </>
               ) : (
-                <Button variant="outline" onClick={() => setIsEditMode(true)}>
+                <Button variant="outline" onClick={() => {
+                  // Store original data before entering edit mode
+                  if (handoffData) {
+                    setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                  }
+                  setIsEditMode(true)
+                }}>
                   <Edit className="h-4 w-4 mr-2" />
                   {isOwner ? "Edit & Add Notes" : "Edit Handoff"}
                 </Button>
@@ -1144,34 +1156,172 @@ export default function Handoff() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Property Type</p>
-                  <p className="font-medium">{handoffData.propertyBasics.propertyType}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Square Footage</p>
-                  <p className="font-medium">{handoffData.propertyBasics.squareFootage.toLocaleString()} sq ft</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Bedrooms / Bathrooms</p>
-                  <p className="font-medium">{handoffData.propertyBasics.bedrooms} bed / {handoffData.propertyBasics.bathrooms} bath</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Move-In Date</p>
-                  <p className="font-medium">{handoffData.propertyBasics.moveInDate.toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Lease Term</p>
-                  <p className="font-medium">{handoffData.propertyBasics.leaseTerm}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Security Deposit</p>
-                  <p className="font-medium">${handoffData.propertyBasics.securityDeposit.toLocaleString()}</p>
-                </div>
-                <div className="md:col-span-2">
-                  <p className="text-sm text-muted-foreground">Parking</p>
-                  <p className="font-medium">{handoffData.propertyBasics.parking}</p>
-                </div>
+                {isEditMode ? (
+                  <>
+                    <div>
+                      <Label htmlFor="property-type" className="text-sm text-muted-foreground">Property Type</Label>
+                      <Input
+                        id="property-type"
+                        value={handoffData.propertyBasics.propertyType}
+                        onChange={(e) => setHandoffData({
+                          ...handoffData,
+                          propertyBasics: {
+                            ...handoffData.propertyBasics,
+                            propertyType: e.target.value
+                          }
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="square-footage" className="text-sm text-muted-foreground">Square Footage</Label>
+                      <Input
+                        id="square-footage"
+                        type="number"
+                        value={handoffData.propertyBasics.squareFootage}
+                        onChange={(e) => setHandoffData({
+                          ...handoffData,
+                          propertyBasics: {
+                            ...handoffData.propertyBasics,
+                            squareFootage: parseInt(e.target.value) || 0
+                          }
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="bedrooms" className="text-sm text-muted-foreground">Bedrooms</Label>
+                      <Input
+                        id="bedrooms"
+                        type="number"
+                        value={handoffData.propertyBasics.bedrooms}
+                        onChange={(e) => setHandoffData({
+                          ...handoffData,
+                          propertyBasics: {
+                            ...handoffData.propertyBasics,
+                            bedrooms: parseInt(e.target.value) || 0
+                          }
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="bathrooms" className="text-sm text-muted-foreground">Bathrooms</Label>
+                      <Input
+                        id="bathrooms"
+                        type="number"
+                        value={handoffData.propertyBasics.bathrooms}
+                        onChange={(e) => setHandoffData({
+                          ...handoffData,
+                          propertyBasics: {
+                            ...handoffData.propertyBasics,
+                            bathrooms: parseInt(e.target.value) || 0
+                          }
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="move-in-date" className="text-sm text-muted-foreground">Move-In Date</Label>
+                      <Input
+                        id="move-in-date"
+                        type="date"
+                        value={handoffData.propertyBasics.moveInDate instanceof Date 
+                          ? handoffData.propertyBasics.moveInDate.toISOString().split('T')[0]
+                          : new Date(handoffData.propertyBasics.moveInDate).toISOString().split('T')[0]}
+                        onChange={(e) => setHandoffData({
+                          ...handoffData,
+                          propertyBasics: {
+                            ...handoffData.propertyBasics,
+                            moveInDate: new Date(e.target.value)
+                          }
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="lease-term" className="text-sm text-muted-foreground">Lease Term</Label>
+                      <Input
+                        id="lease-term"
+                        value={handoffData.propertyBasics.leaseTerm}
+                        onChange={(e) => setHandoffData({
+                          ...handoffData,
+                          propertyBasics: {
+                            ...handoffData.propertyBasics,
+                            leaseTerm: e.target.value
+                          }
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="security-deposit" className="text-sm text-muted-foreground">Security Deposit</Label>
+                      <Input
+                        id="security-deposit"
+                        type="number"
+                        value={handoffData.propertyBasics.securityDeposit}
+                        onChange={(e) => setHandoffData({
+                          ...handoffData,
+                          propertyBasics: {
+                            ...handoffData.propertyBasics,
+                            securityDeposit: parseFloat(e.target.value) || 0
+                          }
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor="parking" className="text-sm text-muted-foreground">Parking</Label>
+                      <Input
+                        id="parking"
+                        value={handoffData.propertyBasics.parking}
+                        onChange={(e) => setHandoffData({
+                          ...handoffData,
+                          propertyBasics: {
+                            ...handoffData.propertyBasics,
+                            parking: e.target.value
+                          }
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Property Type</p>
+                      <p className="font-medium">{handoffData.propertyBasics.propertyType}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Square Footage</p>
+                      <p className="font-medium">{handoffData.propertyBasics.squareFootage.toLocaleString()} sq ft</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Bedrooms / Bathrooms</p>
+                      <p className="font-medium">{handoffData.propertyBasics.bedrooms} bed / {handoffData.propertyBasics.bathrooms} bath</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Move-In Date</p>
+                      <p className="font-medium">
+                        {handoffData.propertyBasics.moveInDate instanceof Date 
+                          ? handoffData.propertyBasics.moveInDate.toLocaleDateString()
+                          : new Date(handoffData.propertyBasics.moveInDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Lease Term</p>
+                      <p className="font-medium">{handoffData.propertyBasics.leaseTerm}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Security Deposit</p>
+                      <p className="font-medium">${handoffData.propertyBasics.securityDeposit.toLocaleString()}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="text-sm text-muted-foreground">Parking</p>
+                      <p className="font-medium">{handoffData.propertyBasics.parking}</p>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -1187,14 +1337,103 @@ export default function Handoff() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {handoffData.emergencyContacts.map((contact, index) => (
-                    <div key={index} className="p-4 border rounded-lg">
-                      <p className="font-semibold">{contact.name}</p>
-                      <p className="text-sm text-muted-foreground">{contact.phone}</p>
-                      {contact.email && <p className="text-sm text-muted-foreground">{contact.email}</p>}
-                      {contact.emergencyLine && (
-                        <p className="text-sm text-red-600 font-medium">Emergency: {contact.emergencyLine}</p>
+                    <div key={index} className="p-4 border rounded-lg space-y-3">
+                      {isEditMode ? (
+                        <>
+                          <div>
+                            <Label htmlFor={`contact-name-${index}`} className="text-sm font-semibold">Name</Label>
+                            <Input
+                              id={`contact-name-${index}`}
+                              value={contact.name}
+                              onChange={(e) => {
+                                const updatedContacts = [...handoffData.emergencyContacts]
+                                updatedContacts[index] = { ...contact, name: e.target.value }
+                                setHandoffData({
+                                  ...handoffData,
+                                  emergencyContacts: updatedContacts
+                                })
+                              }}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`contact-phone-${index}`} className="text-sm text-muted-foreground">Phone</Label>
+                            <Input
+                              id={`contact-phone-${index}`}
+                              value={contact.phone}
+                              onChange={(e) => {
+                                const updatedContacts = [...handoffData.emergencyContacts]
+                                updatedContacts[index] = { ...contact, phone: e.target.value }
+                                setHandoffData({
+                                  ...handoffData,
+                                  emergencyContacts: updatedContacts
+                                })
+                              }}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`contact-email-${index}`} className="text-sm text-muted-foreground">Email (optional)</Label>
+                            <Input
+                              id={`contact-email-${index}`}
+                              type="email"
+                              value={contact.email || ""}
+                              onChange={(e) => {
+                                const updatedContacts = [...handoffData.emergencyContacts]
+                                updatedContacts[index] = { ...contact, email: e.target.value || undefined }
+                                setHandoffData({
+                                  ...handoffData,
+                                  emergencyContacts: updatedContacts
+                                })
+                              }}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`contact-emergency-${index}`} className="text-sm text-red-600 font-medium">Emergency Line (optional)</Label>
+                            <Input
+                              id={`contact-emergency-${index}`}
+                              value={contact.emergencyLine || ""}
+                              onChange={(e) => {
+                                const updatedContacts = [...handoffData.emergencyContacts]
+                                updatedContacts[index] = { ...contact, emergencyLine: e.target.value || undefined }
+                                setHandoffData({
+                                  ...handoffData,
+                                  emergencyContacts: updatedContacts
+                                })
+                              }}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`contact-notes-${index}`} className="text-sm text-muted-foreground">Notes (optional)</Label>
+                            <Textarea
+                              id={`contact-notes-${index}`}
+                              value={contact.notes || ""}
+                              onChange={(e) => {
+                                const updatedContacts = [...handoffData.emergencyContacts]
+                                updatedContacts[index] = { ...contact, notes: e.target.value || undefined }
+                                setHandoffData({
+                                  ...handoffData,
+                                  emergencyContacts: updatedContacts
+                                })
+                              }}
+                              className="mt-1"
+                              rows={2}
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-semibold">{contact.name}</p>
+                          <p className="text-sm text-muted-foreground">{contact.phone}</p>
+                          {contact.email && <p className="text-sm text-muted-foreground">{contact.email}</p>}
+                          {contact.emergencyLine && (
+                            <p className="text-sm text-red-600 font-medium">Emergency: {contact.emergencyLine}</p>
+                          )}
+                          {contact.notes && <p className="text-sm text-muted-foreground mt-1">{contact.notes}</p>}
+                        </>
                       )}
-                      {contact.notes && <p className="text-sm text-muted-foreground mt-1">{contact.notes}</p>}
                     </div>
                   ))}
                 </div>
@@ -2555,23 +2794,138 @@ export default function Handoff() {
                       <div className="space-y-2">
                         {items.map((item) => (
                           <div key={item.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                            <Checkbox
-                              id={item.id}
-                              checked={checklistItems[item.id] || false}
-                              onCheckedChange={() => handleChecklistToggle(item.id)}
-                            />
-                            <label
-                              htmlFor={item.id}
-                              className={`flex-1 cursor-pointer ${checklistItems[item.id] ? 'line-through text-muted-foreground' : ''}`}
-                            >
-                              {item.label}
-                            </label>
+                            {isEditMode && canEdit ? (
+                              <>
+                                <Checkbox
+                                  id={item.id}
+                                  checked={checklistItems[item.id] || false}
+                                  onCheckedChange={() => handleChecklistToggle(item.id)}
+                                  disabled={true}
+                                />
+                                <div className="flex-1 space-y-2">
+                                  <Input
+                                    value={item.label}
+                                    onChange={(e) => {
+                                      const updatedChecklist = handoffData.moveInChecklist.map(checklistItem =>
+                                        checklistItem.id === item.id
+                                          ? { ...checklistItem, label: e.target.value }
+                                          : checklistItem
+                                      )
+                                      setHandoffData({
+                                        ...handoffData,
+                                        moveInChecklist: updatedChecklist
+                                      })
+                                    }}
+                                    placeholder="Checklist item"
+                                  />
+                                  <Select
+                                    value={item.category}
+                                    onValueChange={(value) => {
+                                      const updatedChecklist = handoffData.moveInChecklist.map(checklistItem =>
+                                        checklistItem.id === item.id
+                                          ? { ...checklistItem, category: value }
+                                          : checklistItem
+                                      )
+                                      setHandoffData({
+                                        ...handoffData,
+                                        moveInChecklist: updatedChecklist
+                                      })
+                                    }}
+                                  >
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="before-move-in">Before Move-In</SelectItem>
+                                      <SelectItem value="move-in-day">Move-In Day</SelectItem>
+                                      <SelectItem value="first-week">First Week</SelectItem>
+                                      <SelectItem value="utilities">Utilities</SelectItem>
+                                      <SelectItem value="safety">Safety</SelectItem>
+                                      <SelectItem value="documents">Documents</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                {handoffData.moveInChecklist.length > 1 && (
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => {
+                                      const updatedChecklist = handoffData.moveInChecklist.filter(i => i.id !== item.id)
+                                      setHandoffData({
+                                        ...handoffData,
+                                        moveInChecklist: updatedChecklist
+                                      })
+                                      // Remove from checklistItems state if it exists
+                                      const updatedChecklistItems = { ...checklistItems }
+                                      delete updatedChecklistItems[item.id]
+                                      setChecklistItems(updatedChecklistItems)
+                                    }}
+                                  >
+                                    Remove
+                                  </Button>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <Checkbox
+                                  id={item.id}
+                                  checked={checklistItems[item.id] || false}
+                                  onCheckedChange={() => handleChecklistToggle(item.id)}
+                                />
+                                <label
+                                  htmlFor={item.id}
+                                  className={`flex-1 cursor-pointer ${checklistItems[item.id] ? 'line-through text-muted-foreground' : ''}`}
+                                >
+                                  {item.label}
+                                </label>
+                              </>
+                            )}
                           </div>
                         ))}
                       </div>
+                      {isEditMode && canEdit && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                          onClick={() => {
+                            const newId = `checklist-${Date.now()}`
+                            setHandoffData({
+                              ...handoffData,
+                              moveInChecklist: [...handoffData.moveInChecklist, {
+                                id: newId,
+                                label: "",
+                                completed: false,
+                                category: category
+                              }]
+                            })
+                          }}
+                        >
+                          Add Item to {category}
+                        </Button>
+                      )}
                       <Separator className="my-4" />
                     </div>
                   ))}
+                  {isEditMode && canEdit && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        const newId = `checklist-${Date.now()}`
+                        setHandoffData({
+                          ...handoffData,
+                          moveInChecklist: [...handoffData.moveInChecklist, {
+                            id: newId,
+                            label: "",
+                            completed: false,
+                            category: "before-move-in"
+                          }]
+                        })
+                      }}
+                    >
+                      Add New Category Item
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -2876,71 +3230,263 @@ export default function Handoff() {
                       <CardHeader>
                         <CardTitle>Electric</CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-2">
+                      <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <p className="text-sm text-muted-foreground">Provider</p>
-                            <p className="font-medium">{handoffData.utilities.electric.provider}</p>
+                            <Label className="text-sm text-muted-foreground">Provider</Label>
+                            {isEditMode ? (
+                              <Input
+                                value={handoffData.utilities.electric.provider}
+                                onChange={(e) => setHandoffData({
+                                  ...handoffData,
+                                  utilities: {
+                                    ...handoffData.utilities,
+                                    electric: {
+                                      ...handoffData.utilities.electric,
+                                      provider: e.target.value
+                                    }
+                                  }
+                                })}
+                                className="mt-1"
+                              />
+                            ) : (
+                              <p className="font-medium mt-1">{handoffData.utilities.electric.provider}</p>
+                            )}
                           </div>
-                          {handoffData.utilities.electric.accountNumber && (
-                            <div>
-                              <p className="text-sm text-muted-foreground">Account Number</p>
-                              <p className="font-medium">{handoffData.utilities.electric.accountNumber}</p>
-                            </div>
-                          )}
-                          {handoffData.utilities.electric.customerServicePhone && (
-                            <div>
-                              <p className="text-sm text-muted-foreground">Customer Service</p>
-                              <p className="font-medium">{handoffData.utilities.electric.customerServicePhone}</p>
-                            </div>
-                          )}
-                          {handoffData.utilities.electric.averageMonthlyCost && (
-                            <div>
-                              <p className="text-sm text-muted-foreground">Average Monthly Cost</p>
-                              <p className="font-medium">${handoffData.utilities.electric.averageMonthlyCost}</p>
-                            </div>
+                          <div>
+                            <Label className="text-sm text-muted-foreground">Account Number</Label>
+                            {isEditMode ? (
+                              <Input
+                                value={handoffData.utilities.electric.accountNumber || ""}
+                                onChange={(e) => setHandoffData({
+                                  ...handoffData,
+                                  utilities: {
+                                    ...handoffData.utilities,
+                                    electric: {
+                                      ...handoffData.utilities.electric,
+                                      accountNumber: e.target.value || undefined
+                                    }
+                                  }
+                                })}
+                                className="mt-1"
+                                placeholder="Optional"
+                              />
+                            ) : (
+                              handoffData.utilities.electric.accountNumber && (
+                                <p className="font-medium mt-1">{handoffData.utilities.electric.accountNumber}</p>
+                              )
+                            )}
+                          </div>
+                          <div>
+                            <Label className="text-sm text-muted-foreground">Customer Service</Label>
+                            {isEditMode ? (
+                              <Input
+                                value={handoffData.utilities.electric.customerServicePhone || ""}
+                                onChange={(e) => setHandoffData({
+                                  ...handoffData,
+                                  utilities: {
+                                    ...handoffData.utilities,
+                                    electric: {
+                                      ...handoffData.utilities.electric,
+                                      customerServicePhone: e.target.value || undefined
+                                    }
+                                  }
+                                })}
+                                className="mt-1"
+                                placeholder="Optional"
+                              />
+                            ) : (
+                              handoffData.utilities.electric.customerServicePhone && (
+                                <p className="font-medium mt-1">{handoffData.utilities.electric.customerServicePhone}</p>
+                              )
+                            )}
+                          </div>
+                          <div>
+                            <Label className="text-sm text-muted-foreground">Average Monthly Cost</Label>
+                            {isEditMode ? (
+                              <Input
+                                type="number"
+                                value={handoffData.utilities.electric.averageMonthlyCost || ""}
+                                onChange={(e) => setHandoffData({
+                                  ...handoffData,
+                                  utilities: {
+                                    ...handoffData.utilities,
+                                    electric: {
+                                      ...handoffData.utilities.electric,
+                                      averageMonthlyCost: e.target.value ? parseFloat(e.target.value) : undefined
+                                    }
+                                  }
+                                })}
+                                className="mt-1"
+                                placeholder="Optional"
+                              />
+                            ) : (
+                              handoffData.utilities.electric.averageMonthlyCost && (
+                                <p className="font-medium mt-1">${handoffData.utilities.electric.averageMonthlyCost}</p>
+                              )
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-sm text-muted-foreground">Setup Instructions</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.utilities.electric.setupInstructions || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                utilities: {
+                                  ...handoffData.utilities,
+                                  electric: {
+                                    ...handoffData.utilities.electric,
+                                    setupInstructions: e.target.value || undefined
+                                  }
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={3}
+                            />
+                          ) : (
+                            handoffData.utilities.electric.setupInstructions && (
+                              <p className="text-sm mt-1">{handoffData.utilities.electric.setupInstructions}</p>
+                            )
                           )}
                         </div>
-                        {handoffData.utilities.electric.setupInstructions && (
-                          <div>
-                            <p className="text-sm text-muted-foreground">Setup Instructions</p>
-                            <p className="text-sm">{handoffData.utilities.electric.setupInstructions}</p>
-                          </div>
-                        )}
-                        {handoffData.utilities.electric.includedInRent && (
-                          <Badge variant="secondary">Included in Rent</Badge>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {isEditMode ? (
+                            <>
+                              <input
+                                type="checkbox"
+                                id="electric-included"
+                                checked={handoffData.utilities.electric.includedInRent || false}
+                                onChange={(e) => setHandoffData({
+                                  ...handoffData,
+                                  utilities: {
+                                    ...handoffData.utilities,
+                                    electric: {
+                                      ...handoffData.utilities.electric,
+                                      includedInRent: e.target.checked
+                                    }
+                                  }
+                                })}
+                                className="rounded"
+                              />
+                              <Label htmlFor="electric-included" className="cursor-pointer">Included in Rent</Label>
+                            </>
+                          ) : (
+                            handoffData.utilities.electric.includedInRent && (
+                              <Badge variant="secondary">Included in Rent</Badge>
+                            )
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
 
                     {/* Gas */}
-                    {handoffData.utilities.gas && (
+                    {(handoffData.utilities.gas || isEditMode) && (
                       <Card>
                         <CardHeader>
                           <CardTitle>Gas</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-2">
+                        <CardContent className="space-y-4">
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <p className="text-sm text-muted-foreground">Provider</p>
-                              <p className="font-medium">{handoffData.utilities.gas.provider}</p>
+                              <Label className="text-sm text-muted-foreground">Provider</Label>
+                              {isEditMode ? (
+                                <Input
+                                  value={handoffData.utilities.gas?.provider || ""}
+                                  onChange={(e) => setHandoffData({
+                                    ...handoffData,
+                                    utilities: {
+                                      ...handoffData.utilities,
+                                      gas: {
+                                        ...(handoffData.utilities.gas || { includedInRent: false }),
+                                        provider: e.target.value
+                                      }
+                                    }
+                                  })}
+                                  className="mt-1"
+                                />
+                              ) : (
+                                handoffData.utilities.gas && <p className="font-medium mt-1">{handoffData.utilities.gas.provider}</p>
+                              )}
                             </div>
-                            {handoffData.utilities.gas.accountNumber && (
-                              <div>
-                                <p className="text-sm text-muted-foreground">Account Number</p>
-                                <p className="font-medium">{handoffData.utilities.gas.accountNumber}</p>
-                              </div>
-                            )}
-                            {handoffData.utilities.gas.customerServicePhone && (
-                              <div>
-                                <p className="text-sm text-muted-foreground">Phone</p>
-                                <p className="font-medium">{handoffData.utilities.gas.customerServicePhone}</p>
-                              </div>
+                            <div>
+                              <Label className="text-sm text-muted-foreground">Account Number</Label>
+                              {isEditMode ? (
+                                <Input
+                                  value={handoffData.utilities.gas?.accountNumber || ""}
+                                  onChange={(e) => setHandoffData({
+                                    ...handoffData,
+                                    utilities: {
+                                      ...handoffData.utilities,
+                                      gas: {
+                                        ...(handoffData.utilities.gas || { provider: "", includedInRent: false }),
+                                        accountNumber: e.target.value || undefined
+                                      }
+                                    }
+                                  })}
+                                  className="mt-1"
+                                  placeholder="Optional"
+                                />
+                              ) : (
+                                handoffData.utilities.gas?.accountNumber && (
+                                  <p className="font-medium mt-1">{handoffData.utilities.gas.accountNumber}</p>
+                                )
+                              )}
+                            </div>
+                            <div>
+                              <Label className="text-sm text-muted-foreground">Phone</Label>
+                              {isEditMode ? (
+                                <Input
+                                  value={handoffData.utilities.gas?.customerServicePhone || ""}
+                                  onChange={(e) => setHandoffData({
+                                    ...handoffData,
+                                    utilities: {
+                                      ...handoffData.utilities,
+                                      gas: {
+                                        ...(handoffData.utilities.gas || { provider: "", includedInRent: false }),
+                                        customerServicePhone: e.target.value || undefined
+                                      }
+                                    }
+                                  })}
+                                  className="mt-1"
+                                  placeholder="Optional"
+                                />
+                              ) : (
+                                handoffData.utilities.gas?.customerServicePhone && (
+                                  <p className="font-medium mt-1">{handoffData.utilities.gas.customerServicePhone}</p>
+                                )
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {isEditMode ? (
+                              <>
+                                <input
+                                  type="checkbox"
+                                  id="gas-included"
+                                  checked={handoffData.utilities.gas?.includedInRent || false}
+                                  onChange={(e) => setHandoffData({
+                                    ...handoffData,
+                                    utilities: {
+                                      ...handoffData.utilities,
+                                      gas: {
+                                        ...(handoffData.utilities.gas || { provider: "" }),
+                                        includedInRent: e.target.checked
+                                      }
+                                    }
+                                  })}
+                                  className="rounded"
+                                />
+                                <Label htmlFor="gas-included" className="cursor-pointer">Included in Rent</Label>
+                              </>
+                            ) : (
+                              handoffData.utilities.gas?.includedInRent && (
+                                <Badge variant="secondary">Included in Rent</Badge>
+                              )
                             )}
                           </div>
-                          {handoffData.utilities.gas.includedInRent && (
-                            <Badge variant="secondary">Included in Rent</Badge>
-                          )}
                         </CardContent>
                       </Card>
                     )}
@@ -2950,22 +3496,81 @@ export default function Handoff() {
                       <CardHeader>
                         <CardTitle>Water & Sewer</CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-2">
+                      <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <p className="text-sm text-muted-foreground">Provider</p>
-                            <p className="font-medium">{handoffData.utilities.water.provider}</p>
+                            <Label className="text-sm text-muted-foreground">Provider</Label>
+                            {isEditMode ? (
+                              <Input
+                                value={handoffData.utilities.water.provider}
+                                onChange={(e) => setHandoffData({
+                                  ...handoffData,
+                                  utilities: {
+                                    ...handoffData.utilities,
+                                    water: {
+                                      ...handoffData.utilities.water,
+                                      provider: e.target.value
+                                    }
+                                  }
+                                })}
+                                className="mt-1"
+                              />
+                            ) : (
+                              <p className="font-medium mt-1">{handoffData.utilities.water.provider}</p>
+                            )}
                           </div>
-                          {handoffData.utilities.water.accountNumber && (
-                            <div>
-                              <p className="text-sm text-muted-foreground">Account Number</p>
-                              <p className="font-medium">{handoffData.utilities.water.accountNumber}</p>
-                            </div>
+                          <div>
+                            <Label className="text-sm text-muted-foreground">Account Number</Label>
+                            {isEditMode ? (
+                              <Input
+                                value={handoffData.utilities.water.accountNumber || ""}
+                                onChange={(e) => setHandoffData({
+                                  ...handoffData,
+                                  utilities: {
+                                    ...handoffData.utilities,
+                                    water: {
+                                      ...handoffData.utilities.water,
+                                      accountNumber: e.target.value || undefined
+                                    }
+                                  }
+                                })}
+                                className="mt-1"
+                                placeholder="Optional"
+                              />
+                            ) : (
+                              handoffData.utilities.water.accountNumber && (
+                                <p className="font-medium mt-1">{handoffData.utilities.water.accountNumber}</p>
+                              )
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {isEditMode ? (
+                            <>
+                              <input
+                                type="checkbox"
+                                id="water-included"
+                                checked={handoffData.utilities.water.includedInRent || false}
+                                onChange={(e) => setHandoffData({
+                                  ...handoffData,
+                                  utilities: {
+                                    ...handoffData.utilities,
+                                    water: {
+                                      ...handoffData.utilities.water,
+                                      includedInRent: e.target.checked
+                                    }
+                                  }
+                                })}
+                                className="rounded"
+                              />
+                              <Label htmlFor="water-included" className="cursor-pointer">Included in Rent</Label>
+                            </>
+                          ) : (
+                            handoffData.utilities.water.includedInRent && (
+                              <Badge variant="secondary">Included in Rent</Badge>
+                            )
                           )}
                         </div>
-                        {handoffData.utilities.water.includedInRent && (
-                          <Badge variant="secondary">Included in Rent</Badge>
-                        )}
                       </CardContent>
                     </Card>
 
@@ -2977,17 +3582,134 @@ export default function Handoff() {
                       <CardContent>
                         <div className="space-y-4">
                           {handoffData.utilities.internet.map((service, index) => (
-                            <div key={index} className="p-4 border rounded-lg">
-                              <p className="font-semibold">{service.provider}</p>
-                              {service.phone && <p className="text-sm text-muted-foreground">{service.phone}</p>}
-                              {service.website && (
-                                <a href={service.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-1">
-                                  Visit website <ExternalLink className="h-3 w-3" />
-                                </a>
+                            <div key={index} className="p-4 border rounded-lg space-y-3">
+                              {isEditMode ? (
+                                <>
+                                  <div>
+                                    <Label className="text-sm font-semibold">Provider</Label>
+                                    <Input
+                                      value={service.provider}
+                                      onChange={(e) => {
+                                        const updatedInternet = [...handoffData.utilities.internet]
+                                        updatedInternet[index] = { ...service, provider: e.target.value }
+                                        setHandoffData({
+                                          ...handoffData,
+                                          utilities: {
+                                            ...handoffData.utilities,
+                                            internet: updatedInternet
+                                          }
+                                        })
+                                      }}
+                                      className="mt-1"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-sm text-muted-foreground">Phone</Label>
+                                    <Input
+                                      value={service.phone || ""}
+                                      onChange={(e) => {
+                                        const updatedInternet = [...handoffData.utilities.internet]
+                                        updatedInternet[index] = { ...service, phone: e.target.value || undefined }
+                                        setHandoffData({
+                                          ...handoffData,
+                                          utilities: {
+                                            ...handoffData.utilities,
+                                            internet: updatedInternet
+                                          }
+                                        })
+                                      }}
+                                      className="mt-1"
+                                      placeholder="Optional"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-sm text-muted-foreground">Website</Label>
+                                    <Input
+                                      value={service.website || ""}
+                                      onChange={(e) => {
+                                        const updatedInternet = [...handoffData.utilities.internet]
+                                        updatedInternet[index] = { ...service, website: e.target.value || undefined }
+                                        setHandoffData({
+                                          ...handoffData,
+                                          utilities: {
+                                            ...handoffData.utilities,
+                                            internet: updatedInternet
+                                          }
+                                        })
+                                      }}
+                                      className="mt-1"
+                                      placeholder="Optional"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-sm text-muted-foreground">Notes</Label>
+                                    <Textarea
+                                      value={service.notes || ""}
+                                      onChange={(e) => {
+                                        const updatedInternet = [...handoffData.utilities.internet]
+                                        updatedInternet[index] = { ...service, notes: e.target.value || undefined }
+                                        setHandoffData({
+                                          ...handoffData,
+                                          utilities: {
+                                            ...handoffData.utilities,
+                                            internet: updatedInternet
+                                          }
+                                        })
+                                      }}
+                                      className="mt-1"
+                                      placeholder="Optional"
+                                      rows={2}
+                                    />
+                                  </div>
+                                  {handoffData.utilities.internet.length > 1 && (
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => {
+                                        const updatedInternet = handoffData.utilities.internet.filter((_, i) => i !== index)
+                                        setHandoffData({
+                                          ...handoffData,
+                                          utilities: {
+                                            ...handoffData.utilities,
+                                            internet: updatedInternet
+                                          }
+                                        })
+                                      }}
+                                    >
+                                      Remove
+                                    </Button>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  <p className="font-semibold">{service.provider}</p>
+                                  {service.phone && <p className="text-sm text-muted-foreground">{service.phone}</p>}
+                                  {service.website && (
+                                    <a href={service.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-1">
+                                      Visit website <ExternalLink className="h-3 w-3" />
+                                    </a>
+                                  )}
+                                  {service.notes && <p className="text-sm text-muted-foreground mt-1">{service.notes}</p>}
+                                </>
                               )}
-                              {service.notes && <p className="text-sm text-muted-foreground mt-1">{service.notes}</p>}
                             </div>
                           ))}
+                          {isEditMode && (
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setHandoffData({
+                                  ...handoffData,
+                                  utilities: {
+                                    ...handoffData.utilities,
+                                    internet: [...handoffData.utilities.internet, { provider: "" }]
+                                  }
+                                })
+                              }}
+                            >
+                              Add Internet Service
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -2997,25 +3719,170 @@ export default function Handoff() {
                       <CardHeader>
                         <CardTitle>Trash & Recycling</CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-2">
+                      <CardContent className="space-y-4">
                         <div>
-                          <p className="text-sm text-muted-foreground">Collection Days</p>
-                          <p className="font-medium">Trash: {handoffData.utilities.trash.collectionDays.trash.join(", ")}</p>
-                          <p className="font-medium">Recycling: {handoffData.utilities.trash.collectionDays.recycling.join(", ")}</p>
-                          {handoffData.utilities.trash.collectionDays.bulk.length > 0 && (
-                            <p className="font-medium">Bulk: {handoffData.utilities.trash.collectionDays.bulk.join(", ")}</p>
+                          <Label className="text-sm text-muted-foreground">Collection Days (comma-separated)</Label>
+                          {isEditMode ? (
+                            <div className="space-y-2 mt-2">
+                              <div>
+                                <Label className="text-xs">Trash Days</Label>
+                                <Input
+                                  value={handoffData.utilities.trash.collectionDays.trash.join(", ")}
+                                  onChange={(e) => setHandoffData({
+                                    ...handoffData,
+                                    utilities: {
+                                      ...handoffData.utilities,
+                                      trash: {
+                                        ...handoffData.utilities.trash,
+                                        collectionDays: {
+                                          ...handoffData.utilities.trash.collectionDays,
+                                          trash: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                        }
+                                      }
+                                    }
+                                  })}
+                                  className="mt-1"
+                                  placeholder="e.g., Monday, Wednesday, Friday"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs">Recycling Days</Label>
+                                <Input
+                                  value={handoffData.utilities.trash.collectionDays.recycling.join(", ")}
+                                  onChange={(e) => setHandoffData({
+                                    ...handoffData,
+                                    utilities: {
+                                      ...handoffData.utilities,
+                                      trash: {
+                                        ...handoffData.utilities.trash,
+                                        collectionDays: {
+                                          ...handoffData.utilities.trash.collectionDays,
+                                          recycling: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                        }
+                                      }
+                                    }
+                                  })}
+                                  className="mt-1"
+                                  placeholder="e.g., Tuesday, Thursday"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs">Bulk Pickup Days (optional)</Label>
+                                <Input
+                                  value={handoffData.utilities.trash.collectionDays.bulk.join(", ")}
+                                  onChange={(e) => setHandoffData({
+                                    ...handoffData,
+                                    utilities: {
+                                      ...handoffData.utilities,
+                                      trash: {
+                                        ...handoffData.utilities.trash,
+                                        collectionDays: {
+                                          ...handoffData.utilities.trash.collectionDays,
+                                          bulk: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                        }
+                                      }
+                                    }
+                                  })}
+                                  className="mt-1"
+                                  placeholder="e.g., First Monday of month"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="mt-2">
+                              <p className="font-medium">Trash: {handoffData.utilities.trash.collectionDays.trash.join(", ")}</p>
+                              <p className="font-medium">Recycling: {handoffData.utilities.trash.collectionDays.recycling.join(", ")}</p>
+                              {handoffData.utilities.trash.collectionDays.bulk.length > 0 && (
+                                <p className="font-medium">Bulk: {handoffData.utilities.trash.collectionDays.bulk.join(", ")}</p>
+                              )}
+                            </div>
                           )}
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Bin Location</p>
-                          <p className="font-medium">{handoffData.utilities.trash.binLocation}</p>
+                          <Label className="text-sm text-muted-foreground">Bin Location</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={handoffData.utilities.trash.binLocation}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                utilities: {
+                                  ...handoffData.utilities,
+                                  trash: {
+                                    ...handoffData.utilities.trash,
+                                    binLocation: e.target.value
+                                  }
+                                }
+                              })}
+                              className="mt-1"
+                            />
+                          ) : (
+                            <p className="font-medium mt-1">{handoffData.utilities.trash.binLocation}</p>
+                          )}
                         </div>
-                        {handoffData.utilities.trash.specialInstructions && (
-                          <p className="text-sm"><strong>Instructions:</strong> {handoffData.utilities.trash.specialInstructions}</p>
-                        )}
+                        <div>
+                          <Label className="text-sm text-muted-foreground">Special Instructions</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.utilities.trash.specialInstructions || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                utilities: {
+                                  ...handoffData.utilities,
+                                  trash: {
+                                    ...handoffData.utilities.trash,
+                                    specialInstructions: e.target.value || undefined
+                                  }
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={3}
+                            />
+                          ) : (
+                            handoffData.utilities.trash.specialInstructions && (
+                              <p className="text-sm mt-1"><strong>Instructions:</strong> {handoffData.utilities.trash.specialInstructions}</p>
+                            )
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            description: "Utilities & Services information has been updated.",
+                            duration: 3000,
+                          })
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3030,75 +3897,380 @@ export default function Handoff() {
                   </DialogHeader>
                   <div className="space-y-6 mt-4">
                     {/* Keys */}
-                    {handoffData.access.keys && handoffData.access.keys.length > 0 && (
+                    {(handoffData.access.keys && handoffData.access.keys.length > 0 || isEditMode) && (
                       <Card>
                         <CardHeader>
                           <CardTitle>Keys</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-3">
-                            {handoffData.access.keys.map((key, index) => (
-                              <div key={index} className="p-3 border rounded-lg">
-                                <p className="font-medium">{key.label}</p>
-                                {key.location && <p className="text-sm text-muted-foreground">Location: {key.location}</p>}
-                                {key.notes && <p className="text-sm text-muted-foreground">{key.notes}</p>}
+                            {(handoffData.access.keys || []).map((key, index) => (
+                              <div key={index} className="p-3 border rounded-lg space-y-2">
+                                {isEditMode ? (
+                                  <>
+                                    <div>
+                                      <Label className="text-sm font-medium">Label</Label>
+                                      <Input
+                                        value={key.label}
+                                        onChange={(e) => {
+                                          const updatedKeys = [...(handoffData.access.keys || [])]
+                                          updatedKeys[index] = { ...key, label: e.target.value }
+                                          setHandoffData({
+                                            ...handoffData,
+                                            access: {
+                                              ...handoffData.access,
+                                              keys: updatedKeys
+                                            }
+                                          })
+                                        }}
+                                        className="mt-1"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-sm text-muted-foreground">Location</Label>
+                                      <Input
+                                        value={key.location || ""}
+                                        onChange={(e) => {
+                                          const updatedKeys = [...(handoffData.access.keys || [])]
+                                          updatedKeys[index] = { ...key, location: e.target.value || undefined }
+                                          setHandoffData({
+                                            ...handoffData,
+                                            access: {
+                                              ...handoffData.access,
+                                              keys: updatedKeys
+                                            }
+                                          })
+                                        }}
+                                        className="mt-1"
+                                        placeholder="Optional"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-sm text-muted-foreground">Notes</Label>
+                                      <Textarea
+                                        value={key.notes || ""}
+                                        onChange={(e) => {
+                                          const updatedKeys = [...(handoffData.access.keys || [])]
+                                          updatedKeys[index] = { ...key, notes: e.target.value || undefined }
+                                          setHandoffData({
+                                            ...handoffData,
+                                            access: {
+                                              ...handoffData.access,
+                                              keys: updatedKeys
+                                            }
+                                          })
+                                        }}
+                                        className="mt-1"
+                                        placeholder="Optional"
+                                        rows={2}
+                                      />
+                                    </div>
+                                    {(handoffData.access.keys || []).length > 1 && (
+                                      <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => {
+                                          const updatedKeys = (handoffData.access.keys || []).filter((_, i) => i !== index)
+                                          setHandoffData({
+                                            ...handoffData,
+                                            access: {
+                                              ...handoffData.access,
+                                              keys: updatedKeys
+                                            }
+                                          })
+                                        }}
+                                      >
+                                        Remove
+                                      </Button>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <p className="font-medium">{key.label}</p>
+                                    {key.location && <p className="text-sm text-muted-foreground">Location: {key.location}</p>}
+                                    {key.notes && <p className="text-sm text-muted-foreground">{key.notes}</p>}
+                                  </>
+                                )}
                               </div>
                             ))}
+                            {isEditMode && (
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setHandoffData({
+                                    ...handoffData,
+                                    access: {
+                                      ...handoffData.access,
+                                      keys: [...(handoffData.access.keys || []), { label: "" }]
+                                    }
+                                  })
+                                }}
+                              >
+                                Add Key
+                              </Button>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
                     )}
 
                     {/* Access Codes */}
-                    {handoffData.access.codes && handoffData.access.codes.length > 0 && (
+                    {(handoffData.access.codes && handoffData.access.codes.length > 0 || isEditMode) && (
                       <Card>
                         <CardHeader>
                           <CardTitle>Access Codes</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-3">
-                            {handoffData.access.codes.map((code, index) => (
-                              <div key={index} className="p-3 border rounded-lg">
-                                <p className="font-medium">{code.type}</p>
-                                <p className="text-lg font-mono">{code.code}</p>
-                                {code.location && <p className="text-sm text-muted-foreground">Location: {code.location}</p>}
-                                {code.instructions && <p className="text-sm text-muted-foreground">{code.instructions}</p>}
+                            {(handoffData.access.codes || []).map((code, index) => (
+                              <div key={index} className="p-3 border rounded-lg space-y-2">
+                                {isEditMode ? (
+                                  <>
+                                    <div>
+                                      <Label className="text-sm font-medium">Type</Label>
+                                      <Input
+                                        value={code.type}
+                                        onChange={(e) => {
+                                          const updatedCodes = [...(handoffData.access.codes || [])]
+                                          updatedCodes[index] = { ...code, type: e.target.value }
+                                          setHandoffData({
+                                            ...handoffData,
+                                            access: {
+                                              ...handoffData.access,
+                                              codes: updatedCodes
+                                            }
+                                          })
+                                        }}
+                                        className="mt-1"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-sm font-medium">Code</Label>
+                                      <Input
+                                        value={code.code}
+                                        onChange={(e) => {
+                                          const updatedCodes = [...(handoffData.access.codes || [])]
+                                          updatedCodes[index] = { ...code, code: e.target.value }
+                                          setHandoffData({
+                                            ...handoffData,
+                                            access: {
+                                              ...handoffData.access,
+                                              codes: updatedCodes
+                                            }
+                                          })
+                                        }}
+                                        className="mt-1 font-mono"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-sm text-muted-foreground">Location</Label>
+                                      <Input
+                                        value={code.location || ""}
+                                        onChange={(e) => {
+                                          const updatedCodes = [...(handoffData.access.codes || [])]
+                                          updatedCodes[index] = { ...code, location: e.target.value || undefined }
+                                          setHandoffData({
+                                            ...handoffData,
+                                            access: {
+                                              ...handoffData.access,
+                                              codes: updatedCodes
+                                            }
+                                          })
+                                        }}
+                                        className="mt-1"
+                                        placeholder="Optional"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-sm text-muted-foreground">Instructions</Label>
+                                      <Textarea
+                                        value={code.instructions || ""}
+                                        onChange={(e) => {
+                                          const updatedCodes = [...(handoffData.access.codes || [])]
+                                          updatedCodes[index] = { ...code, instructions: e.target.value || undefined }
+                                          setHandoffData({
+                                            ...handoffData,
+                                            access: {
+                                              ...handoffData.access,
+                                              codes: updatedCodes
+                                            }
+                                          })
+                                        }}
+                                        className="mt-1"
+                                        placeholder="Optional"
+                                        rows={2}
+                                      />
+                                    </div>
+                                    {(handoffData.access.codes || []).length > 1 && (
+                                      <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => {
+                                          const updatedCodes = (handoffData.access.codes || []).filter((_, i) => i !== index)
+                                          setHandoffData({
+                                            ...handoffData,
+                                            access: {
+                                              ...handoffData.access,
+                                              codes: updatedCodes
+                                            }
+                                          })
+                                        }}
+                                      >
+                                        Remove
+                                      </Button>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <p className="font-medium">{code.type}</p>
+                                    <p className="text-lg font-mono">{code.code}</p>
+                                    {code.location && <p className="text-sm text-muted-foreground">Location: {code.location}</p>}
+                                    {code.instructions && <p className="text-sm text-muted-foreground">{code.instructions}</p>}
+                                  </>
+                                )}
                               </div>
                             ))}
+                            {isEditMode && (
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setHandoffData({
+                                    ...handoffData,
+                                    access: {
+                                      ...handoffData.access,
+                                      codes: [...(handoffData.access.codes || []), { type: "", code: "" }]
+                                    }
+                                  })
+                                }}
+                              >
+                                Add Access Code
+                              </Button>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
                     )}
 
                     {/* Alarm */}
-                    {handoffData.access.alarm && (
+                    {(handoffData.access.alarm || isEditMode) && (
                       <Card>
                         <CardHeader>
                           <CardTitle>Alarm System</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-2">
-                          {handoffData.access.alarm.provider && (
-                            <div>
-                              <p className="text-sm text-muted-foreground">Provider</p>
-                              <p className="font-medium">{handoffData.access.alarm.provider}</p>
-                            </div>
-                          )}
-                          {handoffData.access.alarm.code && (
-                            <div>
-                              <p className="text-sm text-muted-foreground">Code</p>
-                              <p className="font-medium font-mono">{handoffData.access.alarm.code}</p>
-                            </div>
-                          )}
-                          {handoffData.access.alarm.instructions && (
-                            <div>
-                              <p className="text-sm text-muted-foreground">Instructions</p>
-                              <p className="text-sm">{handoffData.access.alarm.instructions}</p>
-                            </div>
-                          )}
+                        <CardContent className="space-y-4">
+                          <div>
+                            <Label className="text-sm text-muted-foreground">Provider</Label>
+                            {isEditMode ? (
+                              <Input
+                                value={handoffData.access.alarm?.provider || ""}
+                                onChange={(e) => setHandoffData({
+                                  ...handoffData,
+                                  access: {
+                                    ...handoffData.access,
+                                    alarm: {
+                                      ...(handoffData.access.alarm || {}),
+                                      provider: e.target.value || undefined
+                                    }
+                                  }
+                                })}
+                                className="mt-1"
+                                placeholder="Optional"
+                              />
+                            ) : (
+                              handoffData.access.alarm?.provider && (
+                                <p className="font-medium mt-1">{handoffData.access.alarm.provider}</p>
+                              )
+                            )}
+                          </div>
+                          <div>
+                            <Label className="text-sm text-muted-foreground">Code</Label>
+                            {isEditMode ? (
+                              <Input
+                                value={handoffData.access.alarm?.code || ""}
+                                onChange={(e) => setHandoffData({
+                                  ...handoffData,
+                                  access: {
+                                    ...handoffData.access,
+                                    alarm: {
+                                      ...(handoffData.access.alarm || {}),
+                                      code: e.target.value || undefined
+                                    }
+                                  }
+                                })}
+                                className="mt-1 font-mono"
+                                placeholder="Optional"
+                              />
+                            ) : (
+                              handoffData.access.alarm?.code && (
+                                <p className="font-medium font-mono mt-1">{handoffData.access.alarm.code}</p>
+                              )
+                            )}
+                          </div>
+                          <div>
+                            <Label className="text-sm text-muted-foreground">Instructions</Label>
+                            {isEditMode ? (
+                              <Textarea
+                                value={handoffData.access.alarm?.instructions || ""}
+                                onChange={(e) => setHandoffData({
+                                  ...handoffData,
+                                  access: {
+                                    ...handoffData.access,
+                                    alarm: {
+                                      ...(handoffData.access.alarm || {}),
+                                      instructions: e.target.value || undefined
+                                    }
+                                  }
+                                })}
+                                className="mt-1"
+                                placeholder="Optional"
+                                rows={3}
+                              />
+                            ) : (
+                              handoffData.access.alarm?.instructions && (
+                                <p className="text-sm mt-1">{handoffData.access.alarm.instructions}</p>
+                              )
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     )}
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Property Access & Security information has been updated.",
+                          })
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3113,48 +4285,176 @@ export default function Handoff() {
                   </DialogHeader>
                   <div className="space-y-4 mt-4">
                     <Card>
-                      <CardContent className="pt-6 space-y-3">
+                      <CardContent className="pt-6 space-y-4">
                         <div>
-                          <p className="text-sm text-muted-foreground">Mailbox Number</p>
-                          <p className="font-medium">{handoffData.mailbox.number}</p>
+                          <Label className="text-sm text-muted-foreground">Mailbox Number</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={handoffData.mailbox.number}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                mailbox: {
+                                  ...handoffData.mailbox,
+                                  number: e.target.value
+                                }
+                              })}
+                              className="mt-1"
+                            />
+                          ) : (
+                            <p className="font-medium mt-1">{handoffData.mailbox.number}</p>
+                          )}
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Location</p>
-                          <p className="font-medium">{handoffData.mailbox.location}</p>
+                          <Label className="text-sm text-muted-foreground">Location</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={handoffData.mailbox.location}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                mailbox: {
+                                  ...handoffData.mailbox,
+                                  location: e.target.value
+                                }
+                              })}
+                              className="mt-1"
+                            />
+                          ) : (
+                            <p className="font-medium mt-1">{handoffData.mailbox.location}</p>
+                          )}
                         </div>
-                        {handoffData.mailbox.keyDetails && (
-                          <div>
-                            <p className="text-sm text-muted-foreground">Key Details</p>
-                            <p className="font-medium">{handoffData.mailbox.keyDetails}</p>
-                          </div>
-                        )}
-                        {handoffData.mailbox.packageDeliveryArea && (
-                          <div>
-                            <p className="text-sm text-muted-foreground">Package Delivery Area</p>
-                            <p className="font-medium">{handoffData.mailbox.packageDeliveryArea}</p>
-                          </div>
-                        )}
-                        {handoffData.mailbox.parcelLockerInstructions && (
-                          <div>
-                            <p className="text-sm text-muted-foreground">Parcel Locker Instructions</p>
-                            <p className="font-medium">{handoffData.mailbox.parcelLockerInstructions}</p>
-                          </div>
-                        )}
-                        {handoffData.mailbox.mailHoldProcedure && (
-                          <div>
-                            <p className="text-sm text-muted-foreground">Mail Hold Procedure</p>
-                            <p className="font-medium">{handoffData.mailbox.mailHoldProcedure}</p>
-                          </div>
-                        )}
-                        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                          <p className="text-sm font-medium">Remember to update your address with USPS</p>
-                          <a href="https://www.usps.com/manage/change-of-address.htm" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-1 mt-1">
-                            Change of Address Form <ExternalLink className="h-3 w-3" />
-                          </a>
+                        <div>
+                          <Label className="text-sm text-muted-foreground">Key Details</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={handoffData.mailbox.keyDetails || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                mailbox: {
+                                  ...handoffData.mailbox,
+                                  keyDetails: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                            />
+                          ) : (
+                            handoffData.mailbox.keyDetails && (
+                              <p className="font-medium mt-1">{handoffData.mailbox.keyDetails}</p>
+                            )
+                          )}
                         </div>
+                        <div>
+                          <Label className="text-sm text-muted-foreground">Package Delivery Area</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={handoffData.mailbox.packageDeliveryArea || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                mailbox: {
+                                  ...handoffData.mailbox,
+                                  packageDeliveryArea: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                            />
+                          ) : (
+                            handoffData.mailbox.packageDeliveryArea && (
+                              <p className="font-medium mt-1">{handoffData.mailbox.packageDeliveryArea}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="text-sm text-muted-foreground">Parcel Locker Instructions</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.mailbox.parcelLockerInstructions || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                mailbox: {
+                                  ...handoffData.mailbox,
+                                  parcelLockerInstructions: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={3}
+                            />
+                          ) : (
+                            handoffData.mailbox.parcelLockerInstructions && (
+                              <p className="font-medium mt-1">{handoffData.mailbox.parcelLockerInstructions}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="text-sm text-muted-foreground">Mail Hold Procedure</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.mailbox.mailHoldProcedure || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                mailbox: {
+                                  ...handoffData.mailbox,
+                                  mailHoldProcedure: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={3}
+                            />
+                          ) : (
+                            handoffData.mailbox.mailHoldProcedure && (
+                              <p className="font-medium mt-1">{handoffData.mailbox.mailHoldProcedure}</p>
+                            )
+                          )}
+                        </div>
+                        {!isEditMode && (
+                          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                            <p className="text-sm font-medium">Remember to update your address with USPS</p>
+                            <a href="https://www.usps.com/manage/change-of-address.htm" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-1 mt-1">
+                              Change of Address Form <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Mailbox & Packages information has been updated.",
+                          })
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3172,40 +4472,179 @@ export default function Handoff() {
                       {handoffData.appliances.map((appliance, index) => (
                         <Card key={index}>
                           <CardHeader>
-                            <CardTitle className="text-lg">{appliance.name}</CardTitle>
+                            {isEditMode ? (
+                              <Input
+                                value={appliance.name}
+                                onChange={(e) => {
+                                  const updatedAppliances = [...handoffData.appliances]
+                                  updatedAppliances[index] = { ...appliance, name: e.target.value }
+                                  setHandoffData({
+                                    ...handoffData,
+                                    appliances: updatedAppliances
+                                  })
+                                }}
+                                className="text-lg font-semibold"
+                                placeholder="Appliance Name"
+                              />
+                            ) : (
+                              <CardTitle className="text-lg">{appliance.name}</CardTitle>
+                            )}
                           </CardHeader>
-                          <CardContent className="space-y-2">
-                            {appliance.model && (
-                              <div>
-                                <p className="text-sm text-muted-foreground">Model</p>
-                                <p className="font-medium">{appliance.model}</p>
-                              </div>
+                          <CardContent className="space-y-3">
+                            <div>
+                              <Label className="text-sm text-muted-foreground">Model</Label>
+                              {isEditMode ? (
+                                <Input
+                                  value={appliance.model || ""}
+                                  onChange={(e) => {
+                                    const updatedAppliances = [...handoffData.appliances]
+                                    updatedAppliances[index] = { ...appliance, model: e.target.value || undefined }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      appliances: updatedAppliances
+                                    })
+                                  }}
+                                  className="mt-1"
+                                  placeholder="Optional"
+                                />
+                              ) : (
+                                appliance.model && <p className="font-medium mt-1">{appliance.model}</p>
+                              )}
+                            </div>
+                            <div>
+                              <Label className="text-sm text-muted-foreground">Location</Label>
+                              {isEditMode ? (
+                                <Input
+                                  value={appliance.location || ""}
+                                  onChange={(e) => {
+                                    const updatedAppliances = [...handoffData.appliances]
+                                    updatedAppliances[index] = { ...appliance, location: e.target.value || undefined }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      appliances: updatedAppliances
+                                    })
+                                  }}
+                                  className="mt-1"
+                                  placeholder="Optional"
+                                />
+                              ) : (
+                                appliance.location && <p className="font-medium mt-1">{appliance.location}</p>
+                              )}
+                            </div>
+                            <div>
+                              <Label className="text-sm text-muted-foreground">Manual Link</Label>
+                              {isEditMode ? (
+                                <Input
+                                  value={appliance.manualLink || ""}
+                                  onChange={(e) => {
+                                    const updatedAppliances = [...handoffData.appliances]
+                                    updatedAppliances[index] = { ...appliance, manualLink: e.target.value || undefined }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      appliances: updatedAppliances
+                                    })
+                                  }}
+                                  className="mt-1"
+                                  placeholder="Optional URL"
+                                />
+                              ) : (
+                                appliance.manualLink && (
+                                  <a href={appliance.manualLink} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-1 mt-1">
+                                    View Manual <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                )
+                              )}
+                            </div>
+                            <div>
+                              <Label className="text-sm text-muted-foreground">Instructions</Label>
+                              {isEditMode ? (
+                                <Textarea
+                                  value={appliance.instructions || ""}
+                                  onChange={(e) => {
+                                    const updatedAppliances = [...handoffData.appliances]
+                                    updatedAppliances[index] = { ...appliance, instructions: e.target.value || undefined }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      appliances: updatedAppliances
+                                    })
+                                  }}
+                                  className="mt-1"
+                                  placeholder="Optional"
+                                  rows={3}
+                                />
+                              ) : (
+                                appliance.instructions && <p className="text-sm mt-1">{appliance.instructions}</p>
+                              )}
+                            </div>
+                            {isEditMode && handoffData.appliances.length > 1 && (
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => {
+                                  const updatedAppliances = handoffData.appliances.filter((_, i) => i !== index)
+                                  setHandoffData({
+                                    ...handoffData,
+                                    appliances: updatedAppliances
+                                  })
+                                }}
+                              >
+                                Remove Appliance
+                              </Button>
                             )}
-                            {appliance.location && (
-                              <div>
-                                <p className="text-sm text-muted-foreground">Location</p>
-                                <p className="font-medium">{appliance.location}</p>
-                              </div>
-                            )}
-                            {appliance.manualLink && (
-                              <a href={appliance.manualLink} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-1">
-                                View Manual <ExternalLink className="h-3 w-3" />
-                              </a>
-                            )}
-                            {appliance.instructions && (
-                              <p className="text-sm">{appliance.instructions}</p>
-                            )}
-                            {appliance.details && Object.entries(appliance.details).map(([key, value]) => (
-                              <div key={key}>
-                                <p className="text-sm text-muted-foreground capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
-                                <p className="font-medium">{value}</p>
-                              </div>
-                            ))}
                           </CardContent>
                         </Card>
                       ))}
                     </div>
+                    {isEditMode && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setHandoffData({
+                            ...handoffData,
+                            appliances: [...handoffData.appliances, { name: "", type: "other" }]
+                          })
+                        }}
+                      >
+                        Add Appliance
+                      </Button>
+                    )}
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Appliances & Systems information has been updated.",
+                          })
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3223,16 +4662,123 @@ export default function Handoff() {
                       <CardHeader>
                         <CardTitle>How to Submit Requests</CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <p className="font-medium">{handoffData.maintenance.requestMethod}</p>
-                        <div className="mt-4 space-y-2">
-                          {handoffData.maintenance.contacts.map((contact, index) => (
-                            <div key={index}>
-                              <p className="font-medium">{contact.name}</p>
-                              {contact.phone && <p className="text-sm text-muted-foreground">{contact.phone}</p>}
-                              {contact.email && <p className="text-sm text-muted-foreground">{contact.email}</p>}
+                      <CardContent className="space-y-4">
+                        <div>
+                          <Label className="text-sm font-medium">Request Method</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.maintenance.requestMethod}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                maintenance: {
+                                  ...handoffData.maintenance,
+                                  requestMethod: e.target.value
+                                }
+                              })}
+                              className="mt-1"
+                              rows={3}
+                            />
+                          ) : (
+                            <p className="font-medium mt-1">{handoffData.maintenance.requestMethod}</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Contacts</Label>
+                          {isEditMode ? (
+                            <div className="space-y-3 mt-2">
+                              {handoffData.maintenance.contacts.map((contact, index) => (
+                                <div key={index} className="p-3 border rounded-lg space-y-2">
+                                  <Input
+                                    value={contact.name}
+                                    onChange={(e) => {
+                                      const updatedContacts = [...handoffData.maintenance.contacts]
+                                      updatedContacts[index] = { ...contact, name: e.target.value }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        maintenance: {
+                                          ...handoffData.maintenance,
+                                          contacts: updatedContacts
+                                        }
+                                      })
+                                    }}
+                                    placeholder="Name"
+                                  />
+                                  <Input
+                                    value={contact.phone || ""}
+                                    onChange={(e) => {
+                                      const updatedContacts = [...handoffData.maintenance.contacts]
+                                      updatedContacts[index] = { ...contact, phone: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        maintenance: {
+                                          ...handoffData.maintenance,
+                                          contacts: updatedContacts
+                                        }
+                                      })
+                                    }}
+                                    placeholder="Phone (optional)"
+                                  />
+                                  <Input
+                                    value={contact.email || ""}
+                                    onChange={(e) => {
+                                      const updatedContacts = [...handoffData.maintenance.contacts]
+                                      updatedContacts[index] = { ...contact, email: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        maintenance: {
+                                          ...handoffData.maintenance,
+                                          contacts: updatedContacts
+                                        }
+                                      })
+                                    }}
+                                    placeholder="Email (optional)"
+                                  />
+                                  {handoffData.maintenance.contacts.length > 1 && (
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => {
+                                        const updatedContacts = handoffData.maintenance.contacts.filter((_, i) => i !== index)
+                                        setHandoffData({
+                                          ...handoffData,
+                                          maintenance: {
+                                            ...handoffData.maintenance,
+                                            contacts: updatedContacts
+                                          }
+                                        })
+                                      }}
+                                    >
+                                      Remove
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setHandoffData({
+                                    ...handoffData,
+                                    maintenance: {
+                                      ...handoffData.maintenance,
+                                      contacts: [...handoffData.maintenance.contacts, { name: "", phone: "" }]
+                                    }
+                                  })
+                                }}
+                              >
+                                Add Contact
+                              </Button>
                             </div>
-                          ))}
+                          ) : (
+                            <div className="mt-2 space-y-2">
+                              {handoffData.maintenance.contacts.map((contact, index) => (
+                                <div key={index}>
+                                  <p className="font-medium">{contact.name}</p>
+                                  {contact.phone && <p className="text-sm text-muted-foreground">{contact.phone}</p>}
+                                  {contact.email && <p className="text-sm text-muted-foreground">{contact.email}</p>}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -3242,7 +4788,21 @@ export default function Handoff() {
                         <CardTitle>Response Times</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p>{handoffData.maintenance.responseTimes}</p>
+                        {isEditMode ? (
+                          <Textarea
+                            value={handoffData.maintenance.responseTimes}
+                            onChange={(e) => setHandoffData({
+                              ...handoffData,
+                              maintenance: {
+                                ...handoffData.maintenance,
+                                responseTimes: e.target.value
+                              }
+                            })}
+                            rows={3}
+                          />
+                        ) : (
+                          <p>{handoffData.maintenance.responseTimes}</p>
+                        )}
                       </CardContent>
                     </Card>
 
@@ -3251,51 +4811,222 @@ export default function Handoff() {
                         <CardTitle>Responsibilities</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p>{handoffData.maintenance.responsibilities}</p>
+                        {isEditMode ? (
+                          <Textarea
+                            value={handoffData.maintenance.responsibilities}
+                            onChange={(e) => setHandoffData({
+                              ...handoffData,
+                              maintenance: {
+                                ...handoffData.maintenance,
+                                responsibilities: e.target.value
+                              }
+                            })}
+                            rows={4}
+                          />
+                        ) : (
+                          <p>{handoffData.maintenance.responsibilities}</p>
+                        )}
                       </CardContent>
                     </Card>
 
-                    {handoffData.maintenance.preferredContractors && handoffData.maintenance.preferredContractors.length > 0 && (
+                    {(handoffData.maintenance.preferredContractors && handoffData.maintenance.preferredContractors.length > 0 || isEditMode) && (
                       <Card>
                         <CardHeader>
                           <CardTitle>Preferred Contractors</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="space-y-3">
-                            {handoffData.maintenance.preferredContractors.map((contractor, index) => (
-                              <div key={index} className="p-3 border rounded-lg">
-                                <p className="font-medium">{contractor.name}</p>
-                                <p className="text-sm text-muted-foreground">{contractor.phone}</p>
-                                {contractor.notes && <p className="text-sm text-muted-foreground">{contractor.notes}</p>}
-                              </div>
-                            ))}
-                          </div>
+                          {isEditMode ? (
+                            <div className="space-y-3">
+                              {(handoffData.maintenance.preferredContractors || []).map((contractor, index) => (
+                                <div key={index} className="p-3 border rounded-lg space-y-2">
+                                  <Input
+                                    value={contractor.name}
+                                    onChange={(e) => {
+                                      const updatedContractors = [...(handoffData.maintenance.preferredContractors || [])]
+                                      updatedContractors[index] = { ...contractor, name: e.target.value }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        maintenance: {
+                                          ...handoffData.maintenance,
+                                          preferredContractors: updatedContractors
+                                        }
+                                      })
+                                    }}
+                                    placeholder="Contractor Name"
+                                  />
+                                  <Input
+                                    value={contractor.phone || ""}
+                                    onChange={(e) => {
+                                      const updatedContractors = [...(handoffData.maintenance.preferredContractors || [])]
+                                      updatedContractors[index] = { ...contractor, phone: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        maintenance: {
+                                          ...handoffData.maintenance,
+                                          preferredContractors: updatedContractors
+                                        }
+                                      })
+                                    }}
+                                    placeholder="Phone (optional)"
+                                  />
+                                  <Textarea
+                                    value={contractor.notes || ""}
+                                    onChange={(e) => {
+                                      const updatedContractors = [...(handoffData.maintenance.preferredContractors || [])]
+                                      updatedContractors[index] = { ...contractor, notes: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        maintenance: {
+                                          ...handoffData.maintenance,
+                                          preferredContractors: updatedContractors
+                                        }
+                                      })
+                                    }}
+                                    placeholder="Notes (optional)"
+                                    rows={2}
+                                  />
+                                  {(handoffData.maintenance.preferredContractors || []).length > 1 && (
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => {
+                                        const updatedContractors = (handoffData.maintenance.preferredContractors || []).filter((_, i) => i !== index)
+                                        setHandoffData({
+                                          ...handoffData,
+                                          maintenance: {
+                                            ...handoffData.maintenance,
+                                            preferredContractors: updatedContractors
+                                          }
+                                        })
+                                      }}
+                                    >
+                                      Remove
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setHandoffData({
+                                    ...handoffData,
+                                    maintenance: {
+                                      ...handoffData.maintenance,
+                                      preferredContractors: [...(handoffData.maintenance.preferredContractors || []), { name: "", phone: "" }]
+                                    }
+                                  })
+                                }}
+                              >
+                                Add Contractor
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {handoffData.maintenance.preferredContractors?.map((contractor, index) => (
+                                <div key={index} className="p-3 border rounded-lg">
+                                  <p className="font-medium">{contractor.name}</p>
+                                  <p className="text-sm text-muted-foreground">{contractor.phone}</p>
+                                  {contractor.notes && <p className="text-sm text-muted-foreground">{contractor.notes}</p>}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     )}
 
-                    {handoffData.maintenance.preventiveMaintenanceSchedule && (
+                    {(handoffData.maintenance.preventiveMaintenanceSchedule || isEditMode) && (
                       <Card>
                         <CardHeader>
                           <CardTitle>Preventive Maintenance Schedule</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <p>{handoffData.maintenance.preventiveMaintenanceSchedule}</p>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.maintenance.preventiveMaintenanceSchedule || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                maintenance: {
+                                  ...handoffData.maintenance,
+                                  preventiveMaintenanceSchedule: e.target.value || undefined
+                                }
+                              })}
+                              placeholder="Optional"
+                              rows={4}
+                            />
+                          ) : (
+                            handoffData.maintenance.preventiveMaintenanceSchedule && (
+                              <p>{handoffData.maintenance.preventiveMaintenanceSchedule}</p>
+                            )
+                          )}
                         </CardContent>
                       </Card>
                     )}
 
-                    {handoffData.maintenance.filterChangeInfo && (
+                    {(handoffData.maintenance.filterChangeInfo || isEditMode) && (
                       <Card>
                         <CardHeader>
                           <CardTitle>Filter Change Information</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <p>{handoffData.maintenance.filterChangeInfo}</p>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.maintenance.filterChangeInfo || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                maintenance: {
+                                  ...handoffData.maintenance,
+                                  filterChangeInfo: e.target.value || undefined
+                                }
+                              })}
+                              placeholder="Optional"
+                              rows={4}
+                            />
+                          ) : (
+                            handoffData.maintenance.filterChangeInfo && (
+                              <p>{handoffData.maintenance.filterChangeInfo}</p>
+                            )
+                          )}
                         </CardContent>
                       </Card>
                     )}
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Maintenance & Repairs information has been updated.",
+                          })
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3312,54 +5043,217 @@ export default function Handoff() {
                     <Card>
                       <CardContent className="pt-6 space-y-4">
                         <div>
-                          <p className="font-semibold">Smoking</p>
-                          <p className="text-sm text-muted-foreground">{handoffData.policies.smoking}</p>
+                          <Label className="font-semibold">Smoking</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.policies.smoking}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                policies: {
+                                  ...handoffData.policies,
+                                  smoking: e.target.value
+                                }
+                              })}
+                              className="mt-1"
+                              rows={2}
+                            />
+                          ) : (
+                            <p className="text-sm text-muted-foreground mt-1">{handoffData.policies.smoking}</p>
+                          )}
                         </div>
-                        {handoffData.policies.pets && (
-                          <div>
-                            <p className="font-semibold">Pets</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.policies.pets}</p>
-                          </div>
-                        )}
-                        {handoffData.policies.quietHours && (
-                          <div>
-                            <p className="font-semibold">Quiet Hours</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.policies.quietHours}</p>
-                          </div>
-                        )}
-                        {handoffData.policies.guests && (
-                          <div>
-                            <p className="font-semibold">Guests</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.policies.guests}</p>
-                          </div>
-                        )}
-                        {handoffData.policies.modifications && (
-                          <div>
-                            <p className="font-semibold">Modifications</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.policies.modifications}</p>
-                          </div>
-                        )}
-                        {handoffData.policies.grilling && (
-                          <div>
-                            <p className="font-semibold">Grilling</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.policies.grilling}</p>
-                          </div>
-                        )}
-                        {handoffData.policies.poolRules && (
-                          <div>
-                            <p className="font-semibold">Pool Rules</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.policies.poolRules}</p>
-                          </div>
-                        )}
-                        {handoffData.policies.other && (
-                          <div>
-                            <p className="font-semibold">Other</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.policies.other}</p>
-                          </div>
-                        )}
+                        <div>
+                          <Label className="font-semibold">Pets</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.policies.pets || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                policies: {
+                                  ...handoffData.policies,
+                                  pets: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={2}
+                            />
+                          ) : (
+                            handoffData.policies.pets && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.policies.pets}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Quiet Hours</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.policies.quietHours || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                policies: {
+                                  ...handoffData.policies,
+                                  quietHours: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={2}
+                            />
+                          ) : (
+                            handoffData.policies.quietHours && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.policies.quietHours}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Guests</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.policies.guests || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                policies: {
+                                  ...handoffData.policies,
+                                  guests: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={2}
+                            />
+                          ) : (
+                            handoffData.policies.guests && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.policies.guests}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Modifications</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.policies.modifications || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                policies: {
+                                  ...handoffData.policies,
+                                  modifications: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={2}
+                            />
+                          ) : (
+                            handoffData.policies.modifications && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.policies.modifications}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Grilling</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.policies.grilling || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                policies: {
+                                  ...handoffData.policies,
+                                  grilling: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={2}
+                            />
+                          ) : (
+                            handoffData.policies.grilling && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.policies.grilling}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Pool Rules</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.policies.poolRules || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                policies: {
+                                  ...handoffData.policies,
+                                  poolRules: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={2}
+                            />
+                          ) : (
+                            handoffData.policies.poolRules && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.policies.poolRules}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Other</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.policies.other || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                policies: {
+                                  ...handoffData.policies,
+                                  other: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={2}
+                            />
+                          ) : (
+                            handoffData.policies.other && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.policies.other}</p>
+                            )
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "House Rules & Policies information has been updated.",
+                          })
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3375,77 +5269,233 @@ export default function Handoff() {
                   <div className="space-y-4 mt-4">
                     <Card>
                       <CardContent className="pt-6 space-y-4">
-                        {handoffData.safety.fireExtinguisherLocations && handoffData.safety.fireExtinguisherLocations.length > 0 && (
-                          <div>
-                            <p className="font-semibold">Fire Extinguisher Locations</p>
-                            <ul className="list-disc list-inside text-sm text-muted-foreground">
-                              {handoffData.safety.fireExtinguisherLocations.map((loc, i) => (
-                                <li key={i}>{loc}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        {handoffData.safety.smokeDetectorLocations && handoffData.safety.smokeDetectorLocations.length > 0 && (
-                          <div>
-                            <p className="font-semibold">Smoke Detector Locations</p>
-                            <ul className="list-disc list-inside text-sm text-muted-foreground">
-                              {handoffData.safety.smokeDetectorLocations.map((loc, i) => (
-                                <li key={i}>{loc}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        {handoffData.safety.carbonMonoxideDetectorLocations && handoffData.safety.carbonMonoxideDetectorLocations.length > 0 && (
-                          <div>
-                            <p className="font-semibold">Carbon Monoxide Detector Locations</p>
-                            <ul className="list-disc list-inside text-sm text-muted-foreground">
-                              {handoffData.safety.carbonMonoxideDetectorLocations.map((loc, i) => (
-                                <li key={i}>{loc}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        {handoffData.safety.waterMainShutOff && (
-                          <div>
-                            <p className="font-semibold">Water Main Shut-Off</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.safety.waterMainShutOff}</p>
-                          </div>
-                        )}
-                        {handoffData.safety.electricalPanelLocation && (
-                          <div>
-                            <p className="font-semibold">Electrical Panel</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.safety.electricalPanelLocation}</p>
-                          </div>
-                        )}
-                        {handoffData.safety.gasShutOffLocation && (
-                          <div>
-                            <p className="font-semibold">Gas Shut-Off</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.safety.gasShutOffLocation}</p>
-                          </div>
-                        )}
-                        {handoffData.safety.emergencyExits && handoffData.safety.emergencyExits.length > 0 && (
-                          <div>
-                            <p className="font-semibold">Emergency Exits</p>
-                            <ul className="list-disc list-inside text-sm text-muted-foreground">
-                              {handoffData.safety.emergencyExits.map((exit, i) => (
-                                <li key={i}>{exit}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        {handoffData.safety.evacuationRoutes && handoffData.safety.evacuationRoutes.length > 0 && (
-                          <div>
-                            <p className="font-semibold">Evacuation Routes</p>
-                            <ul className="list-disc list-inside text-sm text-muted-foreground">
-                              {handoffData.safety.evacuationRoutes.map((route, i) => (
-                                <li key={i}>{route}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                        <div>
+                          <Label className="font-semibold">Fire Extinguisher Locations (comma-separated)</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={(handoffData.safety.fireExtinguisherLocations || []).join(", ")}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                safety: {
+                                  ...handoffData.safety,
+                                  fireExtinguisherLocations: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="e.g., Kitchen, Garage, Basement"
+                            />
+                          ) : (
+                            handoffData.safety.fireExtinguisherLocations && handoffData.safety.fireExtinguisherLocations.length > 0 && (
+                              <ul className="list-disc list-inside text-sm text-muted-foreground mt-1">
+                                {handoffData.safety.fireExtinguisherLocations.map((loc, i) => (
+                                  <li key={i}>{loc}</li>
+                                ))}
+                              </ul>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Smoke Detector Locations (comma-separated)</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={(handoffData.safety.smokeDetectorLocations || []).join(", ")}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                safety: {
+                                  ...handoffData.safety,
+                                  smokeDetectorLocations: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="e.g., Bedroom, Hallway, Living Room"
+                            />
+                          ) : (
+                            handoffData.safety.smokeDetectorLocations && handoffData.safety.smokeDetectorLocations.length > 0 && (
+                              <ul className="list-disc list-inside text-sm text-muted-foreground mt-1">
+                                {handoffData.safety.smokeDetectorLocations.map((loc, i) => (
+                                  <li key={i}>{loc}</li>
+                                ))}
+                              </ul>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Carbon Monoxide Detector Locations (comma-separated)</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={(handoffData.safety.carbonMonoxideDetectorLocations || []).join(", ")}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                safety: {
+                                  ...handoffData.safety,
+                                  carbonMonoxideDetectorLocations: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="e.g., Bedroom, Kitchen"
+                            />
+                          ) : (
+                            handoffData.safety.carbonMonoxideDetectorLocations && handoffData.safety.carbonMonoxideDetectorLocations.length > 0 && (
+                              <ul className="list-disc list-inside text-sm text-muted-foreground mt-1">
+                                {handoffData.safety.carbonMonoxideDetectorLocations.map((loc, i) => (
+                                  <li key={i}>{loc}</li>
+                                ))}
+                              </ul>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Water Main Shut-Off</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={handoffData.safety.waterMainShutOff || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                safety: {
+                                  ...handoffData.safety,
+                                  waterMainShutOff: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                            />
+                          ) : (
+                            handoffData.safety.waterMainShutOff && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.safety.waterMainShutOff}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Electrical Panel</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={handoffData.safety.electricalPanelLocation || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                safety: {
+                                  ...handoffData.safety,
+                                  electricalPanelLocation: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                            />
+                          ) : (
+                            handoffData.safety.electricalPanelLocation && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.safety.electricalPanelLocation}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Gas Shut-Off</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={handoffData.safety.gasShutOffLocation || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                safety: {
+                                  ...handoffData.safety,
+                                  gasShutOffLocation: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                            />
+                          ) : (
+                            handoffData.safety.gasShutOffLocation && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.safety.gasShutOffLocation}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Emergency Exits (comma-separated)</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={(handoffData.safety.emergencyExits || []).join(", ")}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                safety: {
+                                  ...handoffData.safety,
+                                  emergencyExits: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="e.g., Front door, Back door, Fire escape"
+                            />
+                          ) : (
+                            handoffData.safety.emergencyExits && handoffData.safety.emergencyExits.length > 0 && (
+                              <ul className="list-disc list-inside text-sm text-muted-foreground mt-1">
+                                {handoffData.safety.emergencyExits.map((exit, i) => (
+                                  <li key={i}>{exit}</li>
+                                ))}
+                              </ul>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Evacuation Routes (comma-separated)</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={(handoffData.safety.evacuationRoutes || []).join(", ")}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                safety: {
+                                  ...handoffData.safety,
+                                  evacuationRoutes: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="e.g., Main stairwell, Fire escape"
+                            />
+                          ) : (
+                            handoffData.safety.evacuationRoutes && handoffData.safety.evacuationRoutes.length > 0 && (
+                              <ul className="list-disc list-inside text-sm text-muted-foreground mt-1">
+                                {handoffData.safety.evacuationRoutes.map((route, i) => (
+                                  <li key={i}>{route}</li>
+                                ))}
+                              </ul>
+                            )
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Safety & Security information has been updated.",
+                          })
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3460,46 +5510,176 @@ export default function Handoff() {
                   </DialogHeader>
                   <div className="space-y-4 mt-4">
                     <Card>
-                      <CardContent className="pt-6 space-y-3">
-                        {handoffData.parking.assignedSpots && handoffData.parking.assignedSpots.length > 0 && (
-                          <div>
-                            <p className="font-semibold">Assigned Parking Spots</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.parking.assignedSpots.join(", ")}</p>
-                          </div>
-                        )}
-                        {handoffData.parking.guestParking && (
-                          <div>
-                            <p className="font-semibold">Guest Parking</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.parking.guestParking}</p>
-                          </div>
-                        )}
-                        {handoffData.parking.parkingPermits && (
-                          <div>
-                            <p className="font-semibold">Parking Permits</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.parking.parkingPermits}</p>
-                          </div>
-                        )}
-                        {handoffData.parking.streetParkingRegulations && (
-                          <div>
-                            <p className="font-semibold">Street Parking Regulations</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.parking.streetParkingRegulations}</p>
-                          </div>
-                        )}
-                        {handoffData.parking.storageUnitDetails && (
-                          <div>
-                            <p className="font-semibold">Storage Unit</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.parking.storageUnitDetails}</p>
-                          </div>
-                        )}
-                        {handoffData.parking.bikeStorageArea && (
-                          <div>
-                            <p className="font-semibold">Bike Storage</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.parking.bikeStorageArea}</p>
-                          </div>
-                        )}
+                      <CardContent className="pt-6 space-y-4">
+                        <div>
+                          <Label className="font-semibold">Assigned Parking Spots (comma-separated)</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={(handoffData.parking.assignedSpots || []).join(", ")}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                parking: {
+                                  ...handoffData.parking,
+                                  assignedSpots: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="e.g., Spot #12, Spot #13"
+                            />
+                          ) : (
+                            handoffData.parking.assignedSpots && handoffData.parking.assignedSpots.length > 0 && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.parking.assignedSpots.join(", ")}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Guest Parking</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.parking.guestParking || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                parking: {
+                                  ...handoffData.parking,
+                                  guestParking: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={2}
+                            />
+                          ) : (
+                            handoffData.parking.guestParking && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.parking.guestParking}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Parking Permits</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.parking.parkingPermits || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                parking: {
+                                  ...handoffData.parking,
+                                  parkingPermits: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={2}
+                            />
+                          ) : (
+                            handoffData.parking.parkingPermits && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.parking.parkingPermits}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Street Parking Regulations</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.parking.streetParkingRegulations || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                parking: {
+                                  ...handoffData.parking,
+                                  streetParkingRegulations: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={3}
+                            />
+                          ) : (
+                            handoffData.parking.streetParkingRegulations && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.parking.streetParkingRegulations}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Storage Unit</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.parking.storageUnitDetails || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                parking: {
+                                  ...handoffData.parking,
+                                  storageUnitDetails: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={2}
+                            />
+                          ) : (
+                            handoffData.parking.storageUnitDetails && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.parking.storageUnitDetails}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Bike Storage</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={handoffData.parking.bikeStorageArea || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                parking: {
+                                  ...handoffData.parking,
+                                  bikeStorageArea: e.target.value || undefined
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                            />
+                          ) : (
+                            handoffData.parking.bikeStorageArea && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.parking.bikeStorageArea}</p>
+                            )
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Parking & Storage information has been updated.",
+                          })
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3688,80 +5868,195 @@ export default function Handoff() {
                             ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" 
                             : "space-y-4"
                         )}>
-                          {filteredDocs.map((doc) => (
-                            <Card key={doc.id} className="hover:shadow-md transition-shadow">
-                              <CardContent className="p-4">
-                                <div className="flex items-start justify-between gap-4">
-                                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                                    <div className="p-2 bg-red-500/10 rounded-lg border border-red-500/20 flex-shrink-0">
-                                      <FileIcon className="h-5 w-5 text-red-400" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <h4 className="font-medium text-white mb-1 truncate">{doc.name}</h4>
-                                      <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
-                                        <span>{formatFileSize(doc.size)}</span>
-                                        <span>•</span>
-                                        <span>{formatDocumentDate(doc.uploadDate)}</span>
+                          {filteredDocs.map((doc) => {
+                            const docIndex = handoffData.documents.findIndex(d => d.id === doc.id)
+                            return (
+                              <Card key={doc.id} className="hover:shadow-md transition-shadow">
+                                <CardContent className="p-4">
+                                  <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                                      <div className="p-2 bg-red-500/10 rounded-lg border border-red-500/20 flex-shrink-0">
+                                        <FileIcon className="h-5 w-5 text-red-400" />
                                       </div>
-                                      <div className="flex items-center gap-3 flex-wrap">
-                                        <Badge 
-                                          variant="outline" 
-                                          className={cn("text-xs", getDocumentTypeColor(doc.type))}
-                                        >
-                                          {doc.type.charAt(0).toUpperCase() + doc.type.slice(1)}
-                                        </Badge>
-                                        <div className="flex items-center gap-1 text-xs text-gray-500">
-                                          <Building className="h-3 w-3" />
-                                          <span className="truncate">{handoffData.propertyAddress}</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="flex-shrink-0">
-                                    <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                          <MoreHorizontal className="h-4 w-4" />
-                                          <span className="sr-only">More options</span>
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end" className="w-48">
-                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem onClick={() => handleViewDocument(doc)}>
-                                          <Eye className="h-4 w-4 mr-2" />
-                                          View
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleDownloadDocument(doc)}>
-                                          <Download className="h-4 w-4 mr-2" />
-                                          Download
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleShareDocument(doc)}>
-                                          <Share2 className="h-4 w-4 mr-2" />
-                                          Share
-                                        </DropdownMenuItem>
-                                        {canEdit && (
+                                      <div className="flex-1 min-w-0 space-y-2">
+                                        {isEditMode ? (
                                           <>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem 
-                                              onClick={() => handleDeleteDocument(doc.id)}
-                                              className="text-red-400 focus:text-red-300"
+                                            <Input
+                                              value={doc.name}
+                                              onChange={(e) => {
+                                                const updatedDocs = [...handoffData.documents]
+                                                updatedDocs[docIndex] = { ...doc, name: e.target.value }
+                                                setHandoffData({
+                                                  ...handoffData,
+                                                  documents: updatedDocs
+                                                })
+                                              }}
+                                              className="text-white bg-gray-800 border-gray-700"
+                                              placeholder="Document name"
+                                            />
+                                            <Select
+                                              value={doc.type}
+                                              onValueChange={(value) => {
+                                                const updatedDocs = [...handoffData.documents]
+                                                updatedDocs[docIndex] = { ...doc, type: value }
+                                                setHandoffData({
+                                                  ...handoffData,
+                                                  documents: updatedDocs
+                                                })
+                                              }}
                                             >
-                                              <Trash2 className="h-4 w-4 mr-2" />
-                                              Delete
-                                            </DropdownMenuItem>
+                                              <SelectTrigger className="w-full bg-gray-800 border-gray-700 text-white">
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent className="bg-gray-800 border-gray-700">
+                                                <SelectItem value="insurance">Insurance</SelectItem>
+                                                <SelectItem value="tax">Tax</SelectItem>
+                                                <SelectItem value="lease">Lease</SelectItem>
+                                                <SelectItem value="inspection">Inspection</SelectItem>
+                                                <SelectItem value="manual">Manual</SelectItem>
+                                                <SelectItem value="other">Other</SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                            <Textarea
+                                              value={doc.notes || ""}
+                                              onChange={(e) => {
+                                                const updatedDocs = [...handoffData.documents]
+                                                updatedDocs[docIndex] = { ...doc, notes: e.target.value || undefined }
+                                                setHandoffData({
+                                                  ...handoffData,
+                                                  documents: updatedDocs
+                                                })
+                                              }}
+                                              className="bg-gray-800 border-gray-700 text-white"
+                                              placeholder="Notes (optional)"
+                                              rows={2}
+                                            />
+                                          </>
+                                        ) : (
+                                          <>
+                                            <h4 className="font-medium text-white mb-1 truncate">{doc.name}</h4>
+                                            <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                                              <span>{formatFileSize(doc.size)}</span>
+                                              <span>•</span>
+                                              <span>{formatDocumentDate(doc.uploadDate)}</span>
+                                            </div>
+                                            <div className="flex items-center gap-3 flex-wrap">
+                                              <Badge 
+                                                variant="outline" 
+                                                className={cn("text-xs", getDocumentTypeColor(doc.type))}
+                                              >
+                                                {doc.type.charAt(0).toUpperCase() + doc.type.slice(1)}
+                                              </Badge>
+                                              <div className="flex items-center gap-1 text-xs text-gray-500">
+                                                <Building className="h-3 w-3" />
+                                                <span className="truncate">{handoffData.propertyAddress}</span>
+                                              </div>
+                                            </div>
+                                            {doc.notes && (
+                                              <p className="text-sm text-gray-400 mt-2">{doc.notes}</p>
+                                            )}
                                           </>
                                         )}
-                                      </DropdownMenuContent>
-                                    </DropdownMenu>
+                                      </div>
+                                    </div>
+                                    <div className="flex-shrink-0">
+                                      {isEditMode ? (
+                                        <Button
+                                          variant="destructive"
+                                          size="sm"
+                                          onClick={() => {
+                                            const updatedDocs = handoffData.documents.filter(d => d.id !== doc.id)
+                                            setHandoffData({
+                                              ...handoffData,
+                                              documents: updatedDocs
+                                            })
+                                          }}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      ) : (
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                              <MoreHorizontal className="h-4 w-4" />
+                                              <span className="sr-only">More options</span>
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end" className="w-48">
+                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                            <DropdownMenuItem onClick={() => handleViewDocument(doc)}>
+                                              <Eye className="h-4 w-4 mr-2" />
+                                              View
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleDownloadDocument(doc)}>
+                                              <Download className="h-4 w-4 mr-2" />
+                                              Download
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleShareDocument(doc)}>
+                                              <Share2 className="h-4 w-4 mr-2" />
+                                              Share
+                                            </DropdownMenuItem>
+                                            {canEdit && (
+                                              <>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem 
+                                                  onClick={() => handleDeleteDocument(doc.id)}
+                                                  className="text-red-400 focus:text-red-300"
+                                                >
+                                                  <Trash2 className="h-4 w-4 mr-2" />
+                                                  Delete
+                                                </DropdownMenuItem>
+                                              </>
+                                            )}
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
+                                </CardContent>
+                              </Card>
+                            )
+                          })}
                         </div>
                       )
                     })()}
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Important Documents information has been updated.",
+                          })
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3787,15 +6082,73 @@ export default function Handoff() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                            {season.tips.map((tip, tipIndex) => (
-                              <li key={tipIndex}>{tip}</li>
-                            ))}
-                          </ul>
+                          {isEditMode ? (
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium">Tips (one per line)</Label>
+                              <Textarea
+                                value={season.tips.join("\n")}
+                                onChange={(e) => {
+                                  const updatedSeasonal = [...handoffData.seasonalInfo]
+                                  updatedSeasonal[index] = {
+                                    ...season,
+                                    tips: e.target.value.split("\n").filter(Boolean)
+                                  }
+                                  setHandoffData({
+                                    ...handoffData,
+                                    seasonalInfo: updatedSeasonal
+                                  })
+                                }}
+                                rows={6}
+                                placeholder="Enter tips, one per line"
+                              />
+                            </div>
+                          ) : (
+                            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                              {season.tips.map((tip, tipIndex) => (
+                                <li key={tipIndex}>{tip}</li>
+                              ))}
+                            </ul>
+                          )}
                         </CardContent>
                       </Card>
                     ))}
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Seasonal Information has been updated.",
+                          })
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3809,15 +6162,119 @@ export default function Handoff() {
                     <DialogDescription>Common questions and answers</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 mt-4">
-                    <Accordion type="single" collapsible>
-                      {handoffData.faqs.map((faq, index) => (
-                        <AccordionItem key={index} value={`faq-${index}`}>
-                          <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
-                          <AccordionContent>{faq.answer}</AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
+                    {isEditMode ? (
+                      <div className="space-y-4">
+                        {handoffData.faqs.map((faq, index) => (
+                          <Card key={index}>
+                            <CardContent className="pt-6 space-y-3">
+                              <div>
+                                <Label className="text-sm font-medium">Question</Label>
+                                <Input
+                                  value={faq.question}
+                                  onChange={(e) => {
+                                    const updatedFaqs = [...handoffData.faqs]
+                                    updatedFaqs[index] = { ...faq, question: e.target.value }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      faqs: updatedFaqs
+                                    })
+                                  }}
+                                  className="mt-1"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm font-medium">Answer</Label>
+                                <Textarea
+                                  value={faq.answer}
+                                  onChange={(e) => {
+                                    const updatedFaqs = [...handoffData.faqs]
+                                    updatedFaqs[index] = { ...faq, answer: e.target.value }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      faqs: updatedFaqs
+                                    })
+                                  }}
+                                  className="mt-1"
+                                  rows={4}
+                                />
+                              </div>
+                              {handoffData.faqs.length > 1 && (
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => {
+                                    const updatedFaqs = handoffData.faqs.filter((_, i) => i !== index)
+                                    setHandoffData({
+                                      ...handoffData,
+                                      faqs: updatedFaqs
+                                    })
+                                  }}
+                                >
+                                  Remove FAQ
+                                </Button>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))}
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setHandoffData({
+                              ...handoffData,
+                              faqs: [...handoffData.faqs, { question: "", answer: "" }]
+                            })
+                          }}
+                        >
+                          Add FAQ
+                        </Button>
+                      </div>
+                    ) : (
+                      <Accordion type="single" collapsible>
+                        {handoffData.faqs.map((faq, index) => (
+                          <AccordionItem key={index} value={`faq-${index}`}>
+                            <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
+                            <AccordionContent>{faq.answer}</AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    )}
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Frequently Asked Questions have been updated.",
+                          })
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3868,6 +6325,44 @@ export default function Handoff() {
                       </CardContent>
                     </Card>
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                            setOwnerNotes(originalHandoffData.ownerNotes || "")
+                          }
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              ownerNotes: ownerNotes,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Owner Notes have been updated.",
+                          })
+                          setSelectedPropertySection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
             </DialogContent>
@@ -3889,17 +6384,189 @@ export default function Handoff() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {handoffData.neighborhood.grocery.map((place, index) => (
                         <Card key={index}>
-                          <CardContent className="pt-6">
-                            <p className="font-semibold">{place.name}</p>
-                            {place.address && <p className="text-sm text-muted-foreground">{place.address}</p>}
-                            {place.distance && <p className="text-sm text-muted-foreground">{place.distance} away</p>}
-                            {place.phone && <p className="text-sm text-muted-foreground">{place.phone}</p>}
-                            {place.notes && <p className="text-sm text-muted-foreground mt-2">{place.notes}</p>}
+                          <CardContent className="pt-6 space-y-3">
+                            {isEditMode ? (
+                              <>
+                                <div>
+                                  <Label className="text-sm font-semibold">Name</Label>
+                                  <Input
+                                    value={place.name}
+                                    onChange={(e) => {
+                                      const updatedGrocery = [...handoffData.neighborhood.grocery]
+                                      updatedGrocery[index] = { ...place, name: e.target.value }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: {
+                                          ...handoffData.neighborhood,
+                                          grocery: updatedGrocery
+                                        }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Address</Label>
+                                  <Input
+                                    value={place.address || ""}
+                                    onChange={(e) => {
+                                      const updatedGrocery = [...handoffData.neighborhood.grocery]
+                                      updatedGrocery[index] = { ...place, address: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: {
+                                          ...handoffData.neighborhood,
+                                          grocery: updatedGrocery
+                                        }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Distance</Label>
+                                  <Input
+                                    value={place.distance || ""}
+                                    onChange={(e) => {
+                                      const updatedGrocery = [...handoffData.neighborhood.grocery]
+                                      updatedGrocery[index] = { ...place, distance: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: {
+                                          ...handoffData.neighborhood,
+                                          grocery: updatedGrocery
+                                        }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Phone</Label>
+                                  <Input
+                                    value={place.phone || ""}
+                                    onChange={(e) => {
+                                      const updatedGrocery = [...handoffData.neighborhood.grocery]
+                                      updatedGrocery[index] = { ...place, phone: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: {
+                                          ...handoffData.neighborhood,
+                                          grocery: updatedGrocery
+                                        }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Notes</Label>
+                                  <Textarea
+                                    value={place.notes || ""}
+                                    onChange={(e) => {
+                                      const updatedGrocery = [...handoffData.neighborhood.grocery]
+                                      updatedGrocery[index] = { ...place, notes: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: {
+                                          ...handoffData.neighborhood,
+                                          grocery: updatedGrocery
+                                        }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                    rows={2}
+                                  />
+                                </div>
+                                {handoffData.neighborhood.grocery.length > 1 && (
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => {
+                                      const updatedGrocery = handoffData.neighborhood.grocery.filter((_, i) => i !== index)
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: {
+                                          ...handoffData.neighborhood,
+                                          grocery: updatedGrocery
+                                        }
+                                      })
+                                    }}
+                                  >
+                                    Remove
+                                  </Button>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <p className="font-semibold">{place.name}</p>
+                                {place.address && <p className="text-sm text-muted-foreground">{place.address}</p>}
+                                {place.distance && <p className="text-sm text-muted-foreground">{place.distance} away</p>}
+                                {place.phone && <p className="text-sm text-muted-foreground">{place.phone}</p>}
+                                {place.notes && <p className="text-sm text-muted-foreground mt-2">{place.notes}</p>}
+                              </>
+                            )}
                           </CardContent>
                         </Card>
                       ))}
                     </div>
+                    {isEditMode && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setHandoffData({
+                            ...handoffData,
+                            neighborhood: {
+                              ...handoffData.neighborhood,
+                              grocery: [...handoffData.neighborhood.grocery, { name: "" }]
+                            }
+                          })
+                        }}
+                      >
+                        Add Grocery Store
+                      </Button>
+                    )}
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Grocery & Shopping information has been updated.",
+                          })
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3916,17 +6583,171 @@ export default function Handoff() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {handoffData.neighborhood.dining.map((place, index) => (
                         <Card key={index}>
-                          <CardContent className="pt-6">
-                            <p className="font-semibold">{place.name}</p>
-                            {place.address && <p className="text-sm text-muted-foreground">{place.address}</p>}
-                            {place.phone && <p className="text-sm text-muted-foreground">{place.phone}</p>}
-                            {place.distance && <p className="text-sm text-muted-foreground">{place.distance} away</p>}
-                            {place.notes && <p className="text-sm text-muted-foreground mt-2">{place.notes}</p>}
+                          <CardContent className="pt-6 space-y-3">
+                            {isEditMode ? (
+                              <>
+                                <div>
+                                  <Label className="text-sm font-semibold">Name</Label>
+                                  <Input
+                                    value={place.name}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.dining]
+                                      updated[index] = { ...place, name: e.target.value }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, dining: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Address</Label>
+                                  <Input
+                                    value={place.address || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.dining]
+                                      updated[index] = { ...place, address: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, dining: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Distance</Label>
+                                  <Input
+                                    value={place.distance || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.dining]
+                                      updated[index] = { ...place, distance: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, dining: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Phone</Label>
+                                  <Input
+                                    value={place.phone || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.dining]
+                                      updated[index] = { ...place, phone: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, dining: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Notes</Label>
+                                  <Textarea
+                                    value={place.notes || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.dining]
+                                      updated[index] = { ...place, notes: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, dining: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                    rows={2}
+                                  />
+                                </div>
+                                {handoffData.neighborhood.dining.length > 1 && (
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => {
+                                      const updated = handoffData.neighborhood.dining.filter((_, i) => i !== index)
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, dining: updated }
+                                      })
+                                    }}
+                                  >
+                                    Remove
+                                  </Button>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <p className="font-semibold">{place.name}</p>
+                                {place.address && <p className="text-sm text-muted-foreground">{place.address}</p>}
+                                {place.phone && <p className="text-sm text-muted-foreground">{place.phone}</p>}
+                                {place.distance && <p className="text-sm text-muted-foreground">{place.distance} away</p>}
+                                {place.notes && <p className="text-sm text-muted-foreground mt-2">{place.notes}</p>}
+                              </>
+                            )}
                           </CardContent>
                         </Card>
                       ))}
                     </div>
+                    {isEditMode && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setHandoffData({
+                            ...handoffData,
+                            neighborhood: {
+                              ...handoffData.neighborhood,
+                              dining: [...handoffData.neighborhood.dining, { name: "" }]
+                            }
+                          })
+                        }}
+                      >
+                        Add Restaurant
+                      </Button>
+                    )}
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Dining information has been updated.",
+                          })
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3943,17 +6764,171 @@ export default function Handoff() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {handoffData.neighborhood.services.map((place, index) => (
                         <Card key={index}>
-                          <CardContent className="pt-6">
-                            <p className="font-semibold">{place.name}</p>
-                            {place.address && <p className="text-sm text-muted-foreground">{place.address}</p>}
-                            {place.phone && <p className="text-sm text-muted-foreground">{place.phone}</p>}
-                            {place.distance && <p className="text-sm text-muted-foreground">{place.distance} away</p>}
-                            {place.notes && <p className="text-sm text-muted-foreground mt-2">{place.notes}</p>}
+                          <CardContent className="pt-6 space-y-3">
+                            {isEditMode ? (
+                              <>
+                                <div>
+                                  <Label className="text-sm font-semibold">Name</Label>
+                                  <Input
+                                    value={place.name}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.services]
+                                      updated[index] = { ...place, name: e.target.value }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, services: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Address</Label>
+                                  <Input
+                                    value={place.address || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.services]
+                                      updated[index] = { ...place, address: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, services: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Distance</Label>
+                                  <Input
+                                    value={place.distance || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.services]
+                                      updated[index] = { ...place, distance: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, services: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Phone</Label>
+                                  <Input
+                                    value={place.phone || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.services]
+                                      updated[index] = { ...place, phone: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, services: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Notes</Label>
+                                  <Textarea
+                                    value={place.notes || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.services]
+                                      updated[index] = { ...place, notes: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, services: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                    rows={2}
+                                  />
+                                </div>
+                                {handoffData.neighborhood.services.length > 1 && (
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => {
+                                      const updated = handoffData.neighborhood.services.filter((_, i) => i !== index)
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, services: updated }
+                                      })
+                                    }}
+                                  >
+                                    Remove
+                                  </Button>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <p className="font-semibold">{place.name}</p>
+                                {place.address && <p className="text-sm text-muted-foreground">{place.address}</p>}
+                                {place.phone && <p className="text-sm text-muted-foreground">{place.phone}</p>}
+                                {place.distance && <p className="text-sm text-muted-foreground">{place.distance} away</p>}
+                                {place.notes && <p className="text-sm text-muted-foreground mt-2">{place.notes}</p>}
+                              </>
+                            )}
                           </CardContent>
                         </Card>
                       ))}
                     </div>
+                    {isEditMode && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setHandoffData({
+                            ...handoffData,
+                            neighborhood: {
+                              ...handoffData.neighborhood,
+                              services: [...handoffData.neighborhood.services, { name: "" }]
+                            }
+                          })
+                        }}
+                      >
+                        Add Service
+                      </Button>
+                    )}
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Services information has been updated.",
+                          })
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3970,17 +6945,171 @@ export default function Handoff() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {handoffData.neighborhood.healthcare.map((place, index) => (
                         <Card key={index}>
-                          <CardContent className="pt-6">
-                            <p className="font-semibold">{place.name}</p>
-                            {place.address && <p className="text-sm text-muted-foreground">{place.address}</p>}
-                            {place.phone && <p className="text-sm text-muted-foreground">{place.phone}</p>}
-                            {place.distance && <p className="text-sm text-muted-foreground">{place.distance} away</p>}
-                            {place.notes && <p className="text-sm text-muted-foreground mt-2">{place.notes}</p>}
+                          <CardContent className="pt-6 space-y-3">
+                            {isEditMode ? (
+                              <>
+                                <div>
+                                  <Label className="text-sm font-semibold">Name</Label>
+                                  <Input
+                                    value={place.name}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.healthcare]
+                                      updated[index] = { ...place, name: e.target.value }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, healthcare: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Address</Label>
+                                  <Input
+                                    value={place.address || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.healthcare]
+                                      updated[index] = { ...place, address: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, healthcare: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Distance</Label>
+                                  <Input
+                                    value={place.distance || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.healthcare]
+                                      updated[index] = { ...place, distance: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, healthcare: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Phone</Label>
+                                  <Input
+                                    value={place.phone || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.healthcare]
+                                      updated[index] = { ...place, phone: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, healthcare: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Notes</Label>
+                                  <Textarea
+                                    value={place.notes || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.healthcare]
+                                      updated[index] = { ...place, notes: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, healthcare: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                    rows={2}
+                                  />
+                                </div>
+                                {handoffData.neighborhood.healthcare.length > 1 && (
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => {
+                                      const updated = handoffData.neighborhood.healthcare.filter((_, i) => i !== index)
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, healthcare: updated }
+                                      })
+                                    }}
+                                  >
+                                    Remove
+                                  </Button>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <p className="font-semibold">{place.name}</p>
+                                {place.address && <p className="text-sm text-muted-foreground">{place.address}</p>}
+                                {place.phone && <p className="text-sm text-muted-foreground">{place.phone}</p>}
+                                {place.distance && <p className="text-sm text-muted-foreground">{place.distance} away</p>}
+                                {place.notes && <p className="text-sm text-muted-foreground mt-2">{place.notes}</p>}
+                              </>
+                            )}
                           </CardContent>
                         </Card>
                       ))}
                     </div>
+                    {isEditMode && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setHandoffData({
+                            ...handoffData,
+                            neighborhood: {
+                              ...handoffData.neighborhood,
+                              healthcare: [...handoffData.neighborhood.healthcare, { name: "" }]
+                            }
+                          })
+                        }}
+                      >
+                        Add Healthcare Provider
+                      </Button>
+                    )}
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Healthcare information has been updated.",
+                          })
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -3997,17 +7126,171 @@ export default function Handoff() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {handoffData.neighborhood.recreation.map((place, index) => (
                         <Card key={index}>
-                          <CardContent className="pt-6">
-                            <p className="font-semibold">{place.name}</p>
-                            {place.address && <p className="text-sm text-muted-foreground">{place.address}</p>}
-                            {place.distance && <p className="text-sm text-muted-foreground">{place.distance} away</p>}
-                            {place.phone && <p className="text-sm text-muted-foreground">{place.phone}</p>}
-                            {place.notes && <p className="text-sm text-muted-foreground mt-2">{place.notes}</p>}
+                          <CardContent className="pt-6 space-y-3">
+                            {isEditMode ? (
+                              <>
+                                <div>
+                                  <Label className="text-sm font-semibold">Name</Label>
+                                  <Input
+                                    value={place.name}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.recreation]
+                                      updated[index] = { ...place, name: e.target.value }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, recreation: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Address</Label>
+                                  <Input
+                                    value={place.address || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.recreation]
+                                      updated[index] = { ...place, address: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, recreation: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Distance</Label>
+                                  <Input
+                                    value={place.distance || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.recreation]
+                                      updated[index] = { ...place, distance: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, recreation: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Phone</Label>
+                                  <Input
+                                    value={place.phone || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.recreation]
+                                      updated[index] = { ...place, phone: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, recreation: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm text-muted-foreground">Notes</Label>
+                                  <Textarea
+                                    value={place.notes || ""}
+                                    onChange={(e) => {
+                                      const updated = [...handoffData.neighborhood.recreation]
+                                      updated[index] = { ...place, notes: e.target.value || undefined }
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, recreation: updated }
+                                      })
+                                    }}
+                                    className="mt-1"
+                                    placeholder="Optional"
+                                    rows={2}
+                                  />
+                                </div>
+                                {handoffData.neighborhood.recreation.length > 1 && (
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => {
+                                      const updated = handoffData.neighborhood.recreation.filter((_, i) => i !== index)
+                                      setHandoffData({
+                                        ...handoffData,
+                                        neighborhood: { ...handoffData.neighborhood, recreation: updated }
+                                      })
+                                    }}
+                                  >
+                                    Remove
+                                  </Button>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <p className="font-semibold">{place.name}</p>
+                                {place.address && <p className="text-sm text-muted-foreground">{place.address}</p>}
+                                {place.distance && <p className="text-sm text-muted-foreground">{place.distance} away</p>}
+                                {place.phone && <p className="text-sm text-muted-foreground">{place.phone}</p>}
+                                {place.notes && <p className="text-sm text-muted-foreground mt-2">{place.notes}</p>}
+                              </>
+                            )}
                           </CardContent>
                         </Card>
                       ))}
                     </div>
+                    {isEditMode && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setHandoffData({
+                            ...handoffData,
+                            neighborhood: {
+                              ...handoffData.neighborhood,
+                              recreation: [...handoffData.neighborhood.recreation, { name: "" }]
+                            }
+                          })
+                        }}
+                      >
+                        Add Recreation Location
+                      </Button>
+                    )}
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Recreation information has been updated.",
+                          })
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -4023,25 +7306,202 @@ export default function Handoff() {
                   <div className="space-y-4 mt-4">
                     {handoffData.neighborhood.schools.map((school, index) => (
                       <Card key={index}>
-                        <CardContent className="pt-6">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="font-semibold">{school.name}</p>
-                              <Badge variant="outline" className="mt-1 capitalize">{school.type}</Badge>
-                            </div>
-                          </div>
-                          {school.address && <p className="text-sm text-muted-foreground mt-2">{school.address}</p>}
-                          {school.phone && <p className="text-sm text-muted-foreground">{school.phone}</p>}
-                          {school.website && (
-                            <a href={school.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-1 mt-2">
-                              Visit website <ExternalLink className="h-3 w-3" />
-                            </a>
+                        <CardContent className="pt-6 space-y-3">
+                          {isEditMode ? (
+                            <>
+                              <div>
+                                <Label className="text-sm font-semibold">Name</Label>
+                                <Input
+                                  value={school.name}
+                                  onChange={(e) => {
+                                    const updated = [...handoffData.neighborhood.schools]
+                                    updated[index] = { ...school, name: e.target.value }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      neighborhood: { ...handoffData.neighborhood, schools: updated }
+                                    })
+                                  }}
+                                  className="mt-1"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm font-semibold">Type</Label>
+                                <Select
+                                  value={school.type}
+                                  onValueChange={(value) => {
+                                    const updated = [...handoffData.neighborhood.schools]
+                                    updated[index] = { ...school, type: value as any }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      neighborhood: { ...handoffData.neighborhood, schools: updated }
+                                    })
+                                  }}
+                                >
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="elementary">Elementary</SelectItem>
+                                    <SelectItem value="middle">Middle</SelectItem>
+                                    <SelectItem value="high">High</SelectItem>
+                                    <SelectItem value="district">District</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-sm text-muted-foreground">Address</Label>
+                                <Input
+                                  value={school.address || ""}
+                                  onChange={(e) => {
+                                    const updated = [...handoffData.neighborhood.schools]
+                                    updated[index] = { ...school, address: e.target.value || undefined }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      neighborhood: { ...handoffData.neighborhood, schools: updated }
+                                    })
+                                  }}
+                                  className="mt-1"
+                                  placeholder="Optional"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm text-muted-foreground">Phone</Label>
+                                <Input
+                                  value={school.phone || ""}
+                                  onChange={(e) => {
+                                    const updated = [...handoffData.neighborhood.schools]
+                                    updated[index] = { ...school, phone: e.target.value || undefined }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      neighborhood: { ...handoffData.neighborhood, schools: updated }
+                                    })
+                                  }}
+                                  className="mt-1"
+                                  placeholder="Optional"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm text-muted-foreground">Website</Label>
+                                <Input
+                                  value={school.website || ""}
+                                  onChange={(e) => {
+                                    const updated = [...handoffData.neighborhood.schools]
+                                    updated[index] = { ...school, website: e.target.value || undefined }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      neighborhood: { ...handoffData.neighborhood, schools: updated }
+                                    })
+                                  }}
+                                  className="mt-1"
+                                  placeholder="Optional URL"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm text-muted-foreground">Bus Stop</Label>
+                                <Input
+                                  value={school.busStop || ""}
+                                  onChange={(e) => {
+                                    const updated = [...handoffData.neighborhood.schools]
+                                    updated[index] = { ...school, busStop: e.target.value || undefined }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      neighborhood: { ...handoffData.neighborhood, schools: updated }
+                                    })
+                                  }}
+                                  className="mt-1"
+                                  placeholder="Optional"
+                                />
+                              </div>
+                              {handoffData.neighborhood.schools.length > 1 && (
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => {
+                                    const updated = handoffData.neighborhood.schools.filter((_, i) => i !== index)
+                                    setHandoffData({
+                                      ...handoffData,
+                                      neighborhood: { ...handoffData.neighborhood, schools: updated }
+                                    })
+                                  }}
+                                >
+                                  Remove
+                                </Button>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <p className="font-semibold">{school.name}</p>
+                                  <Badge variant="outline" className="mt-1 capitalize">{school.type}</Badge>
+                                </div>
+                              </div>
+                              {school.address && <p className="text-sm text-muted-foreground mt-2">{school.address}</p>}
+                              {school.phone && <p className="text-sm text-muted-foreground">{school.phone}</p>}
+                              {school.website && (
+                                <a href={school.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-1 mt-2">
+                                  Visit website <ExternalLink className="h-3 w-3" />
+                                </a>
+                              )}
+                              {school.busStop && <p className="text-sm text-muted-foreground mt-2">Bus stop: {school.busStop}</p>}
+                            </>
                           )}
-                          {school.busStop && <p className="text-sm text-muted-foreground mt-2">Bus stop: {school.busStop}</p>}
                         </CardContent>
                       </Card>
                     ))}
+                    {isEditMode && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setHandoffData({
+                            ...handoffData,
+                            neighborhood: {
+                              ...handoffData.neighborhood,
+                              schools: [...handoffData.neighborhood.schools, { name: "", type: "elementary" }]
+                            }
+                          })
+                        }}
+                      >
+                        Add School
+                      </Button>
+                    )}
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Schools information has been updated.",
+                          })
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -4057,60 +7517,227 @@ export default function Handoff() {
                   <div className="space-y-4 mt-4">
                     <Card>
                       <CardContent className="pt-6 space-y-4">
-                        {handoffData.neighborhood.transportation.publicTransit && (
-                          <div>
-                            <p className="font-semibold">Public Transit</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.neighborhood.transportation.publicTransit}</p>
-                          </div>
-                        )}
-                        {handoffData.neighborhood.transportation.busStops && handoffData.neighborhood.transportation.busStops.length > 0 && (
-                          <div>
-                            <p className="font-semibold">Bus Stops</p>
-                            <ul className="list-disc list-inside text-sm text-muted-foreground">
-                              {handoffData.neighborhood.transportation.busStops.map((stop, i) => (
-                                <li key={i}>{stop}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        {handoffData.neighborhood.transportation.trainStations && handoffData.neighborhood.transportation.trainStations.length > 0 && (
-                          <div>
-                            <p className="font-semibold">Train Stations</p>
-                            <ul className="list-disc list-inside text-sm text-muted-foreground">
-                              {handoffData.neighborhood.transportation.trainStations.map((station, i) => (
-                                <li key={i}>{station}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        {handoffData.neighborhood.transportation.rideShareSpots && handoffData.neighborhood.transportation.rideShareSpots.length > 0 && (
-                          <div>
-                            <p className="font-semibold">Ride Share Spots</p>
-                            <ul className="list-disc list-inside text-sm text-muted-foreground">
-                              {handoffData.neighborhood.transportation.rideShareSpots.map((spot, i) => (
-                                <li key={i}>{spot}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        {handoffData.neighborhood.transportation.bikeLanes && (
-                          <div>
-                            <p className="font-semibold">Bike Lanes</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.neighborhood.transportation.bikeLanes}</p>
-                          </div>
-                        )}
-                        {handoffData.neighborhood.transportation.airportDistance && (
-                          <div>
-                            <p className="font-semibold">Airport</p>
-                            <p className="text-sm text-muted-foreground">{handoffData.neighborhood.transportation.airportDistance} away</p>
-                            {handoffData.neighborhood.transportation.airportDirections && (
-                              <p className="text-sm text-muted-foreground">{handoffData.neighborhood.transportation.airportDirections}</p>
-                            )}
-                          </div>
-                        )}
+                        <div>
+                          <Label className="font-semibold">Public Transit</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.neighborhood.transportation.publicTransit || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                neighborhood: {
+                                  ...handoffData.neighborhood,
+                                  transportation: {
+                                    ...handoffData.neighborhood.transportation,
+                                    publicTransit: e.target.value || undefined
+                                  }
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={3}
+                            />
+                          ) : (
+                            handoffData.neighborhood.transportation.publicTransit && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.neighborhood.transportation.publicTransit}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Bus Stops (comma-separated)</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={(handoffData.neighborhood.transportation.busStops || []).join(", ")}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                neighborhood: {
+                                  ...handoffData.neighborhood,
+                                  transportation: {
+                                    ...handoffData.neighborhood.transportation,
+                                    busStops: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                  }
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="e.g., Main St & 1st Ave, Oak St & 2nd Ave"
+                            />
+                          ) : (
+                            handoffData.neighborhood.transportation.busStops && handoffData.neighborhood.transportation.busStops.length > 0 && (
+                              <ul className="list-disc list-inside text-sm text-muted-foreground mt-1">
+                                {handoffData.neighborhood.transportation.busStops.map((stop, i) => (
+                                  <li key={i}>{stop}</li>
+                                ))}
+                              </ul>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Train Stations (comma-separated)</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={(handoffData.neighborhood.transportation.trainStations || []).join(", ")}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                neighborhood: {
+                                  ...handoffData.neighborhood,
+                                  transportation: {
+                                    ...handoffData.neighborhood.transportation,
+                                    trainStations: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                  }
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="e.g., Central Station, North Station"
+                            />
+                          ) : (
+                            handoffData.neighborhood.transportation.trainStations && handoffData.neighborhood.transportation.trainStations.length > 0 && (
+                              <ul className="list-disc list-inside text-sm text-muted-foreground mt-1">
+                                {handoffData.neighborhood.transportation.trainStations.map((station, i) => (
+                                  <li key={i}>{station}</li>
+                                ))}
+                              </ul>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Ride Share Spots (comma-separated)</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={(handoffData.neighborhood.transportation.rideShareSpots || []).join(", ")}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                neighborhood: {
+                                  ...handoffData.neighborhood,
+                                  transportation: {
+                                    ...handoffData.neighborhood.transportation,
+                                    rideShareSpots: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                  }
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="e.g., Main entrance, Back parking lot"
+                            />
+                          ) : (
+                            handoffData.neighborhood.transportation.rideShareSpots && handoffData.neighborhood.transportation.rideShareSpots.length > 0 && (
+                              <ul className="list-disc list-inside text-sm text-muted-foreground mt-1">
+                                {handoffData.neighborhood.transportation.rideShareSpots.map((spot, i) => (
+                                  <li key={i}>{spot}</li>
+                                ))}
+                              </ul>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Bike Lanes</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={handoffData.neighborhood.transportation.bikeLanes || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                neighborhood: {
+                                  ...handoffData.neighborhood,
+                                  transportation: {
+                                    ...handoffData.neighborhood.transportation,
+                                    bikeLanes: e.target.value || undefined
+                                  }
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                            />
+                          ) : (
+                            handoffData.neighborhood.transportation.bikeLanes && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.neighborhood.transportation.bikeLanes}</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Airport Distance</Label>
+                          {isEditMode ? (
+                            <Input
+                              value={handoffData.neighborhood.transportation.airportDistance || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                neighborhood: {
+                                  ...handoffData.neighborhood,
+                                  transportation: {
+                                    ...handoffData.neighborhood.transportation,
+                                    airportDistance: e.target.value || undefined
+                                  }
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                            />
+                          ) : (
+                            handoffData.neighborhood.transportation.airportDistance && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.neighborhood.transportation.airportDistance} away</p>
+                            )
+                          )}
+                        </div>
+                        <div>
+                          <Label className="font-semibold">Airport Directions</Label>
+                          {isEditMode ? (
+                            <Textarea
+                              value={handoffData.neighborhood.transportation.airportDirections || ""}
+                              onChange={(e) => setHandoffData({
+                                ...handoffData,
+                                neighborhood: {
+                                  ...handoffData.neighborhood,
+                                  transportation: {
+                                    ...handoffData.neighborhood.transportation,
+                                    airportDirections: e.target.value || undefined
+                                  }
+                                }
+                              })}
+                              className="mt-1"
+                              placeholder="Optional"
+                              rows={3}
+                            />
+                          ) : (
+                            handoffData.neighborhood.transportation.airportDirections && (
+                              <p className="text-sm text-muted-foreground mt-1">{handoffData.neighborhood.transportation.airportDirections}</p>
+                            )
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Transportation information has been updated.",
+                          })
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
 
@@ -4126,15 +7753,177 @@ export default function Handoff() {
                   <div className="space-y-4 mt-4">
                     {handoffData.localServices.map((service, index) => (
                       <Card key={index}>
-                        <CardContent className="pt-6">
-                          <p className="font-semibold">{service.name}</p>
-                          {service.schedule && <p className="text-sm text-muted-foreground">Schedule: {service.schedule}</p>}
-                          {service.contact && <p className="text-sm text-muted-foreground">Contact: {service.contact}</p>}
-                          {service.notes && <p className="text-sm text-muted-foreground mt-2">{service.notes}</p>}
+                        <CardContent className="pt-6 space-y-3">
+                          {isEditMode ? (
+                            <>
+                              <div>
+                                <Label className="text-sm font-semibold">Name</Label>
+                                <Input
+                                  value={service.name}
+                                  onChange={(e) => {
+                                    const updated = [...handoffData.localServices]
+                                    updated[index] = { ...service, name: e.target.value }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      localServices: updated
+                                    })
+                                  }}
+                                  className="mt-1"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm font-semibold">Type</Label>
+                                <Select
+                                  value={service.type}
+                                  onValueChange={(value) => {
+                                    const updated = [...handoffData.localServices]
+                                    updated[index] = { ...service, type: value as any }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      localServices: updated
+                                    })
+                                  }}
+                                >
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="trash">Trash</SelectItem>
+                                    <SelectItem value="street_cleaning">Street Cleaning</SelectItem>
+                                    <SelectItem value="snow_removal">Snow Removal</SelectItem>
+                                    <SelectItem value="lawn_care">Lawn Care</SelectItem>
+                                    <SelectItem value="pest_control">Pest Control</SelectItem>
+                                    <SelectItem value="hoa">HOA</SelectItem>
+                                    <SelectItem value="other">Other</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-sm text-muted-foreground">Schedule</Label>
+                                <Input
+                                  value={service.schedule || ""}
+                                  onChange={(e) => {
+                                    const updated = [...handoffData.localServices]
+                                    updated[index] = { ...service, schedule: e.target.value || undefined }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      localServices: updated
+                                    })
+                                  }}
+                                  className="mt-1"
+                                  placeholder="Optional"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm text-muted-foreground">Contact</Label>
+                                <Input
+                                  value={service.contact || ""}
+                                  onChange={(e) => {
+                                    const updated = [...handoffData.localServices]
+                                    updated[index] = { ...service, contact: e.target.value || undefined }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      localServices: updated
+                                    })
+                                  }}
+                                  className="mt-1"
+                                  placeholder="Optional"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm text-muted-foreground">Notes</Label>
+                                <Textarea
+                                  value={service.notes || ""}
+                                  onChange={(e) => {
+                                    const updated = [...handoffData.localServices]
+                                    updated[index] = { ...service, notes: e.target.value || undefined }
+                                    setHandoffData({
+                                      ...handoffData,
+                                      localServices: updated
+                                    })
+                                  }}
+                                  className="mt-1"
+                                  placeholder="Optional"
+                                  rows={2}
+                                />
+                              </div>
+                              {handoffData.localServices.length > 1 && (
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => {
+                                    const updated = handoffData.localServices.filter((_, i) => i !== index)
+                                    setHandoffData({
+                                      ...handoffData,
+                                      localServices: updated
+                                    })
+                                  }}
+                                >
+                                  Remove
+                                </Button>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <p className="font-semibold">{service.name}</p>
+                              {service.schedule && <p className="text-sm text-muted-foreground">Schedule: {service.schedule}</p>}
+                              {service.contact && <p className="text-sm text-muted-foreground">Contact: {service.contact}</p>}
+                              {service.notes && <p className="text-sm text-muted-foreground mt-2">{service.notes}</p>}
+                            </>
+                          )}
                         </CardContent>
                       </Card>
                     ))}
+                    {isEditMode && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setHandoffData({
+                            ...handoffData,
+                            localServices: [...handoffData.localServices, { name: "", type: "other" }]
+                          })
+                        }}
+                      >
+                        Add Local Service
+                      </Button>
+                    )}
                   </div>
+                  {isEditMode && canEdit && (
+                    <DialogFooter className="mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (originalHandoffData) {
+                            setHandoffData(originalHandoffData)
+                          }
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (handoffData) {
+                            setOriginalHandoffData(JSON.parse(JSON.stringify(handoffData)))
+                            setHandoffData({
+                              ...handoffData,
+                              lastUpdated: new Date()
+                            })
+                          }
+                          toast({
+                            title: "Changes saved",
+                            duration: 3000,
+                            description: "Local Services information has been updated.",
+                          })
+                          setSelectedNeighborhoodSection(null)
+                        }}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               )}
             </DialogContent>

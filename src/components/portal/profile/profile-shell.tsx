@@ -1,4 +1,4 @@
-import { ReactNode } from "react"
+import { ReactNode, useMemo, memo } from "react"
 import { Link } from "react-router-dom"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -60,7 +60,7 @@ interface ProfileSummaryCardProps {
   isAvatarUpdating?: boolean
 }
 
-export function ProfileSummaryCard({
+export const ProfileSummaryCard = memo(function ProfileSummaryCard({
   roleLabel,
   subtitle,
   metrics = [],
@@ -70,28 +70,49 @@ export function ProfileSummaryCard({
 }: ProfileSummaryCardProps) {
   const { user } = useAuth()
 
+  // Memoize user-dependent values to prevent unnecessary re-renders
+  const userDisplayName = useMemo(() => {
+    if (!user) return ""
+    return `${user.firstName || ""} ${user.lastName || ""}`.trim()
+  }, [user?.firstName, user?.lastName])
+
+  const userInitials = useMemo(() => {
+    if (!user) return ""
+    return `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`
+  }, [user?.firstName, user?.lastName])
+
+  const displayRole = useMemo(() => {
+    if (!user) return ""
+    return roleLabel || ROLE_LABELS[user.role as UserRole] || user.role
+  }, [user?.role, roleLabel])
+
+  const userEmail = useMemo(() => {
+    return user?.email || ""
+  }, [user?.email])
+
+  const userProfilePicture = useMemo(() => {
+    return user?.profilePicture
+  }, [user?.profilePicture])
+
   if (!user) {
     return null
   }
 
-  const displayRole = roleLabel || ROLE_LABELS[user.role as UserRole] || user.role
-
   const renderAvatar = () => {
-    if (user.profilePicture) {
+    if (userProfilePicture) {
       return (
         <ProfilePictureViewer
-          imageSrc={user.profilePicture}
-          userName={`${user.firstName} ${user.lastName}`}
+          imageSrc={userProfilePicture}
+          userName={userDisplayName}
         />
       )
     }
 
     return (
       <Avatar className="h-28 w-28 border-4 border-background shadow-lg">
-        <AvatarImage src={user.profilePicture} />
+        <AvatarImage src={userProfilePicture} />
         <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-          {user.firstName?.[0]}
-          {user.lastName?.[0]}
+          {userInitials}
         </AvatarFallback>
       </Avatar>
     )
@@ -124,13 +145,13 @@ export function ProfileSummaryCard({
             )}
           </div>
           <h3 className="font-semibold text-xl mt-2 mb-1">
-            {user.firstName} {user.lastName}
+            {userDisplayName}
           </h3>
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1">
             <span>{displayRole}</span>
           </div>
           <div className="text-sm text-muted-foreground">
-            {subtitle || user.email}
+            {subtitle || userEmail}
           </div>
         </div>
 
@@ -172,5 +193,5 @@ export function ProfileSummaryCard({
       </CardContent>
     </Card>
   )
-}
+})
 

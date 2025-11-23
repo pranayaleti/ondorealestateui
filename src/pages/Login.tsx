@@ -12,6 +12,7 @@ import { useValidatedForm } from "@/hooks/useValidatedForm"
 import type { FormValidationSchema } from "@/utils/validation.utils"
 import { sanitize, validators } from "@/utils/validation.utils"
 import { ERROR_MESSAGES, REGEX_PATTERNS } from "@/constants/regex.constants"
+import { companyInfo } from "@/constants/companyInfo"
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -169,7 +170,7 @@ export default function LoginPage() {
             {/* Manager Account */}
             <Card 
               className="bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600 cursor-pointer hover:border-orange-500 dark:hover:border-orange-400 transition-colors"
-              onClick={() => handleFillCredentials('manager@ondorealestate.com', 'Test@123')}
+              onClick={() => handleFillCredentials(`manager@${companyInfo.social.twitterDomain}`, 'Test@123')}
             >
               <CardContent className="p-3 sm:p-4">
                 <div className="mb-2 sm:mb-3">
@@ -178,7 +179,7 @@ export default function LoginPage() {
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
                   <div className="flex flex-col gap-0.5 sm:gap-1">
                     <span className="text-gray-400 dark:text-gray-300">Email:</span>
-                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all leading-tight sm:leading-normal">manager@ondorealestate.com</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all leading-tight sm:leading-normal">{`manager@${companyInfo.social.twitterDomain}`}</span>
                   </div>
                   <div className="flex flex-col gap-0.5 sm:gap-1">
                     <span className="text-gray-400 dark:text-gray-300">Password:</span>
@@ -247,7 +248,7 @@ export default function LoginPage() {
             {/* Maintenance Account */}
             <Card 
               className="bg-gray-900/80 dark:bg-gray-800/80 border border-gray-700 dark:border-gray-600 cursor-pointer hover:border-orange-500 dark:hover:border-orange-400 transition-colors"
-              onClick={() => handleFillCredentials('maintenance@ondorealestate.com', 'Test@123')}
+              onClick={() => handleFillCredentials(`maintenance@${companyInfo.social.twitterDomain}`, 'Test@123')}
             >
               <CardContent className="p-3 sm:p-4">
                 <div className="mb-2 sm:mb-3">
@@ -256,7 +257,7 @@ export default function LoginPage() {
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
                   <div className="flex flex-col gap-0.5 sm:gap-1">
                     <span className="text-gray-400 dark:text-gray-300">Email:</span>
-                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all leading-tight sm:leading-normal">maintenance@ondorealestate.com</span>
+                    <span className="text-gray-200 dark:text-gray-100 font-medium break-all leading-tight sm:leading-normal">{`maintenance@${companyInfo.social.twitterDomain}`}</span>
                   </div>
                   <div className="flex flex-col gap-0.5 sm:gap-1">
                     <span className="text-gray-400 dark:text-gray-300">Password:</span>

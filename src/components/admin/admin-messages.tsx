@@ -11,6 +11,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { MessageSquare, Send, Search, Plus, Reply, User, Users, Building, Calendar } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { companyInfo } from "@/constants/companyInfo"
+
+// Helper function to generate email addresses based on company domain
+const getEmail = (prefix: string) => `${prefix}@${companyInfo.social.twitterDomain}`
 
 // Mock messages data for admin
 const mockAdminMessages = [
@@ -18,7 +22,7 @@ const mockAdminMessages = [
     id: 1,
     subject: "Property Approval Request",
     from: "Manager Team",
-    fromEmail: "manager@ondorealestate.com",
+    fromEmail: getEmail("manager"),
     fromRole: "manager",
     date: "2024-01-20",
     time: "2:30 PM",
@@ -31,7 +35,7 @@ const mockAdminMessages = [
     id: 2,
     subject: "User Management Update",
     from: "Super Admin",
-    fromEmail: "superadmin@ondorealestate.com",
+    fromEmail: getEmail("superadmin"),
     fromRole: "super_admin",
     date: "2024-01-18",
     time: "10:15 AM",
@@ -44,7 +48,7 @@ const mockAdminMessages = [
     id: 3,
     subject: "Monthly Report Ready",
     from: "System",
-    fromEmail: "system@ondorealestate.com",
+    fromEmail: getEmail("system"),
     fromRole: "system",
     date: "2024-01-15",
     time: "4:45 PM",
@@ -269,6 +273,7 @@ function ComposeMessage() {
     toast({
       title: "Message Sent",
       description: "Your message has been sent successfully.",
+      duration: 3000,
     })
   }
 

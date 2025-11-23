@@ -59,6 +59,7 @@ export function UpdateStatusDialog({
       toast({
         title: "Status Updated",
         description: "The maintenance request status has been updated successfully.",
+        duration: 3000,
       })
 
       onOpenChange(false)
