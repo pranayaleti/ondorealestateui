@@ -1,11 +1,13 @@
 import { Wrench, CreditCard, FileText, MessageSquare, DollarSign, Calendar, Building, TrendingUp, CheckCircle, Clock, AlertCircle } from "lucide-react"
-import { PortalConfig, StatCardConfig, QuickAction, DashboardTab } from "../../base/types"
+import { PortalConfig, StatCardConfig, QuickAction, DashboardTab, DashboardWidget } from "../../base/types"
 import { propertyApi, maintenanceApi, type Property, type MaintenanceRequest } from "@/lib/api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { formatUSDate } from "@/lib/us-format"
 import type { ActivityItem } from "../../base/types"
+import { BookkeepingReportingWidget } from "../../widgets/bookkeeping-reporting"
+import { TenantScreeningWidgetContainer } from "@/components/tenant-screening/TenantScreeningWidgetContainer"
 
 /**
  * Tenant Portal Configuration
@@ -470,6 +472,48 @@ export function createTenantConfig(
     },
   ]
 
+  const widgets: DashboardWidget[] = [
+    {
+      id: "tenant-screening",
+      title: "Tenant Screening",
+      gridCols: 2,
+      priority: 5,
+      component: (
+        <TenantScreeningWidgetContainer
+          ctaHref="/tenant/lease-details"
+          ctaLabel="View my screening"
+          description="Review your screening status, keep documents up to date, and unlock faster renewals."
+          title="Your Screening Status"
+          limit={3}
+        />
+      ),
+    },
+    {
+      id: "bookkeeping-reporting",
+      title: "Bookkeeping & Reporting",
+      gridCols: 2,
+      priority: 50,
+      component: (
+        <BookkeepingReportingWidget
+          eyebrow="Payments & Reporting"
+          title="Stay on top of rent, receipts, and reimbursements."
+          subtitle="Centralize rent history, categorize reimbursements, and export statements when you need them."
+          ctaLabel="View payments"
+          ctaHref="/tenant/payments"
+          taxSummary={{
+            timePeriod: "Lease Term",
+            properties: assignedProperty ? assignedProperty.addressLine1 ?? "Current Property" : "Pending Assignment",
+            categorized: paymentStats.totalPayments * 5,
+            uncategorized: Math.max(0, paymentStats.totalPayments - paymentStats.onTimePayments),
+            attachments: documentsCount,
+            ctaLabel: "Download receipts",
+            ctaHref: "/tenant/documents",
+          }}
+        />
+      ),
+    },
+  ]
+
   return {
     portalId: "tenant",
     role: "tenant",
@@ -487,7 +531,7 @@ export function createTenantConfig(
     tabs,
     statCards,
     quickActions,
-    widgets: [],
+    widgets,
     
     // Data configuration
     dataFetchers: {

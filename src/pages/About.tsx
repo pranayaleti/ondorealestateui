@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { PageBanner } from "@/components/page-banner"
 import { companyInfo } from "@/constants/companyInfo"
+import { TenantScreeningSection } from "@/components/tenant-screening/TenantScreeningSection"
 
 export default function AboutPage() {
   return (
@@ -10,6 +11,17 @@ export default function AboutPage() {
         title={`About ${companyInfo.name}`}
         subtitle="Professional property management services connecting quality properties with qualified tenants"
       />
+
+      <section className="py-12">
+        <div className="container mx-auto px-4">
+          <TenantScreeningSection
+            ctaHref="/contact"
+            ctaLabel="Partner with us"
+            title="Screening engineered for professional property teams"
+            description="Deliver consistent, auditable screening that keeps your owners protected and tenants onboarded faster."
+          />
+        </div>
+      </section>
 
       <section className="py-16 md:py-24 bg-background">
         <div className="container mx-auto px-4">

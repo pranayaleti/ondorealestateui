@@ -1,11 +1,13 @@
 import { Shield, Users, Building, Wrench, DollarSign, BarChart3, Clock, CheckCircle, XCircle } from "lucide-react"
-import { PortalConfig, StatCardConfig, QuickAction, DashboardTab, ActivityItem } from "../../base/types"
+import { PortalConfig, StatCardConfig, QuickAction, DashboardTab, ActivityItem, DashboardWidget } from "../../base/types"
 import { propertyApi, authApi, maintenanceApi, type Property, type InvitedUser, type MaintenanceRequest } from "@/lib/api"
 import { formatUSDate } from "@/lib/us-format"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { Badge } from "@/components/ui/badge"
+import { BookkeepingReportingWidget } from "../../widgets/bookkeeping-reporting"
+import { TenantScreeningWidgetContainer } from "@/components/tenant-screening/TenantScreeningWidgetContainer"
 
 /**
  * Admin Portal Configuration
@@ -297,6 +299,44 @@ export function createAdminConfig(
     },
   ]
 
+  const widgets: DashboardWidget[] = [
+    {
+      id: "tenant-screening",
+      title: "Tenant Screening",
+      gridCols: 2,
+      priority: 5,
+      component: (
+        <TenantScreeningWidgetContainer
+          ctaHref="/admin/tenants"
+          ctaLabel="Audit applicants"
+          description="Monitor screening volume, fraud prevention, and compliance signals across the organization."
+          title="Screening Oversight"
+        />
+      ),
+    },
+    {
+      id: "bookkeeping-reporting",
+      title: "Bookkeeping & Reporting",
+      gridCols: 2,
+      priority: 50,
+      component: (
+        <BookkeepingReportingWidget
+          ctaLabel="Open finances"
+          ctaHref="/admin/finances"
+          taxSummary={{
+            timePeriod: "Last Month",
+            properties: `${stats.totalProperties} Properties`,
+            categorized: stats.totalProperties * 5 + stats.totalOwners,
+            uncategorized: Math.max(1, stats.pendingProperties),
+            attachments: stats.totalMaintenance + 3,
+            ctaLabel: "Download tax pack",
+            ctaHref: "/admin/reports",
+          }}
+        />
+      ),
+    },
+  ]
+
   return {
     portalId: "admin",
     role: "admin",
@@ -315,7 +355,7 @@ export function createAdminConfig(
     tabs,
     statCards,
     quickActions,
-    widgets: [],
+    widgets,
     
     // Data configuration
     dataFetchers: {

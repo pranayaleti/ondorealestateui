@@ -122,14 +122,14 @@ export default function TenantDashboard() {
 
   // Calculate lease progress
   const leaseProgress = useMemo(() => {
-    if (!assignedProperty?.createdAt || !getLeaseExpiration()) return 0
+    if (!assignedProperty?.createdAt || !getLeaseExpiration) return 0
     const leaseStart = new Date(assignedProperty.createdAt)
-    const leaseEnd = getLeaseExpiration()!
+    const leaseEnd = getLeaseExpiration.date
     const now = new Date()
     const totalDays = (leaseEnd.getTime() - leaseStart.getTime()) / (1000 * 60 * 60 * 24)
     const daysElapsed = (now.getTime() - leaseStart.getTime()) / (1000 * 60 * 60 * 24)
     return Math.min(Math.max((daysElapsed / totalDays) * 100, 0), 100)
-  }, [assignedProperty])
+  }, [assignedProperty, getLeaseExpiration])
 
   // Calculate days at property
   const daysAtProperty = useMemo(() => {
@@ -506,7 +506,7 @@ export default function TenantDashboard() {
             )}
 
             {/* Lease Progress */}
-            {getLeaseExpiration() && (
+            {getLeaseExpiration && (
               <Card>
                 <CardHeader>
                   <CardTitle>Lease Progress</CardTitle>
@@ -532,7 +532,7 @@ export default function TenantDashboard() {
                     </div>
                     <div>
                       <p className="text-muted-foreground">Months Remaining</p>
-                      <p className="font-semibold">{getLeaseExpiration() ? Math.ceil((getLeaseExpiration()!.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24 * 30)) : 0} months</p>
+                      <p className="font-semibold">{getLeaseExpiration.monthsRemaining} months</p>
                     </div>
                   </div>
                   <Link to="/tenant/lease-details">

@@ -1,5 +1,5 @@
 import { Wrench, Clock, CheckCircle, AlertTriangle, Building } from "lucide-react"
-import { PortalConfig, StatCardConfig, QuickAction, DashboardTab } from "../../base/types"
+import { PortalConfig, StatCardConfig, QuickAction, DashboardTab, DashboardWidget } from "../../base/types"
 import { maintenanceApi, type MaintenanceRequest } from "@/lib/api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -7,6 +7,8 @@ import { Link } from "react-router-dom"
 import { Badge } from "@/components/ui/badge"
 import { formatUSDate } from "@/lib/us-format"
 import type { ActivityItem } from "../../base/types"
+import { BookkeepingReportingWidget } from "../../widgets/bookkeeping-reporting"
+import { TenantScreeningWidgetContainer } from "@/components/tenant-screening/TenantScreeningWidgetContainer"
 
 /**
  * Maintenance Portal Configuration
@@ -218,6 +220,48 @@ export function createMaintenanceConfig(
     },
   ]
 
+  const widgets: DashboardWidget[] = [
+    {
+      id: "tenant-screening",
+      title: "Tenant Screening",
+      gridCols: 2,
+      priority: 5,
+      component: (
+        <TenantScreeningWidgetContainer
+          ctaHref="/maintenance/tickets"
+          ctaLabel="View flagged tickets"
+          description="Surface fraud risk tied to maintenance requests and keep technicians looped in on verified residents."
+          title="Fraud & Screening Alerts"
+          limit={3}
+        />
+      ),
+    },
+    {
+      id: "bookkeeping-reporting",
+      title: "Bookkeeping & Reporting",
+      gridCols: 2,
+      priority: 50,
+      component: (
+        <BookkeepingReportingWidget
+          eyebrow="Maintenance Financials"
+          title="Know exactly where service dollars go."
+          subtitle="Tie labor hours and material costs to properties, and deliver audit-ready breakdowns."
+          ctaLabel="Review cost reports"
+          ctaHref="/maintenance/reports"
+          taxSummary={{
+            timePeriod: "This Week",
+            properties: `${assignedRequests.length} Active Jobs`,
+            categorized: stats.inProgress + stats.completedToday * 2,
+            uncategorized: Math.max(1, stats.pending),
+            attachments: assignedRequests.length,
+            ctaLabel: "Export cost summary",
+            ctaHref: "/maintenance/documents",
+          }}
+        />
+      ),
+    },
+  ]
+
   return {
     portalId: "maintenance",
     role: "maintenance",
@@ -236,7 +280,7 @@ export function createMaintenanceConfig(
     tabs,
     statCards,
     quickActions,
-    widgets: [],
+    widgets,
     
     // Data configuration
     dataFetchers: {

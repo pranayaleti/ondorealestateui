@@ -1,11 +1,13 @@
 import { Building, Users, Clock, CheckCircle, XCircle, UserPlus, Mail, AlertTriangle } from "lucide-react"
-import { PortalConfig, StatCardConfig, QuickAction, DashboardTab } from "../../base/types"
+import { PortalConfig, StatCardConfig, QuickAction, DashboardTab, DashboardWidget } from "../../base/types"
 import { propertyApi, authApi, leadApi, type Property, type InvitedUser, type Lead } from "@/lib/api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { formatUSDate } from "@/lib/us-format"
 import type { ActivityItem } from "../../base/types"
+import { BookkeepingReportingWidget } from "../../widgets/bookkeeping-reporting"
+import { TenantScreeningWidgetContainer } from "@/components/tenant-screening/TenantScreeningWidgetContainer"
 
 /**
  * Manager Portal Configuration
@@ -279,6 +281,45 @@ export function createManagerConfig(
     },
   ]
 
+  const widgets: DashboardWidget[] = [
+    {
+      id: "tenant-screening",
+      title: "Tenant Screening",
+      gridCols: 2,
+      priority: 5,
+      component: (
+        <TenantScreeningWidgetContainer
+          ctaHref="/dashboard/tenants"
+          ctaLabel="Manage applicants"
+          description="Track every applicant across properties, flag fraud faster, and move qualified renters forward."
+          title="Screening Control Center"
+        />
+      ),
+    },
+    {
+      id: "bookkeeping-reporting",
+      title: "Bookkeeping & Reporting",
+      gridCols: 2,
+      priority: 50,
+      component: (
+        <BookkeepingReportingWidget
+          ctaLabel="Go to finances"
+          ctaHref="/dashboard/finances"
+          subtitle="Keep every property ledger synchronized automatically."
+          taxSummary={{
+            timePeriod: "Month to Date",
+            properties: `${stats.totalProperties} Properties`,
+            categorized: stats.approvedProperties * 12 + stats.totalOwners,
+            uncategorized: Math.max(1, stats.pendingReview),
+            attachments: stats.totalTenants + stats.activeLeads,
+            ctaLabel: "Export manager pack",
+            ctaHref: "/dashboard/reports",
+          }}
+        />
+      ),
+    },
+  ]
+
   return {
     portalId: "manager",
     role: "manager",
@@ -297,7 +338,7 @@ export function createManagerConfig(
     tabs,
     statCards,
     quickActions,
-    widgets: [],
+    widgets,
     
     // Data configuration
     dataFetchers: {

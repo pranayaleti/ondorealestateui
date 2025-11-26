@@ -1,5 +1,7 @@
 // API Configuration
 const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL as string | undefined) || 'http://localhost:3000/api';
+const TENANT_SCREENING_API_BASE_URL =
+  (import.meta.env?.VITE_TENANT_SCREENING_API_BASE_URL as string | undefined) || API_BASE_URL;
 
 // Types
 export interface User {
@@ -230,6 +232,59 @@ export interface Lead {
   ownerFirstName?: string;
   ownerLastName?: string;
   ownerEmail?: string;
+}
+
+export type TenantScreeningStatus = 'approved' | 'in_review' | 'flagged' | 'pending';
+
+export interface TenantScreeningSummary {
+  timeframe: string;
+  totalApplications: number;
+  approvedCount: number;
+  flaggedCount: number;
+  fraudPrevented: number;
+  averageScore: number;
+  verificationRate: number;
+  topSignals: Array<{ label: string; value: string }>;
+}
+
+export interface TenantScreeningApplicant {
+  id: string;
+  applicantName: string;
+  propertyName?: string;
+  score: number;
+  status: TenantScreeningStatus;
+  submittedAt: string;
+  verifiedIds: number;
+  fraudFlags?: string[];
+  progress: number;
+  decisionTimeline?: string;
+  rentAmount?: number;
+  ownerName?: string;
+  managerName?: string;
+}
+
+export interface TenantScreeningReport extends TenantScreeningApplicant {
+  email?: string;
+  phone?: string;
+  address?: string;
+  history: Array<{ label: string; value: string }>;
+  documents: Array<{ name: string; status: 'verified' | 'pending' | 'missing' }>;
+  riskSummary?: string;
+  notes?: string;
+}
+
+export interface TenantScreeningSummaryParams {
+  role?: User['role'];
+  ownerId?: string;
+  managerId?: string;
+  propertyId?: string;
+  tenantId?: string;
+  timeframe?: '7d' | '30d' | '90d';
+}
+
+export interface TenantScreeningApplicantParams extends TenantScreeningSummaryParams {
+  limit?: number;
+  status?: TenantScreeningStatus;
 }
 
 export interface Property {
@@ -474,6 +529,78 @@ async function apiRequest<T>(
       throw new ApiError('Network error: Unable to reach server', 0);
     }
     throw new ApiError('Network error', 0);
+  }
+}
+
+function buildQueryString(params?: Record<string, unknown>): string {
+  if (!params) return '';
+  const query = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    if (typeof value === 'object') return;
+    query.append(key, String(value));
+  });
+
+  const serialized = query.toString();
+  return serialized ? `?${serialized}` : '';
+}
+
+async function tenantScreeningRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  if (!TENANT_SCREENING_API_BASE_URL || TENANT_SCREENING_API_BASE_URL === API_BASE_URL) {
+    return apiRequest<T>(normalizedEndpoint, options);
+  }
+
+  const url = `${TENANT_SCREENING_API_BASE_URL}${normalizedEndpoint}`;
+  const headers = new Headers(options.headers as HeadersInit);
+  if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  const token = tokenManager.getToken();
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  const { headers: _ignoredHeaders, ...restOptions } = options;
+  const config: RequestInit = {
+    ...restOptions,
+    headers,
+    credentials: 'include',
+  };
+
+  try {
+    const response = await fetch(url, config);
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType && contentType.includes('application/json');
+
+    let data: any;
+    if (isJson) {
+      const text = await response.text();
+      data = text ? JSON.parse(text) : {};
+    } else {
+      const text = await response.text();
+      data = { message: text || 'An error occurred contacting tenant screening service' };
+    }
+
+    if (!response.ok) {
+      throw new ApiError(
+        typeof data.message === 'string' && data.message.trim()
+          ? data.message
+          : `Tenant screening request failed (${response.status})`,
+        response.status,
+        data.errors
+      );
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError('Network error contacting tenant screening service', 0);
   }
 }
 
@@ -921,6 +1048,24 @@ export const maintenanceApi = {
       method: 'PUT',
       body: JSON.stringify(data),
     });
+  },
+};
+
+// Tenant screening API functions
+export const tenantScreeningApi = {
+  async getSummary(params?: TenantScreeningSummaryParams): Promise<TenantScreeningSummary> {
+    const query = buildQueryString(params as Record<string, unknown> | undefined);
+    return tenantScreeningRequest<TenantScreeningSummary>(`/tenant-screening/summary${query}`);
+  },
+
+  async getApplicants(params?: TenantScreeningApplicantParams): Promise<TenantScreeningApplicant[]> {
+    const query = buildQueryString(params as Record<string, unknown> | undefined);
+    const result = await tenantScreeningRequest<TenantScreeningApplicant[]>(`/tenant-screening/applicants${query}`);
+    return Array.isArray(result) ? result : [];
+  },
+
+  async getReport(reportId: string): Promise<TenantScreeningReport> {
+    return tenantScreeningRequest<TenantScreeningReport>(`/tenant-screening/reports/${reportId}`);
   },
 };
 

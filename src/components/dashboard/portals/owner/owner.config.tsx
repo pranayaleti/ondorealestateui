@@ -1,11 +1,13 @@
 import { Building, DollarSign, TrendingUp, Users, FileText, BarChart3, Wrench, Plus, MessageSquare, FolderOpen } from "lucide-react"
-import { PortalConfig, StatCardConfig, QuickAction, DashboardTab } from "../../base/types"
+import { PortalConfig, StatCardConfig, QuickAction, DashboardTab, DashboardWidget } from "../../base/types"
 import { propertyApi, type Property } from "@/lib/api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { formatUSDate } from "@/lib/us-format"
 import type { ActivityItem } from "../../base/types"
+import { BookkeepingReportingWidget } from "../../widgets/bookkeeping-reporting"
+import { TenantScreeningWidgetContainer } from "@/components/tenant-screening/TenantScreeningWidgetContainer"
 
 /**
  * Owner Portal Configuration
@@ -294,6 +296,51 @@ export function createOwnerConfig(properties: Property[]): PortalConfig {
     },
   ]
 
+  const widgets: DashboardWidget[] = [
+    {
+      id: "tenant-screening",
+      title: "Tenant Screening",
+      gridCols: 2,
+      priority: 10,
+      component: (
+        <TenantScreeningWidgetContainer
+          ctaHref="/owner/tenants"
+          ctaLabel="View applicants"
+          description="See every applicant's status, fraud signals, and verification progress."
+          title="Tenant Screening Pipeline"
+        />
+      ),
+    },
+    {
+      id: "bookkeeping-reporting",
+      title: "Bookkeeping & Reporting",
+      gridCols: 2,
+      priority: 50,
+      component: (
+        <BookkeepingReportingWidget
+          ctaLabel="Review finances"
+          ctaHref="/owner/finances"
+          subtitle="Track NOI, cash flow, and export accountant-ready statements."
+          cashFlow={{
+            netCashFlow: `$${portfolioStats.netIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+            cashInflow: `$${portfolioStats.monthlyRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+            cashOutflow: `$${portfolioStats.monthlyExpenses.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+            months: ["Apr", "May", "Jun", "Jul"],
+          }}
+          taxSummary={{
+            timePeriod: "Current Year",
+            properties: `${portfolioStats.totalProperties} Properties`,
+            categorized: portfolioStats.totalProperties * 40,
+            uncategorized: Math.max(1, portfolioStats.totalProperties - portfolioStats.occupiedUnits),
+            attachments: portfolioStats.totalProperties * 2,
+            ctaLabel: "Download owner pack",
+            ctaHref: "/owner/reports",
+          }}
+        />
+      ),
+    },
+  ]
+
   return {
     portalId: "owner",
     role: "owner",
@@ -311,7 +358,7 @@ export function createOwnerConfig(properties: Property[]): PortalConfig {
     tabs,
     statCards,
     quickActions,
-    widgets: [],
+    widgets,
     
     // Data configuration
     dataFetchers: {

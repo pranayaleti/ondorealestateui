@@ -6,6 +6,7 @@ import { SearchForm } from "@/components/search-form"
 import { Home, Building, DollarSign, Shield, Star } from "lucide-react"
 import { PropertyDetailsModal } from "@/components/property-details-modal"
 import { companyInfo } from "@/constants/companyInfo"
+import { TenantScreeningSection } from "@/components/tenant-screening/TenantScreeningSection"
 
 // Mock data for featured properties
 const featuredProperties = [
@@ -120,6 +121,17 @@ export default function LandingPage() {
           <div className="mx-auto max-w-md">
             <SearchForm />
           </div>
+        </div>
+      </section>
+
+      <section className="bg-white dark:bg-gray-950 px-4 py-12 sm:py-16">
+        <div className="mx-auto max-w-6xl">
+          <TenantScreeningSection
+            ctaHref="/contact"
+            ctaLabel="Activate screening"
+            description="Human experts plus AI instantly surface fraud, verify ID, and return reports your owners trust."
+            title="Tenant screening that actually works"
+          />
         </div>
       </section>
 

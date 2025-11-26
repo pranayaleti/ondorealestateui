@@ -14,6 +14,7 @@ import { companyInfo, getWeekdayHours } from "@/constants/companyInfo"
 import { useAuth } from "@/lib/auth-context"
 import { useNavigate } from "react-router-dom"
 import { getDashboardPath } from "@/lib/auth-utils"
+import { TenantScreeningSection } from "@/components/tenant-screening/TenantScreeningSection"
 
 export default function ContactPage() {
   const { toast } = useToast()
@@ -110,6 +111,17 @@ export default function ContactPage() {
       />
 
       <main className="flex-1">
+        <section className="py-10">
+          <div className="container px-4 md:px-6">
+            <TenantScreeningSection
+              ctaHref="/contact"
+              ctaLabel="Book a screening demo"
+              description="Share a few details with our team and we’ll configure screening workflows that match your portfolio."
+              title="Deploy modern screening across every portfolio"
+            />
+          </div>
+        </section>
+
         <section className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
             <div className="mb-6">

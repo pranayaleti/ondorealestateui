@@ -1,11 +1,13 @@
 import { Shield, Users, Building, Wrench, Clock, CheckCircle, XCircle } from "lucide-react"
-import { PortalConfig, StatCardConfig, QuickAction, DashboardTab } from "../../base/types"
+import { PortalConfig, StatCardConfig, QuickAction, DashboardTab, DashboardWidget } from "../../base/types"
 import { propertyApi, authApi, maintenanceApi, type Property, type InvitedUser, type MaintenanceRequest } from "@/lib/api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { formatUSDate } from "@/lib/us-format"
 import type { ActivityItem } from "../../base/types"
+import { BookkeepingReportingWidget } from "../../widgets/bookkeeping-reporting"
+import { TenantScreeningWidgetContainer } from "@/components/tenant-screening/TenantScreeningWidgetContainer"
 
 /**
  * Super Admin Portal Configuration
@@ -339,6 +341,45 @@ export function createSuperAdminConfig(
     },
   ]
 
+  const widgets: DashboardWidget[] = [
+    {
+      id: "tenant-screening",
+      title: "Tenant Screening",
+      gridCols: 2,
+      priority: 5,
+      component: (
+        <TenantScreeningWidgetContainer
+          ctaHref="/super-admin/tenants"
+          ctaLabel="View screening analytics"
+          description="Organization-wide visibility into applications, fraud signals, and verification speed."
+          title="Screening Intelligence"
+        />
+      ),
+    },
+    {
+      id: "bookkeeping-reporting",
+      title: "Bookkeeping & Reporting",
+      gridCols: 2,
+      priority: 50,
+      component: (
+        <BookkeepingReportingWidget
+          ctaLabel="Audit finances"
+          ctaHref="/super-admin/finances"
+          subtitle="Roll-up company-wide books, approvals, and tax packages."
+          taxSummary={{
+            timePeriod: "Quarter to Date",
+            properties: `${stats.totalProperties} Properties`,
+            categorized: stats.totalProperties * 30,
+            uncategorized: Math.max(1, stats.pendingProperties),
+            attachments: stats.totalManagers + stats.totalMaintenance,
+            ctaLabel: "Download compliance pack",
+            ctaHref: "/super-admin/reports",
+          }}
+        />
+      ),
+    },
+  ]
+
   return {
     portalId: "super_admin",
     role: "super_admin",
@@ -357,7 +398,7 @@ export function createSuperAdminConfig(
     tabs,
     statCards,
     quickActions,
-    widgets: [],
+    widgets,
     
     // Data configuration
     dataFetchers: {
